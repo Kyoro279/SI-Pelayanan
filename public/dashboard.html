@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - SI Pelayanan</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="text-align: center; margin-top: 100px;">
+    
+    <h1 id="pesan-selamat-datang">Memuat data...</h1>
+    <p id="email-user"></p>
+    
+    <button id="btn-logout" style="padding: 5px 15px; margin-top: 20px; cursor: pointer; color: red;">Logout</button>
+
+    <script>
+        // Masukkan URL dan Key yang sama persis dengan yang ada di auth.js
+        const SUPABASE_URL = 'URL_SUPABASE_ANDA'; 
+        const SUPABASE_ANON_KEY = 'KUNCI_ANON_ANDA';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Fungsi mengecek user yang sedang login
+        async function cekUser() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session) {
+                // Jika sudah login, tampilkan nama dan email dari Google
+                document.getElementById('pesan-selamat-datang').innerText = `Selamat Datang, ${session.user.user_metadata.full_name}!`;
+                document.getElementById('email-user').innerText = session.user.email;
+            } else {
+                // Jika belum login, tendang balik ke halaman awal
+                window.location.href = '/';
+            }
+        }
+        cekUser();
+
+        // Fungsi Logout
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = '/'; // Kembali ke halaman utama
+        });
+    </script>
+</body>
+</html>
