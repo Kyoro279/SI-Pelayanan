@@ -33,7 +33,7 @@ app.get('/api/config', (req, res) => {
 
 // Rute untuk halaman utama (Login)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 // Rute untuk halaman Dashboard (Setelah Login)
@@ -48,3 +48,6 @@ app.get('/dashboard', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server SI Pelayanan berjalan di http://localhost:${PORT}`);
 });
+
+const laguRoutes = require('./routes/laguRoutes');
+app.use('/api/lagu', laguRoutes);

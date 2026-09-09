@@ -2,42 +2,144 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - SI Pelayanan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - KITTEENS HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body style="text-align: center; margin-top: 100px;">
-    
-    <h1 id="pesan-selamat-datang">Memuat data...</h1>
-    <p id="email-user"></p>
-    
-    <button id="btn-logout" style="padding: 5px 15px; margin-top: 20px; cursor: pointer; color: red;">Logout</button>
+<!-- Atribut data-active digunakan layout.js untuk highlight menu -->
+<body data-active="dashboard">
 
+    <!-- Supabase Init & Auth Check -->
     <script>
-        // Masukkan URL dan Key yang sama persis dengan yang ada di auth.js
-        const SUPABASE_URL = 'URL_SUPABASE_ANDA'; 
-        const SUPABASE_ANON_KEY = 'KUNCI_ANON_ANDA';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Buat promise agar script lain (seperti layout.js) bisa menunggu auth selesai
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                // Ambil config Supabase dari backend (membaca dari .env)
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
+                
+                // Buat instance global
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
 
-        // Fungsi mengecek user yang sedang login
-        async function cekUser() {
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (session) {
-                // Jika sudah login, tampilkan nama dan email dari Google
-                document.getElementById('pesan-selamat-datang').innerText = `Selamat Datang, ${session.user.user_metadata.full_name}!`;
-                document.getElementById('email-user').innerText = session.user.email;
-            } else {
-                // Jika belum login, tendang balik ke halaman awal
-                window.location.href = '/';
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/'; // Redirect ke halaman login jika belum login
+                    return null;
+                } else {
+                    // Tampilkan nama user di header dashboard
+                    const metadata = session.user.user_metadata || {};
+                    const fullName = metadata.full_name || session.user.email.split('@')[0];
+                    
+                    const updateName = () => {
+                        const headerUserName = document.getElementById('header-user-name');
+                        if(headerUserName) headerUserName.textContent = fullName;
+                    };
+
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', updateName);
+                    } else {
+                        updateName();
+                    }
+                    return session;
+                }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
             }
-        }
-        cekUser();
-
-        // Fungsi Logout
-        document.getElementById('btn-logout').addEventListener('click', async () => {
-            await supabase.auth.signOut();
-            window.location.href = '/'; // Kembali ke halaman utama
-        });
+        })();
     </script>
+
+    <div class="layout">
+        <!-- Container untuk Component Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Konten Utama -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="welcome-text">
+                    <p class="subtitle">Selamat datang kembali,</p>
+                    <h1 class="title" id="header-user-name">Memuat...</h1>
+                    <p class="role-text">Log in sebagai Admin</p>
+                </div>
+                <div class="notification-icon">
+                    <i class="ph ph-bell"></i>
+                    <span class="badge">2</span>
+                </div>
+            </header>
+
+            <!-- Quick Links -->
+            <section class="quick-links">
+                <div class="quick-card">
+                    <div class="icon-box"><i class="ph ph-calendar-blank"></i></div>
+                    <div class="card-title">Jadwal Pelayanan</div>
+                    <div class="arrow"><i class="ph ph-arrow-right"></i></div>
+                </div>
+                <div class="quick-card">
+                    <div class="icon-box"><i class="ph ph-music-notes"></i></div>
+                    <div class="card-title">Bank Lagu</div>
+                    <div class="arrow"><i class="ph ph-arrow-right"></i></div>
+                </div>
+                <div class="quick-card">
+                    <div class="icon-box"><i class="ph ph-users"></i></div>
+                    <div class="card-title">Manajemen User</div>
+                    <div class="arrow"><i class="ph ph-arrow-right"></i></div>
+                </div>
+            </section>
+
+            <!-- Pelayanan Berikutnya -->
+            <section class="next-service">
+                <div class="card-header">
+                    <span class="label">PELAYANAN BERIKUTNYA</span>
+                    <button class="btn-detail">Detail →</button>
+                </div>
+                <div class="service-content">
+                    <h2>Iman yang Tidak Goyah</h2>
+                    <p class="date">Sabtu, 6 Juni 2026</p>
+                    <p class="desc">Mengajak jemaat untuk berakar kuat dalam Kristus di tengah tantangan hidup.</p>
+                </div>
+                <div class="service-footer">
+                    <span class="footer-label">Pengkotbah</span>
+                    <span class="footer-value">Ps. Sebastian Marco</span>
+                </div>
+            </section>
+
+            <!-- Jadwal Mendatang -->
+            <section class="upcoming-schedule">
+                <div class="section-header">
+                    <h2>Jadwal Mendatang</h2>
+                    <a href="#" class="view-all">Lihat Semua</a>
+                </div>
+                <div class="schedule-grid">
+                    <div class="schedule-card">
+                        <p class="date">Sabtu, 14 Juni 2026</p>
+                        <h3>Iman yang Tidak Goyah</h3>
+                        <p class="label">Pengkotbah</p>
+                        <p class="value">Ps. Sebastian Marco</p>
+                    </div>
+                    <div class="schedule-card">
+                        <p class="date">Sabtu, 13 Juni 2026</p>
+                        <h3>Kasih yang Memulihkan</h3>
+                        <p class="label">Pengkotbah</p>
+                        <p class="value">Ps. Fernando</p>
+                    </div>
+                    <div class="schedule-card">
+                        <p class="date">Sabtu, 20 Juni 2026</p>
+                        <h3>Pengharapan di Dalam Tuhan</h3>
+                        <p class="label">Pengkotbah</p>
+                        <p class="value">Ps. Jeremy Suwanto</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Script Injector & Logic Layout -->
+    <script src="/js/layout.js"></script>
 </body>
 </html>
