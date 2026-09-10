@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Akun - KITTEENS HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/dashboard.css"> <!-- Layout dasar -->
+    <link rel="stylesheet" href="/css/manajemen-akun.css"> <!-- Spesifik manajemen akun -->
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Supabase CDN (Untuk cek auth session di frontend) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body data-active="akun">
+
+    <!-- Supabase Init & Auth Check -->
+    <script>
+        // Buat promise agar script lain (seperti layout.js) bisa menunggu auth selesai
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                // Ambil config Supabase dari backend
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
+                
+                // Buat instance global
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/'; // Redirect jika belum login
+                    return null;
+                } else {
+                    return session;
+                }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
+            }
+        })();
+    </script>
+
+    <div class="layout">
+        <!-- Sidebar Container (di-inject oleh layout.js) -->
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="page-title">Manajemen Akun</h1>
+                <p class="page-subtitle" id="total-accounts-text">Memuat...</p>
+            </header>
+
+            <!-- Form Tambah Akun -->
+            <section class="add-account-card">
+                <div class="card-header">
+                    <i class="ph ph-user-plus"></i> Tambah Akun
+                </div>
+                <form id="form-tambah-akun" class="add-account-form">
+                    <input type="text" id="input-nama" placeholder="Nama" required>
+                    <input type="email" id="input-email" placeholder="Email" required>
+                    <select id="input-role" required>
+                        <option value="Admin">Admin</option>
+                        <option value="Worship Planner">Worship Planner</option>
+                        <option value="Worship Leader">Worship Leader</option>
+                        <option value="Music Director">Music Director</option>
+                        <option value="Servant" selected>Servant</option>
+                    </select>
+                    <button type="submit" class="btn-submit">Tambah</button>
+                </form>
+            </section>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <i class="ph ph-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" placeholder="Cari Nama / Email">
+            </div>
+
+            <!-- Tabel Data -->
+            <div class="table-container">
+                <table class="account-table">
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th class="action-col"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Baris data akan di-render di sini via JS -->
+                        <tr><td colspan="4" style="text-align: center; padding: 20px;">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/layout.js"></script>
+    <script src="/js/manajemen-akun.js"></script>
+</body>
+</html>

@@ -41,6 +41,11 @@ app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
+// Rute untuk halaman Manajemen Akun
+app.get('/manajemen-akun', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'manajemen-akun.html'));
+});
+
 
 // ==========================================
 // JALANKAN SERVER
@@ -51,3 +56,6 @@ app.listen(PORT, () => {
 
 const laguRoutes = require('./routes/laguRoutes');
 app.use('/api/lagu', laguRoutes);
+
+const akunRoutes = require('./routes/akunRoutes');
+app.use('/api/akun', akunRoutes);
