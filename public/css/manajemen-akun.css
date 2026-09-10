@@ -104,6 +104,7 @@
 .account-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 .account-table th {
     background-color: var(--primary-color);
@@ -113,6 +114,10 @@
     text-align: left;
     padding: 16px 20px;
 }
+.account-table th:nth-child(1) { width: 30%; }
+.account-table th:nth-child(2) { width: 35%; }
+.account-table th:nth-child(3) { width: 20%; }
+.account-table th:nth-child(4) { width: 15%; text-align: right; }
 .account-table td {
     padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
@@ -148,6 +153,20 @@
 .role-worshipleader { background-color: #F0AD4E; } /* Yellow */
 .role-musicdirector { background-color: #9B59B6; } /* Purple */
 .role-guest { background-color: #95A5A6; } /* Gray */
+
+/* Edit Button */
+.btn-edit {
+    background: none;
+    border: none;
+    color: #3B82F6;
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.2s;
+    margin-right: 10px;
+}
+.btn-edit:hover {
+    color: #2563EB;
+}
 
 /* Delete Button */
 .btn-delete {

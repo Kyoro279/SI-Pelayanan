@@ -77,7 +77,10 @@ function renderTable(data) {
                     <option value="Servant" ${akun.role === 'Servant' ? 'selected' : ''}>Servant</option>
                 </select>
             </td>
-            <td style="text-align: right;">
+            <td style="text-align: right; white-space: nowrap;">
+                <button class="btn-edit" onclick="handleEditMode(this, '${akun.email_gmail}', '${akun.nama_lengkap}')" title="Edit">
+                    <i class="ph ph-pencil-simple"></i>
+                </button>
                 <button class="btn-delete" onclick="handleHapusAkun('${akun.email_gmail}')">
                     <i class="ph ph-trash"></i>
                 </button>
@@ -168,6 +171,63 @@ async function handleHapusAkun(email) {
 
         alert('Akun berhasil dihapus');
         await fetchAkun(); // Refresh tabel
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+function handleEditMode(button, oldEmail, oldNama) {
+    const tr = button.closest('tr');
+    
+    // Ganti isi cell nama
+    const tdNama = tr.children[0];
+    tdNama.innerHTML = `<input type="text" class="edit-input-nama" value="${oldNama}" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #CBD5E1; border-radius: 4px; outline: none;">`;
+    
+    // Ganti isi cell email
+    const tdEmail = tr.children[1];
+    tdEmail.innerHTML = `<input type="email" class="edit-input-email" value="${oldEmail}" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #CBD5E1; border-radius: 4px; outline: none;">`;
+    
+    // Ganti tombol action
+    const tdAction = tr.children[3];
+    tdAction.innerHTML = `
+        <button class="btn-edit" onclick="handleSaveEdit(this, '${oldEmail}')" style="color: #10B981;" title="Simpan">
+            <i class="ph ph-check-circle"></i>
+        </button>
+        <button class="btn-delete" onclick="fetchAkun()" title="Batal">
+            <i class="ph ph-x-circle" style="color: #64748B;"></i>
+        </button>
+    `;
+}
+
+async function handleSaveEdit(button, oldEmail) {
+    const tr = button.closest('tr');
+    const newNama = tr.querySelector('.edit-input-nama').value.trim();
+    const newEmail = tr.querySelector('.edit-input-email').value.trim();
+
+    if (!newNama || !newEmail) {
+        alert("Nama dan Email tidak boleh kosong");
+        return;
+    }
+
+    if (newNama === tr.querySelector('.edit-input-nama').defaultValue && newEmail === oldEmail) {
+        fetchAkun(); // tidak ada perubahan
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/akun/${oldEmail}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nama_lengkap: newNama, email_gmail: newEmail })
+        });
+
+        if (!response.ok) {
+            const result = await response.json();
+            throw new Error(result.error || 'Gagal mengubah data akun');
+        }
+
+        // Jika berhasil, refresh tabel
+        await fetchAkun(); 
     } catch (error) {
         alert(error.message);
     }

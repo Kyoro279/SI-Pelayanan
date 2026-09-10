@@ -44,19 +44,24 @@ router.post('/', async (req, res) => {
     }
 });
 
-// PUT: Ubah Role akun berdasarkan email
+// PUT: Ubah data akun berdasarkan email
 router.put('/:email', async (req, res) => {
-    const email = req.params.email;
-    const { role } = req.body;
+    const oldEmail = req.params.email;
+    const { role, nama_lengkap, email_gmail } = req.body;
     try {
+        const updateData = {};
+        if (role !== undefined) updateData.role = role;
+        if (nama_lengkap !== undefined) updateData.nama_lengkap = nama_lengkap;
+        if (email_gmail !== undefined) updateData.email_gmail = email_gmail;
+
         const { data, error } = await supabase
             .from('pengguna')
-            .update({ role })
-            .eq('email_gmail', email)
+            .update(updateData)
+            .eq('email_gmail', oldEmail)
             .select();
 
         if (error) throw error;
-        res.json({ message: 'Role berhasil diperbarui', data });
+        res.json({ message: 'Data akun berhasil diperbarui', data });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
