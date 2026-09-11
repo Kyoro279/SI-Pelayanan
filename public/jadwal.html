@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Pelayanan - KITTEENS HUB</title>
+    
+    <!-- Phosphor Icons (Wajib untuk icon sidebar ph-*) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- CSS Utama & Sidebar -->
+    <link rel="stylesheet" href="css/global.css">
+    <!-- Tambahkan baris ini jika kamu punya file CSS terpisah untuk sidebar (misal: sidebar.css atau dashboard.css) -->
+    <!-- <link rel="stylesheet" href="css/dashboard.css"> -->
+    
+    <!-- CSS Spesifik Halaman Jadwal -->
+    <link rel="stylesheet" href="css/jadwal.css">
+</head>
+<body>
+    <div class="app-container" style="display: flex;">
+        <!-- Container untuk Sidebar (Loaded via layout.js) -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content Area -->
+        <main class="main-content" style="flex: 1;">
+            <!-- Header Section -->
+            <header class="content-header">
+                <div class="header-title">
+                    <h1>Jadwal Pelayanan</h1>
+                    <p>Kalender Pelayanan KITTEENS</p>
+                </div>
+                <button class="btn-primary" id="btn-tambah-jadwal">+ Tambah Jadwal</button>
+            </header>
+
+            <!-- Main Layout Grid -->
+            <section class="jadwal-grid">
+                
+                <!-- Section Kalender -->
+                <div class="calendar-card">
+                    <div class="calendar-header">
+                        <button class="cal-nav-btn" id="prev-month">&lt;</button>
+                        <span class="calendar-month-year" id="month-year-text">Juni 2026</span>
+                        <button class="cal-nav-btn" id="next-month">&gt;</button>
+                    </div>
+
+                    <div class="calendar-days-header">
+                        <div>MIN</div><div>SEN</div><div>SEL</div><div>RAB</div><div>KAM</div><div>JUM</div><div>SAB</div>
+                    </div>
+
+                    <div class="calendar-dates-grid">
+                        <div></div><div></div><div></div><div></div><div></div>
+                        <div class="date-cell">1</div>
+                        <div class="date-cell">2</div>
+                        <div class="date-cell">3</div>
+                        <div class="date-cell">4</div>
+                        <div class="date-cell">5</div>
+                        <div class="date-cell active-dark">6</div>
+                        <div class="date-cell">7</div>
+                        <div class="date-cell">8</div>
+                        <div class="date-cell">9</div>
+                        <div class="date-cell">10</div>
+                        <div class="date-cell">11</div>
+                        <div class="date-cell">12</div>
+                        <div class="date-cell event-dot">13</div>
+                        <div class="date-cell">14</div>
+                        <div class="date-cell">15</div>
+                        <div class="date-cell">16</div>
+                        <div class="date-cell">17</div>
+                        <div class="date-cell">18</div>
+                        <div class="date-cell">19</div>
+                        <div class="date-cell event-dot-active">20</div>
+                        <div class="date-cell">21</div>
+                        <div class="date-cell">22</div>
+                        <div class="date-cell">23</div>
+                        <div class="date-cell">24</div>
+                        <div class="date-cell">25</div>
+                        <div class="date-cell">26</div>
+                        <div class="date-cell">27</div>
+                        <div class="date-cell">28</div>
+                        <div class="date-cell">29</div>
+                        <div class="date-cell">30</div>
+                    </div>
+                </div>
+
+                <!-- Section Kartu Jadwal -->
+                <div class="schedule-cards-list">
+                    <div class="schedule-card">
+                        <div class="card-header">
+                            <span class="card-date">SABTU, 6 JUNI 2026</span>
+                            <button class="btn-detail">&rarr;</button>
+                        </div>
+                        <h2 class="card-title">Iman yang Tidak Goyah</h2>
+                        <div class="card-body">
+                            <div class="info-group">
+                                <label>TUJUAN</label>
+                                <p>Mengajak jemaat untuk berakar kuat dalam Kristus di tengah tantangan hidup.</p>
+                            </div>
+                            <div class="info-group">
+                                <label>PENGKOTBAH</label>
+                                <p class="bold">Ps. Sebastian Marco</p>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn-delete"><i class="ph ph-trash"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="schedule-card">
+                        <div class="card-header">
+                            <span class="card-date">SABTU, 13 JUNI 2026</span>
+                            <button class="btn-detail">&rarr;</button>
+                        </div>
+                        <h2 class="card-title">Kasih yang Memulihkan</h2>
+                        <div class="card-body">
+                            <div class="info-group">
+                                <label>TUJUAN</label>
+                                <p>Mengajak jemaat untuk mengenal dan merasakan Kasih Tuhan yang memulihkan.</p>
+                            </div>
+                            <div class="info-group">
+                                <label>PENGKOTBAH</label>
+                                <p class="bold">Ps. Fernando</p>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn-delete"><i class="ph ph-trash"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="schedule-card">
+                        <div class="card-header">
+                            <span class="card-date">SABTU, 20 JUNI 2026</span>
+                            <button class="btn-detail">&rarr;</button>
+                        </div>
+                        <h2 class="card-title">Pengharapan di Dalam Tuhan</h2>
+                        <div class="card-body">
+                            <div class="info-group">
+                                <label>TUJUAN</label>
+                                <p>Mengajak jemaat untuk terus memiliki harapan di dalam Tuhan di tengah kondisi yang tidak baik.</p>
+                            </div>
+                            <div class="info-group">
+                                <label>PENGKOTBAH</label>
+                                <p class="bold">Ps. Jeremy Suwanto</p>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn-delete"><i class="ph ph-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="js/layout.js"></script>
+    <script src="js/jadwal.js"></script>
+</body>
+</html>

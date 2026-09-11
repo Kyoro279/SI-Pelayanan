@@ -4,10 +4,15 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 
+// Import Routes API
+const laguRoutes = require('./routes/laguRoutes');
+const akunRoutes = require('./routes/akunRoutes');
+const jadwalRoutes = require('./routes/jadwalRoutes');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware untuk mem-parsing JSON (berguna untuk fitur selanjutnya)
+// Middleware untuk mem-parsing JSON
 app.use(express.json());
 
 // Menyajikan semua file statis (HTML, CSS, JS) di dalam folder 'public'
@@ -18,13 +23,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 // RUTE API (BACKEND)
 // ==========================================
 
-// Endpoint untuk mengirimkan kunci Supabase ke file frontend (auth.js & dashboard.html)
+// Endpoint untuk mengirimkan kunci Supabase ke file frontend
 app.get('/api/config', (req, res) => {
     res.json({
         SUPABASE_URL: process.env.SUPABASE_URL,
         SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY
     });
 });
+
+// Pendaftaran endpoint API routes
+app.use('/api/lagu', laguRoutes);
+app.use('/api/akun', akunRoutes);
+app.use('/api/jadwal', jadwalRoutes);
 
 
 // ==========================================
@@ -36,7 +46,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// Rute untuk halaman Dashboard (Setelah Login)
+// Rute untuk halaman Dashboard
 app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
@@ -46,6 +56,11 @@ app.get('/manajemen-akun', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'manajemen-akun.html'));
 });
 
+// Rute untuk halaman Jadwal Pelayanan
+app.get('/jadwal', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'jadwal.html'));
+});
+
 
 // ==========================================
 // JALANKAN SERVER
@@ -53,9 +68,3 @@ app.get('/manajemen-akun', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server SI Pelayanan berjalan di http://localhost:${PORT}`);
 });
-
-const laguRoutes = require('./routes/laguRoutes');
-app.use('/api/lagu', laguRoutes);
-
-const akunRoutes = require('./routes/akunRoutes');
-app.use('/api/akun', akunRoutes);
