@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - KITTEENS HUB</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
+
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <!-- Atribut data-active digunakan layout.js untuk highlight menu -->
-<body data-active="dashboard">
+
+<body data-active="dashboard" style="display: none;">
 
     <!-- Supabase Init & Auth Check -->
     <script>
@@ -22,7 +25,7 @@
                 // Ambil config Supabase dari backend (membaca dari .env)
                 const respons = await fetch('/api/config');
                 const config = await respons.json();
-                
+
                 // Buat instance global
                 window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
                 const supabase = window.supabaseClient;
@@ -32,19 +35,40 @@
                     window.location.href = '/'; // Redirect ke halaman login jika belum login
                     return null;
                 } else {
+                    const email = session.user.email;
+                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
+                    let userData = null;
+
+                    // Verifikasi apakah email ada di database (kecuali super admin)
+                    if (!isSuperAdmin) {
+                        const { data: pengguna, error: errDb } = await supabase
+                            .from('pengguna')
+                            .select('*')
+                            .eq('email_gmail', email)
+                            .single();
+                        
+                        if (errDb || !pengguna) {
+                            await supabase.auth.signOut();
+                            window.location.href = '/?error=unauthorized';
+                            return null;
+                        }
+                        userData = pengguna;
+                    }
+
                     // Tampilkan nama user di header dashboard
                     const metadata = session.user.user_metadata || {};
-                    const fullName = metadata.full_name || session.user.email.split('@')[0];
-                    
+                    const fullName = userData ? userData.nama_lengkap : (metadata.full_name || email.split('@')[0]);
+
                     const updateName = () => {
                         const headerUserName = document.getElementById('header-user-name');
-                        if(headerUserName) headerUserName.textContent = fullName;
+                        if (headerUserName) headerUserName.textContent = fullName;
                     };
 
                     if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', updateName);
+                        document.addEventListener('DOMContentLoaded', () => { updateName(); document.body.style.display = ''; });
                     } else {
                         updateName();
+                        document.body.style.display = '';
                     }
                     return session;
                 }
@@ -87,7 +111,7 @@
                 </div>
                 <div class="quick-card">
                     <div class="icon-box"><i class="ph ph-users"></i></div>
-                    <div class="card-title">Manajemen User</div>
+                    <div class="card-title">Manajemen Akun</div>
                     <div class="arrow"><i class="ph ph-arrow-right"></i></div>
                 </div>
             </section>
@@ -142,4 +166,5 @@
     <!-- Script Injector & Logic Layout -->
     <script src="/js/layout.js"></script>
 </body>
+
 </html>
