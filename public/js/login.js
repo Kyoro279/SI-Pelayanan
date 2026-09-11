@@ -13,6 +13,14 @@ async function setupLogin() {
         // 2. Hubungkan ke Supabase dengan kunci yang didapat
         const supabase = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
 
+        // Cek parameter URL untuk error unauthorized
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('error') === 'unauthorized') {
+            const errorMsg = document.getElementById('error-msg');
+            if (errorMsg) errorMsg.style.display = 'block';
+            window.history.replaceState({}, document.title, "/");
+        }
+
         // 3. Logika tombol login
         const btnLogin = document.getElementById('btn-login-google');
         if (btnLogin) {
