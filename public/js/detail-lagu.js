@@ -1,0 +1,291 @@
+// public/js/detail-lagu.js
+
+let currentSong = null;
+let canManageLagu = false;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Inisialisasi Auth
+    if (window.authReady) {
+        await window.authReady;
+    }
+
+    const role = window.userData ? window.userData.role : (window.isSuperAdmin ? 'Admin' : 'Guest');
+    canManageLagu = window.isSuperAdmin || role === 'Admin' || role === 'Worship Planner';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const songId = urlParams.get('id');
+
+    if (!songId) {
+        alert('ID Lagu tidak ditemukan!');
+        window.location.href = '/bank-lagu';
+        return;
+    }
+
+    await fetchSongDetail(songId);
+    setupInteractions(songId);
+});
+
+async function fetchSongDetail(id) {
+    try {
+        const res = await fetch(`/api/lagu/${id}`);
+        if (!res.ok) throw new Error('Lagu tidak ditemukan');
+        const { data } = await res.json();
+        currentSong = data;
+
+        renderSongDetail();
+    } catch (err) {
+        alert(err.message);
+        window.location.href = '/bank-lagu';
+    }
+}
+
+function renderSongDetail() {
+    if (!currentSong) return;
+
+    // Header
+    const titleEl = document.querySelector('.song-title-large');
+    const artistEl = document.querySelector('.song-artist-large');
+    if (titleEl) titleEl.textContent = currentSong.judul;
+    if (artistEl) artistEl.textContent = currentSong.penyanyi || 'Unknown Artist';
+    document.title = `${currentSong.judul} - KITTEENS HUB`;
+
+    // Actions
+    const btnEdit = document.querySelector('.btn-edit');
+    const btnDelete = document.querySelector('.btn-delete-filled');
+    if (canManageLagu) {
+        if (btnEdit) {
+            btnEdit.onclick = () => window.location.href = `/edit-lagu?id=${currentSong.id}`;
+        }
+    } else {
+        if (btnEdit) btnEdit.style.display = 'none';
+        if (btnDelete) btnDelete.style.display = 'none';
+    }
+
+    // Key
+    const originalKeyEl = document.querySelector('.control-value');
+    if (originalKeyEl) originalKeyEl.textContent = currentSong.nada_dasar || '-';
+
+    // Transpose Select Setup
+    const transposeSelect = document.querySelector('.transpose-select');
+    const originalKey = currentSong.nada_dasar || 'C'; // Default to C if none
+    const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    
+    if (transposeSelect) {
+        transposeSelect.innerHTML = '';
+        NOTES.forEach(note => {
+            const option = document.createElement('option');
+            option.value = note;
+            option.textContent = note;
+            if (note === originalKey) option.selected = true;
+            transposeSelect.appendChild(option);
+        });
+    }
+
+    // YouTube Video
+    const videoLink = document.querySelector('.video-thumbnail-link');
+    const videoThumbnail = document.querySelector('.video-thumbnail');
+    if (currentSong.link_youtube) {
+        videoLink.href = currentSong.link_youtube;
+        const videoId = extractYouTubeId(currentSong.link_youtube);
+        if (videoId) {
+            videoThumbnail.style.backgroundImage = `url('https://img.youtube.com/vi/${videoId}/hqdefault.jpg')`;
+        }
+    } else {
+        if (videoLink) videoLink.style.display = 'none';
+    }
+
+    // Parse Lyrics
+    const lyricsContainer = document.getElementById('lyricsContainer');
+    const jumpList = document.querySelector('.jump-list');
+    
+    if (lyricsContainer && jumpList && currentSong.chord_lirik) {
+        const { html, jumpLinks } = parseLyricsToHtml(currentSong.chord_lirik);
+        lyricsContainer.innerHTML = html;
+        jumpList.innerHTML = jumpLinks;
+    }
+}
+
+function extractYouTubeId(url) {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+}
+
+function parseLyricsToHtml(rawLyrics) {
+    // Memisahkan berdasarkan blok kosong (tiap section)
+    const blocks = rawLyrics.split(/\n\s*\n/);
+    let html = '';
+    let jumpLinks = '';
+    let sectionCount = 0;
+
+    blocks.forEach(block => {
+        if (!block.trim()) return;
+
+        const lines = block.split('\n');
+        
+        // Cari nama section (misal: (Verse 1), [Chorus], dll) pada baris pertama
+        let sectionTitle = '';
+        let sectionId = `section-${sectionCount}`;
+        let startIndex = 0;
+
+        const firstLineMatch = lines[0].match(/^[\(\[](.+)[\)\]]$/i);
+        if (firstLineMatch) {
+            sectionTitle = lines[0].trim();
+            sectionId = sectionTitle.replace(/[\W_]+/g, '').toLowerCase() + sectionCount;
+            startIndex = 1;
+        }
+
+        if (sectionTitle) {
+            jumpLinks += `<li><a href="#${sectionId}">${sectionTitle.replace(/[\(\)\[\]]/g, '')}</a></li>`;
+        }
+
+        html += `<div class="lyrics-section" id="${sectionId}">`;
+        if (sectionTitle) {
+            html += `<div class="section-title">${sectionTitle}</div>`;
+        }
+
+        for (let i = startIndex; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+
+            html += `<div class="lyric-line">`;
+
+            // Parsing inline chord e.g. "I love you, [G]Lord"
+            const segments = line.split(/(\[[A-G][#b]?m?[0-9]*(?:\/[A-G][#b]?)?\])/g);
+            
+            let chordsHtml = `<div class="chord">`;
+            let textHtml = `<div class="text">`;
+            
+            // Flag untuk ngecek apakah baris ini punya teks atau murni chord
+            let hasChords = false;
+            let hasText = false;
+
+            segments.forEach(seg => {
+                if (seg.startsWith('[') && seg.endsWith(']')) {
+                    const chordName = seg.slice(1, -1);
+                    chordsHtml += `<span data-original="${chordName}">${chordName}</span>`;
+                    hasChords = true;
+                } else {
+                    const cleanText = seg.replace(/\s+/g, '&nbsp;'); // preserve spaces
+                    if (seg.trim() !== '') {
+                        textHtml += seg;
+                        hasText = true;
+                    } else if (seg !== '') {
+                        // just spaces
+                        textHtml += seg.replace(/ /g, '&nbsp;');
+                    }
+                }
+            });
+
+            chordsHtml += `</div>`;
+            textHtml += `</div>`;
+
+            if (hasChords) html += chordsHtml;
+            html += textHtml;
+
+            html += `</div>`;
+        }
+
+        html += `</div>`;
+        sectionCount++;
+    });
+
+    return { html, jumpLinks };
+}
+
+function setupInteractions(songId) {
+    // 1. Hide/Unhide Chord Logic
+    const toggleBtn = document.getElementById('toggleChordBtn');
+    const chordIcon = document.getElementById('chordIcon');
+    const lyricsContainer = document.getElementById('lyricsContainer');
+    let chordsVisible = true;
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            chordsVisible = !chordsVisible;
+            if (chordsVisible) {
+                lyricsContainer.classList.remove('hide-chords');
+                chordIcon.classList.remove('ph-eye');
+                chordIcon.classList.add('ph-eye-slash');
+            } else {
+                lyricsContainer.classList.add('hide-chords');
+                chordIcon.classList.remove('ph-eye-slash');
+                chordIcon.classList.add('ph-eye');
+            }
+        });
+    }
+
+    // 2. Delete Confirmation
+    const deleteBtn = document.querySelector('.btn-delete-filled');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+            const confirmDelete = confirm("Apakah Anda yakin ingin menghapus lagu ini?");
+            if (confirmDelete) {
+                try {
+                    const res = await fetch(`/api/lagu/${songId}`, { method: 'DELETE' });
+                    if (!res.ok) throw new Error('Gagal menghapus lagu');
+                    window.location.href = '/bank-lagu';
+                } catch (err) {
+                    alert(err.message);
+                }
+            }
+        });
+    }
+
+    // 3. Jump to Section (Smooth Scroll) - menggunakan event delegation karena elemen dinamis
+    document.addEventListener('click', (e) => {
+        if (e.target.tagName === 'A' && e.target.closest('.jump-list')) {
+            e.preventDefault();
+            const targetId = e.target.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    });
+
+    // 4. Transpose Logic
+    const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const transposeSelect = document.querySelector('.transpose-select');
+
+    function transposeChord(chord, steps) {
+        const match = chord.match(/^([A-G][#b]?)(.*)$/);
+        if (!match) return chord; 
+        
+        let root = match[1];
+        const suffix = match[2];
+        
+        let index = NOTES.indexOf(root);
+        if (index === -1) return chord;
+        
+        let newIndex = (index + steps) % 12;
+        if (newIndex < 0) newIndex += 12; 
+        
+        return NOTES[newIndex] + suffix;
+    }
+
+    if (transposeSelect) {
+        transposeSelect.addEventListener('change', (e) => {
+            const selectedKey = e.target.value;
+            const originalKey = currentSong.nada_dasar || 'C';
+            const originalIndex = NOTES.indexOf(originalKey);
+            const selectedIndex = NOTES.indexOf(selectedKey);
+            
+            const steps = selectedIndex - originalIndex;
+            
+            const chordSpans = document.querySelectorAll('.chord span');
+            chordSpans.forEach(span => {
+                const originalChord = span.getAttribute('data-original');
+                // Pisahkan kalau chord ada bass (misal C/G)
+                if (originalChord.includes('/')) {
+                    const parts = originalChord.split('/');
+                    const tRoot = transposeChord(parts[0], steps);
+                    const tBass = transposeChord(parts[1], steps);
+                    span.textContent = `${tRoot}/${tBass}`;
+                } else {
+                    span.textContent = transposeChord(originalChord, steps);
+                }
+            });
+        });
+    }
+}

@@ -32,9 +32,31 @@
 
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {
-                    window.location.href = '/'; // Redirect ke halaman login jika belum login
+                    window.location.href = '/'; 
                     return null;
                 } else {
+                    const email = session.user.email;
+                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
+                    window.isSuperAdmin = isSuperAdmin;
+                    window.userData = null;
+
+                    if (!isSuperAdmin) {
+                        try {
+                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            if (!resCheck.ok) {
+                                await supabase.auth.signOut();
+                                window.location.href = '/?error=unauthorized';
+                                return null;
+                            }
+                            const checkData = await resCheck.json();
+                            window.userData = checkData.data;
+                        } catch (errDb) {
+                            await supabase.auth.signOut();
+                            window.location.href = '/?error=unauthorized';
+                            return null;
+                        }
+                    }
+
                     document.body.style.display = '';
                     return session;
                 }
@@ -71,102 +93,14 @@
             </div>
 
             <div class="song-grid" id="songGrid">
-                <!-- Card 1 -->
-                <div class="song-card" data-category="Worship" onclick="window.location.href='/detail-lagu'" style="cursor: pointer;">
-                    <div class="top-section">
-                        <div class="card-icon">
-                            <i class="ph-fill ph-music-note"></i>
-                        </div>
-                        <div class="card-key">G</div>
-                    </div>
-                    <div class="bottom-section">
-                        <div class="card-details">
-                            <h3 class="song-title">Goodness of God</h3>
-                            <p class="song-artist">Bethel Music</p>
-                        </div>
-                        <button class="btn-delete" onclick="event.stopPropagation(); confirmDelete(this)"><i class="ph-bold ph-trash"></i></button>
-                    </div>
-                </div>
-
-                <!-- Card 2 -->
-                <div class="song-card" data-category="Praise" onclick="window.location.href='/detail-lagu'" style="cursor: pointer;">
-                    <div class="top-section">
-                        <div class="card-icon">
-                            <i class="ph-fill ph-music-note"></i>
-                        </div>
-                        <div class="card-key">E</div>
-                    </div>
-                    <div class="bottom-section">
-                        <div class="card-details">
-                            <h3 class="song-title">Sampai Akhir Hidupku</h3>
-                            <p class="song-artist">JPCC</p>
-                        </div>
-                        <button class="btn-delete" onclick="event.stopPropagation(); confirmDelete(this)"><i class="ph-bold ph-trash"></i></button>
-                    </div>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="song-card" data-category="Worship" onclick="window.location.href='/detail-lagu'" style="cursor: pointer;">
-                    <div class="top-section">
-                        <div class="card-icon">
-                            <i class="ph-fill ph-music-note"></i>
-                        </div>
-                        <div class="card-key">G</div>
-                    </div>
-                    <div class="bottom-section">
-                        <div class="card-details">
-                            <h3 class="song-title">Trust In God</h3>
-                            <p class="song-artist">Elevation Worship</p>
-                        </div>
-                        <button class="btn-delete" onclick="event.stopPropagation(); confirmDelete(this)"><i class="ph-bold ph-trash"></i></button>
-                    </div>
-                </div>
+                <!-- Data lagu akan dimuat secara dinamis oleh lagu.js -->
             </div>
         </main>
     </div>
 
     <!-- Script Injector & Logic Layout -->
     <script src="/js/layout.js"></script>
-    <script>
-        // Delete Confirmation
-        function confirmDelete(btn) {
-            const confirmDelete = confirm("Apakah Anda yakin ingin menghapus lagu ini? (Data tidak akan benar-benar terhapus dari database)");
-            if (confirmDelete) {
-                alert("Lagu berhasil 'dihapus' (Simulasi).");
-                // Untuk simulasi UI, sembunyikan card
-                btn.closest('.song-card').style.display = 'none';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('searchInput');
-            const filterCategory = document.getElementById('filterCategory');
-            const songCards = document.querySelectorAll('.song-card');
-
-            function filterSongs() {
-                const searchTerm = searchInput.value.toLowerCase();
-                const selectedCategory = filterCategory.value;
-
-                songCards.forEach(card => {
-                    const title = card.querySelector('.song-title').textContent.toLowerCase();
-                    const artist = card.querySelector('.song-artist').textContent.toLowerCase();
-                    const category = card.getAttribute('data-category');
-
-                    const matchesSearch = title.includes(searchTerm) || artist.includes(searchTerm);
-                    const matchesCategory = selectedCategory === 'all' || category === selectedCategory;
-
-                    if (matchesSearch && matchesCategory) {
-                        card.style.display = 'flex';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            }
-
-            searchInput.addEventListener('input', filterSongs);
-            filterCategory.addEventListener('change', filterSongs);
-        });
-    </script>
+    <script src="/js/lagu.js"></script>
 </body>
 
 </html>

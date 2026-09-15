@@ -107,6 +107,12 @@ router.get('/', async (req, res) => {
             });
         }
 
+        if (data) {
+            data.forEach(item => {
+                if (item.id_jadwal && !item.id) item.id = String(item.id_jadwal);
+            });
+        }
+
         res.status(200).json({
             success: true,
             data: data || []
@@ -126,7 +132,7 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const { data, error } = await trySupabaseQuery(tableName =>
-            supabase.from(tableName).select('*').eq('id', id).single()
+            supabase.from(tableName).select('*').eq('id_jadwal', parseInt(id)).single()
         );
 
         if (error) {
@@ -135,6 +141,10 @@ router.get('/:id', async (req, res) => {
                 return res.status(404).json({ success: false, message: 'Jadwal tidak ditemukan' });
             }
             return res.status(200).json({ success: true, data: item });
+        }
+
+        if (data && data.id_jadwal && !data.id) {
+            data.id = String(data.id_jadwal);
         }
 
         res.status(200).json({
@@ -179,17 +189,29 @@ router.post('/', async (req, res) => {
         });
     }
 
-    const newRecord = {
-        kategori,
-        tanggal,
-        waktu,
-        judul: finalJudul,
-        tujuan: finalTujuan,
-        pengkotbah: pengkotbah || '',
-        tim_pelayanan
-    };
-
     try {
+        // Bypass sequence permission error dengan mengambil max id secara manual
+        let nextId = 1;
+        const { data: maxData } = await trySupabaseQuery(tableName => 
+            supabase.from(tableName).select('id_jadwal').order('id_jadwal', { ascending: false }).limit(1)
+        );
+        if (maxData && maxData.length > 0) {
+            nextId = parseInt(maxData[0].id_jadwal) + 1;
+        }
+
+        const newRecord = {
+            id_jadwal: nextId,
+            kategori,
+            tanggal,
+            waktu,
+            judul: finalJudul,
+            tujuan: finalTujuan,
+            pengkotbah: pengkotbah || '',
+            tim_pelayanan,
+            tanggal_pelayanan: tanggal, 
+            jam_pelayanan: waktu.length === 5 ? waktu + ':00' : waktu 
+        };
+
         const { data, error } = await trySupabaseQuery(tableName =>
             supabase.from(tableName).insert([newRecord]).select()
         );
@@ -208,6 +230,10 @@ router.post('/', async (req, res) => {
                 message: 'Jadwal berhasil ditambahkan',
                 data: [newItem]
             });
+        }
+
+        if (data && data.length > 0) {
+            data.forEach(item => { if (item.id_jadwal && !item.id) item.id = String(item.id_jadwal); });
         }
 
         res.status(201).json({
@@ -246,8 +272,14 @@ router.put('/:id', async (req, res) => {
 
     const updateFields = {};
     if (kategori !== undefined) updateFields.kategori = kategori;
-    if (tanggal !== undefined) updateFields.tanggal = tanggal;
-    if (waktu !== undefined) updateFields.waktu = waktu;
+    if (tanggal !== undefined) {
+        updateFields.tanggal = tanggal;
+        updateFields.tanggal_pelayanan = tanggal;
+    }
+    if (waktu !== undefined) {
+        updateFields.waktu = waktu;
+        updateFields.jam_pelayanan = waktu.length === 5 ? waktu + ':00' : waktu;
+    }
     if (judul !== undefined || tema_kotbah !== undefined) updateFields.judul = judul || tema_kotbah;
     if (tujuan !== undefined || ringkasan_tujuan !== undefined) updateFields.tujuan = (tujuan !== undefined ? tujuan : ringkasan_tujuan);
     if (pengkotbah !== undefined) updateFields.pengkotbah = pengkotbah;
@@ -257,7 +289,7 @@ router.put('/:id', async (req, res) => {
         const { data, error } = await trySupabaseQuery(tableName =>
             supabase.from(tableName)
                 .update(updateFields)
-                .eq('id', id)
+                .eq('id_jadwal', parseInt(id))
                 .select()
         );
 
@@ -273,6 +305,10 @@ router.put('/:id', async (req, res) => {
                     data: [fallbackJadwal[index]]
                 });
             }
+        }
+
+        if (data && data.length > 0) {
+            data.forEach(item => { if (item.id_jadwal && !item.id) item.id = String(item.id_jadwal); });
         }
 
         res.status(200).json({
@@ -304,7 +340,7 @@ router.delete('/:id', async (req, res) => {
 
     try {
         const { error } = await trySupabaseQuery(tableName =>
-            supabase.from(tableName).delete().eq('id', id)
+            supabase.from(tableName).delete().eq('id_jadwal', parseInt(id))
         );
 
         if (error) {

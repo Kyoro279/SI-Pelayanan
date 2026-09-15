@@ -30,6 +30,28 @@
                     window.location.href = '/'; 
                     return null;
                 } else {
+                    const email = session.user.email;
+                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
+                    window.isSuperAdmin = isSuperAdmin;
+                    window.userData = null;
+
+                    if (!isSuperAdmin) {
+                        try {
+                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            if (!resCheck.ok) {
+                                await supabase.auth.signOut();
+                                window.location.href = '/?error=unauthorized';
+                                return null;
+                            }
+                            const checkData = await resCheck.json();
+                            window.userData = checkData.data;
+                        } catch (errDb) {
+                            await supabase.auth.signOut();
+                            window.location.href = '/?error=unauthorized';
+                            return null;
+                        }
+                    }
+
                     document.body.style.display = '';
                     return session;
                 }
@@ -57,18 +79,18 @@
                 <div class="form-left">
                     <div class="form-group">
                         <label class="form-label">Judul</label>
-                        <input type="text" class="form-control" value="">
+                        <input type="text" id="inputJudul" class="form-control" value="">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Penyanyi</label>
-                        <input type="text" class="form-control" value="">
+                        <input type="text" id="inputPenyanyi" class="form-control" value="">
                     </div>
 
                     <div class="row-2">
                         <div class="form-group">
                             <label class="form-label">Kategori</label>
-                            <select class="form-control">
+                            <select id="inputKategori" class="form-control">
                                 <option></option>
                                 <option>Praise</option>
                                 <option>Worship</option>
@@ -76,7 +98,7 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Nada Dasar</label>
-                            <select class="form-control">
+                            <select id="inputNadaDasar" class="form-control">
                                 <option></option>
                                 <option>C</option>
                                 <option>D</option>
@@ -91,7 +113,7 @@
 
                     <div class="form-group">
                         <label class="form-label">Link Youtube</label>
-                        <input type="text" class="form-control" value="">
+                        <input type="text" id="inputLinkYoutube" class="form-control" value="">
                     </div>
                 </div>
 
@@ -99,14 +121,7 @@
                 <div class="form-right">
                     <div class="form-group">
                         <label class="form-label">Chord & Lirik</label>
-                        <textarea class="form-control textarea-lyrics">(Verse1)
-
-I love you, [G]Lord
-For your [C]mercy never [G]fails me
-All my [Em]days, I've been [C]held in your [D]hands
-From the moment that I [Em]wake up[C]
-Until I lay [G]my [D]head[Em]
-I will [C]sing of the [D]goodness of [G]God</textarea>
+                        <textarea id="inputChordLirik" class="form-control textarea-lyrics"></textarea>
                     </div>
                     
                     <button class="btn-save" id="saveBtn">Tambah</button>
@@ -117,18 +132,7 @@ I will [C]sing of the [D]goodness of [G]God</textarea>
 
     <!-- Script Injector & Logic Layout -->
     <script src="/js/layout.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const saveBtn = document.getElementById('saveBtn');
-            if(saveBtn) {
-                saveBtn.addEventListener('click', () => {
-                    // Simulasi simpan data
-                    alert('Lagu baru berhasil ditambahkan (Simulasi)!');
-                    window.location.href = '/bank-lagu';
-                });
-            }
-        });
-    </script>
+    <script src="/js/lagu-form.js"></script>
 </body>
 
 </html>
