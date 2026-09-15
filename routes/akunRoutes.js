@@ -83,4 +83,22 @@ router.delete('/:email', async (req, res) => {
     }
 });
 
+// GET: Cek email terdaftar (Bypass RLS melalui backend)
+router.get('/check/:email', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('pengguna')
+            .select('*')
+            .eq('email_gmail', req.params.email)
+            .single();
+
+        if (error || !data) {
+            return res.status(404).json({ exists: false, error: 'Not found' });
+        }
+        res.json({ exists: true, data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

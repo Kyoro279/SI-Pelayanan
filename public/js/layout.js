@@ -48,10 +48,11 @@ async function setupSidebarLogic() {
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (session && session.user) {
-        // Asumsi data nama dan role disimpan di user_metadata
+        // Ambil data nama dan role dari window.userData yang diset oleh authReady
+        const isSuperAdmin = window.isSuperAdmin;
+        const role = window.userData ? window.userData.role : (isSuperAdmin ? 'Admin' : 'Guest');
         const metadata = session.user.user_metadata || {};
-        const fullName = metadata.full_name || session.user.email.split('@')[0];
-        const role = metadata.role || 'Admin'; // Fallback role
+        const fullName = window.userData ? window.userData.nama_lengkap : (metadata.full_name || session.user.email.split('@')[0]);
         
         // Update UI Sidebar
         const roleLabel = document.getElementById('sidebar-role-label');
@@ -59,6 +60,14 @@ async function setupSidebarLogic() {
         
         const userNameOption = document.getElementById('sidebar-user-name');
         if(userNameOption) userNameOption.textContent = `${fullName} - ${role}`;
+
+        // Sembunyikan menu Manajemen Akun jika bukan Admin
+        if (role !== 'Admin') {
+            const menuAkun = document.querySelector('.sidebar-menu a[data-menu="akun"]');
+            if (menuAkun) {
+                menuAkun.parentElement.style.display = 'none';
+            }
+        }
     }
 
     // Logika Logout

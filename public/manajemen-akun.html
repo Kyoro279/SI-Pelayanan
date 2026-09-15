@@ -36,16 +36,28 @@
                 } else {
                     const email = session.user.email;
                     const isSuperAdmin = email === 'matthewanders2709@gmail.com';
+                    window.isSuperAdmin = isSuperAdmin;
+                    window.userData = null;
 
                     // Verifikasi apakah email ada di database (kecuali super admin)
                     if (!isSuperAdmin) {
-                        const { data: pengguna, error: errDb } = await supabase
-                            .from('pengguna')
-                            .select('*')
-                            .eq('email_gmail', email)
-                            .single();
-                        
-                        if (errDb || !pengguna) {
+                        try {
+                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            if (!resCheck.ok) {
+                                await supabase.auth.signOut();
+                                window.location.href = '/?error=unauthorized';
+                                return null;
+                            }
+                            const checkData = await resCheck.json();
+                            window.userData = checkData.data;
+                            
+                            // Jika bukan admin, tendang kembali ke dashboard
+                            if (window.userData.role !== 'Admin') {
+                                alert('Akses Ditolak: Halaman ini hanya untuk Admin.');
+                                window.location.href = '/dashboard';
+                                return null;
+                            }
+                        } catch (errDb) {
                             await supabase.auth.signOut();
                             window.location.href = '/?error=unauthorized';
                             return null;
