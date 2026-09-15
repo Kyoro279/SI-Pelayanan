@@ -61,7 +61,7 @@
                     // Tampilkan nama user di header dashboard
                     const metadata = session.user.user_metadata || {};
                     const fullName = window.userData ? window.userData.nama_lengkap : (metadata.full_name || email.split('@')[0]);
-                    
+
                     const roleText = window.userData ? window.userData.role : (isSuperAdmin ? 'Admin' : 'Guest');
                     const roleLabel = document.querySelector('.role-text');
                     if (roleLabel) roleLabel.textContent = `Log in sebagai ${roleText}`;
@@ -106,17 +106,17 @@
 
             <!-- Quick Links -->
             <section class="quick-links">
-                <div class="quick-card">
+                <div class="quick-card" onclick="window.location.href='/jadwal'" style="cursor: pointer;">
                     <div class="icon-box"><i class="ph ph-calendar-blank"></i></div>
                     <div class="card-title">Jadwal Pelayanan</div>
                     <div class="arrow"><i class="ph ph-arrow-right"></i></div>
                 </div>
-                <div class="quick-card">
+                <div class="quick-card" style="cursor: pointer;">
                     <div class="icon-box"><i class="ph ph-music-notes"></i></div>
                     <div class="card-title">Bank Lagu</div>
                     <div class="arrow"><i class="ph ph-arrow-right"></i></div>
                 </div>
-                <div class="quick-card">
+                <div class="quick-card" onclick="window.location.href='/manajemen-akun'" style="cursor: pointer;">
                     <div class="icon-box"><i class="ph ph-users"></i></div>
                     <div class="card-title">Manajemen Akun</div>
                     <div class="arrow"><i class="ph ph-arrow-right"></i></div>
@@ -127,7 +127,7 @@
             <section class="next-service">
                 <div class="card-header">
                     <span class="label">PELAYANAN BERIKUTNYA</span>
-                    <button class="btn-detail">Detail →</button>
+                    <button class="btn-detail" onclick="window.location.href='/jadwal'">Detail →</button>
                 </div>
                 <div class="service-content">
                     <h2>Iman yang Tidak Goyah</h2>
@@ -144,7 +144,7 @@
             <section class="upcoming-schedule">
                 <div class="section-header">
                     <h2>Jadwal Mendatang</h2>
-                    <a href="#" class="view-all">Lihat Semua</a>
+                    <a href="/jadwal" class="view-all">Lihat Semua</a>
                 </div>
                 <div class="schedule-grid">
                     <div class="schedule-card">
