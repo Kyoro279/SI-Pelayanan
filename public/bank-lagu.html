@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Lagu - KITTEENS HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/bank-lagu.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<!-- Atribut data-active digunakan layout.js untuk highlight menu -->
+
+<body data-active="lagu" style="display: none;">
+
+    <!-- Supabase Init & Auth Check -->
+    <script>
+        // Buat promise agar script lain (seperti layout.js) bisa menunggu auth selesai
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                // Ambil config Supabase dari backend (membaca dari .env)
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
+
+                // Buat instance global
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/'; // Redirect ke halaman login jika belum login
+                    return null;
+                } else {
+                    document.body.style.display = '';
+                    return session;
+                }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
+            }
+        })();
+    </script>
+
+    <div class="layout">
+        <!-- Container untuk Component Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Konten Utama -->
+        <main class="main-content">
+            <div class="page-header">
+                <div class="header-title">
+                    <h1>Bank Lagu</h1>
+                    <p class="subtitle">3 Lagu Tersedia</p>
+                </div>
+                <button class="btn-primary" onclick="window.location.href='/tambah-lagu'">+ Tambah Lagu</button>
+            </div>
+
+            <div class="filters">
+                <div class="search-box">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Cari Lagu atau Artist">
+                </div>
+                <select class="category-select" id="filterCategory">
+                    <option value="all">Semua Kategori</option>
+                    <option value="Worship">Worship</option>
+                    <option value="Praise">Praise</option>
+                </select>
+            </div>
+
+            <div class="song-grid" id="songGrid">
+                <!-- Card 1 -->
+                <div class="song-card" data-category="Worship" onclick="window.location.href='/detail-lagu'" style="cursor: pointer;">
+                    <div class="top-section">
+                        <div class="card-icon">
+                            <i class="ph-fill ph-music-note"></i>
+                        </div>
+                        <div class="card-key">G</div>
+                    </div>
+                    <div class="bottom-section">
+                        <div class="card-details">
+                            <h3 class="song-title">Goodness of God</h3>
+                            <p class="song-artist">Bethel Music</p>
+                        </div>
+                        <button class="btn-delete" onclick="event.stopPropagation(); confirmDelete(this)"><i class="ph-bold ph-trash"></i></button>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="song-card" data-category="Praise" onclick="window.location.href='/detail-lagu'" style="cursor: pointer;">
+                    <div class="top-section">
+                        <div class="card-icon">
+                            <i class="ph-fill ph-music-note"></i>
+                        </div>
+                        <div class="card-key">E</div>
+                    </div>
+                    <div class="bottom-section">
+                        <div class="card-details">
+                            <h3 class="song-title">Sampai Akhir Hidupku</h3>
+                            <p class="song-artist">JPCC</p>
+                        </div>
+                        <button class="btn-delete" onclick="event.stopPropagation(); confirmDelete(this)"><i class="ph-bold ph-trash"></i></button>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="song-card" data-category="Worship" onclick="window.location.href='/detail-lagu'" style="cursor: pointer;">
+                    <div class="top-section">
+                        <div class="card-icon">
+                            <i class="ph-fill ph-music-note"></i>
+                        </div>
+                        <div class="card-key">G</div>
+                    </div>
+                    <div class="bottom-section">
+                        <div class="card-details">
+                            <h3 class="song-title">Trust In God</h3>
+                            <p class="song-artist">Elevation Worship</p>
+                        </div>
+                        <button class="btn-delete" onclick="event.stopPropagation(); confirmDelete(this)"><i class="ph-bold ph-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script Injector & Logic Layout -->
+    <script src="/js/layout.js"></script>
+    <script>
+        // Delete Confirmation
+        function confirmDelete(btn) {
+            const confirmDelete = confirm("Apakah Anda yakin ingin menghapus lagu ini? (Data tidak akan benar-benar terhapus dari database)");
+            if (confirmDelete) {
+                alert("Lagu berhasil 'dihapus' (Simulasi).");
+                // Untuk simulasi UI, sembunyikan card
+                btn.closest('.song-card').style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('searchInput');
+            const filterCategory = document.getElementById('filterCategory');
+            const songCards = document.querySelectorAll('.song-card');
+
+            function filterSongs() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const selectedCategory = filterCategory.value;
+
+                songCards.forEach(card => {
+                    const title = card.querySelector('.song-title').textContent.toLowerCase();
+                    const artist = card.querySelector('.song-artist').textContent.toLowerCase();
+                    const category = card.getAttribute('data-category');
+
+                    const matchesSearch = title.includes(searchTerm) || artist.includes(searchTerm);
+                    const matchesCategory = selectedCategory === 'all' || category === selectedCategory;
+
+                    if (matchesSearch && matchesCategory) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
+            searchInput.addEventListener('input', filterSongs);
+            filterCategory.addEventListener('change', filterSongs);
+        });
+    </script>
+</body>
+
+</html>

@@ -41,6 +41,26 @@ app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
+// Rute untuk halaman Bank Lagu
+app.get('/bank-lagu', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'bank-lagu.html'));
+});
+
+// Rute untuk halaman Detail Lagu
+app.get('/detail-lagu', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'detail-lagu.html'));
+});
+
+// Rute untuk halaman Edit Lagu
+app.get('/edit-lagu', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'edit-lagu.html'));
+});
+
+// Rute untuk halaman Tambah Lagu
+app.get('/tambah-lagu', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'tambah-lagu.html'));
+});
+
 // Rute untuk halaman Manajemen Akun
 app.get('/manajemen-akun', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'manajemen-akun.html'));

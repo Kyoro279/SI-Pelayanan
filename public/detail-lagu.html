@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goodness of God - KITTEENS HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/detail-lagu.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body data-active="lagu" style="display: none;">
+
+    <script>
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
+
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/'; 
+                    return null;
+                } else {
+                    document.body.style.display = '';
+                    return session;
+                }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
+            }
+        })();
+    </script>
+
+    <div class="layout">
+        <!-- Container untuk Component Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Konten Utama -->
+        <main class="main-content">
+            <div class="detail-header">
+                <div class="header-left">
+                    <button class="btn-back" onclick="window.location.href='/bank-lagu'"><i class="ph ph-arrow-left"></i></button>
+                    <div>
+                        <h1 class="song-title-large">Goodness of God</h1>
+                        <p class="song-artist-large">Bethel Music</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-edit" onclick="window.location.href='/edit-lagu'">Edit</button>
+                    <button class="btn-delete-filled"><i class="ph-bold ph-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="control-bar">
+                <div class="control-left">
+                    <div class="control-item">
+                        <span class="control-label">Original</span>
+                        <span class="control-value">G</span>
+                    </div>
+                    <div class="control-divider"></div>
+                    <div class="control-item">
+                        <span class="control-label">Transpose</span>
+                        <select class="transpose-select">
+                            <option>G</option>
+                            <option>A</option>
+                            <option>B</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn-toggle-chord" id="toggleChordBtn">
+                    CHORD <i class="ph ph-eye-slash" id="chordIcon"></i>
+                </button>
+            </div>
+
+            <div class="content-grid">
+                <div class="lyrics-container" id="lyricsContainer">
+                    
+                    <div class="lyrics-section" id="verse1">
+                        <div class="section-title">(Verse1)</div>
+                        <div class="lyric-line">
+                            <div class="chord"><span>G</span></div>
+                            <div class="text">I love you, Lord</div>
+                        </div>
+                        <div class="lyric-line">
+                            <div class="chord"><span>C</span><span>G</span></div>
+                            <div class="text">For your mercy never fails me</div>
+                        </div>
+                        <div class="lyric-line">
+                            <div class="chord"><span>Em</span><span>C</span><span>D</span></div>
+                            <div class="text">All my days, I've been held in your hands</div>
+                        </div>
+                        <div class="lyric-line">
+                            <div class="chord"><span>Em</span><span>C</span></div>
+                            <div class="text">From the moment that I wake up</div>
+                        </div>
+                        <div class="lyric-line">
+                            <div class="chord"><span>G</span><span>D</span><span>Em</span></div>
+                            <div class="text">Until I lay my head</div>
+                        </div>
+                        <div class="lyric-line">
+                            <div class="chord"><span>C</span><span>D</span><span>G</span></div>
+                            <div class="text">I will sing of the goodness of God</div>
+                        </div>
+                    </div>
+
+                    <div class="lyrics-section" id="chorus">
+                        <div class="section-title">(Chorus)</div>
+                        <div class="lyric-line">
+                            <div class="chord"><span>C</span><span>G</span></div>
+                            <div class="text">All my life you have been faithful</div>
+                        </div>
+                        <div class="lyric-line">
+                            <div class="chord"><span>C</span><span>G</span><span>D</span></div>
+                            <div class="text">All my life you have been so, so good</div>
+                        </div>
+                        <div class="lyric-line">
+                            <div class="chord"><span>C</span><span>G</span><span>D</span><span>Em</span></div>
+                            <div class="text">With every breath that I am able</div>
+                        </div>
+                        <div class="lyric-line">
+                            <div class="chord"><span>C</span><span>D</span><span>G</span></div>
+                            <div class="text">I will sing of the goodness of God</div>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <div class="sidebar-right">
+                    <a href="https://www.youtube.com/watch?v=n0FBb6hnwTo" target="_blank" class="video-thumbnail-link">
+                        <div class="video-thumbnail">
+                            <!-- Background image di-set di CSS -->
+                        </div>
+                    </a>
+                    <div class="jump-box">
+                        <div class="jump-title">JUMP TO SECTION</div>
+                        <ul class="jump-list">
+                            <li><a href="#verse1">Verse</a></li>
+                            <li><a href="#chorus">Chorus</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script Injector & Logic Layout -->
+    <script src="/js/layout.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Hide/Unhide Chord Logic
+            const toggleBtn = document.getElementById('toggleChordBtn');
+            const chordIcon = document.getElementById('chordIcon');
+            const lyricsContainer = document.getElementById('lyricsContainer');
+            let chordsVisible = true;
+
+            toggleBtn.addEventListener('click', () => {
+                chordsVisible = !chordsVisible;
+                if (chordsVisible) {
+                    lyricsContainer.classList.remove('hide-chords');
+                    chordIcon.classList.remove('ph-eye');
+                    chordIcon.classList.add('ph-eye-slash');
+                } else {
+                    lyricsContainer.classList.add('hide-chords');
+                    chordIcon.classList.remove('ph-eye-slash');
+                    chordIcon.classList.add('ph-eye');
+                }
+            });
+
+            // 2. Delete Confirmation
+            const deleteBtn = document.querySelector('.btn-delete-filled');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => {
+                    const confirmDelete = confirm("Apakah Anda yakin ingin menghapus lagu ini? (Data tidak akan benar-benar terhapus dari database)");
+                    if (confirmDelete) {
+                        alert("Lagu berhasil 'dihapus' (Simulasi). Anda akan diarahkan kembali ke halaman Bank Lagu.");
+                        window.location.href = '/bank-lagu';
+                    }
+                });
+            }
+
+            // 3. Jump to Section (Smooth Scroll)
+            const jumpLinks = document.querySelectorAll('.jump-list a');
+            jumpLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+
+            // 4. Transpose Logic
+            const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            const originalKey = 'G'; // Sesuai dengan original lagu ini
+            const chordSpans = document.querySelectorAll('.chord span');
+            
+            // Simpan chord asli di atribut data
+            chordSpans.forEach(span => {
+                span.setAttribute('data-original', span.textContent.trim());
+            });
+
+            const transposeSelect = document.querySelector('.transpose-select');
+            
+            // Isi pilihan transpose dengan 12 nada
+            transposeSelect.innerHTML = '';
+            NOTES.forEach(note => {
+                const option = document.createElement('option');
+                option.value = note;
+                option.textContent = note;
+                if (note === originalKey) option.selected = true;
+                transposeSelect.appendChild(option);
+            });
+
+            function transposeChord(chord, steps) {
+                const match = chord.match(/^([A-G]#?|b?)(.*)$/);
+                if (!match) return chord; // Jika bukan format chord standard, kembalikan apa adanya
+                
+                let root = match[1];
+                const suffix = match[2];
+                
+                let index = NOTES.indexOf(root);
+                if (index === -1) return chord;
+                
+                let newIndex = (index + steps) % 12;
+                if (newIndex < 0) newIndex += 12; // Handle negative steps
+                
+                return NOTES[newIndex] + suffix;
+            }
+
+            transposeSelect.addEventListener('change', (e) => {
+                const selectedKey = e.target.value;
+                const originalIndex = NOTES.indexOf(originalKey);
+                const selectedIndex = NOTES.indexOf(selectedKey);
+                
+                const steps = selectedIndex - originalIndex;
+                
+                chordSpans.forEach(span => {
+                    const originalChord = span.getAttribute('data-original');
+                    span.textContent = transposeChord(originalChord, steps);
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

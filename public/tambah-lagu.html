@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Lagu - KITTEENS HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/edit-lagu.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body data-active="lagu" style="display: none;">
+
+    <script>
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
+
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/'; 
+                    return null;
+                } else {
+                    document.body.style.display = '';
+                    return session;
+                }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
+            }
+        })();
+    </script>
+
+    <div class="layout">
+        <!-- Container untuk Component Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Konten Utama -->
+        <main class="main-content">
+            <div class="edit-header">
+                <h1 class="edit-title">Lagu Baru</h1>
+                <button class="btn-cancel" onclick="window.location.href='/bank-lagu'">
+                    Batal <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <div class="edit-grid">
+                <!-- Left Column -->
+                <div class="form-left">
+                    <div class="form-group">
+                        <label class="form-label">Judul</label>
+                        <input type="text" class="form-control" value="">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Penyanyi</label>
+                        <input type="text" class="form-control" value="">
+                    </div>
+
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label class="form-label">Kategori</label>
+                            <select class="form-control">
+                                <option></option>
+                                <option>Praise</option>
+                                <option>Worship</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nada Dasar</label>
+                            <select class="form-control">
+                                <option></option>
+                                <option>C</option>
+                                <option>D</option>
+                                <option>E</option>
+                                <option>F</option>
+                                <option>G</option>
+                                <option>A</option>
+                                <option>B</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Link Youtube</label>
+                        <input type="text" class="form-control" value="">
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="form-right">
+                    <div class="form-group">
+                        <label class="form-label">Chord & Lirik</label>
+                        <textarea class="form-control textarea-lyrics">(Verse1)
+
+I love you, [G]Lord
+For your [C]mercy never [G]fails me
+All my [Em]days, I've been [C]held in your [D]hands
+From the moment that I [Em]wake up[C]
+Until I lay [G]my [D]head[Em]
+I will [C]sing of the [D]goodness of [G]God</textarea>
+                    </div>
+                    
+                    <button class="btn-save" id="saveBtn">Tambah</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script Injector & Logic Layout -->
+    <script src="/js/layout.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const saveBtn = document.getElementById('saveBtn');
+            if(saveBtn) {
+                saveBtn.addEventListener('click', () => {
+                    // Simulasi simpan data
+                    alert('Lagu baru berhasil ditambahkan (Simulasi)!');
+                    window.location.href = '/bank-lagu';
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
