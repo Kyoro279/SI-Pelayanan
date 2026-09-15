@@ -15,25 +15,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function checkAdminAuth() {
-    // Tunggu authReady dari layout.js/dashboard.html (jika scriptnya dipasang)
+    // Tunggu authReady dari layout.js/dashboard.html/manajemen-akun.html
     if (window.authReady) await window.authReady;
-    
-    const supabase = window.supabaseClient;
-    if(!supabase) return;
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return; // layout.js akan mengurus redirect ke login
-    
-    const email = session.user.email;
-    const role = session.user.user_metadata?.role || 'Guest';
-    
-    // Berikan akses otomatis ke admin default (email Anda) tanpa harus cek role metadata
-    const defaultAdmins = ['matthewanders2709@gmail.com', 'hydroxx27@gmail.com'];
-
-    if (role !== 'Admin' && !defaultAdmins.includes(email)) {
-        alert('Akses Ditolak: Halaman ini hanya untuk Admin.');
-        window.location.href = '/dashboard.html';
-    }
 }
 
 async function fetchAkun() {

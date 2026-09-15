@@ -37,27 +37,34 @@
                 } else {
                     const email = session.user.email;
                     const isSuperAdmin = email === 'matthewanders2709@gmail.com';
-                    let userData = null;
+                    window.isSuperAdmin = isSuperAdmin;
+                    window.userData = null;
 
                     // Verifikasi apakah email ada di database (kecuali super admin)
                     if (!isSuperAdmin) {
-                        const { data: pengguna, error: errDb } = await supabase
-                            .from('pengguna')
-                            .select('*')
-                            .eq('email_gmail', email)
-                            .single();
-                        
-                        if (errDb || !pengguna) {
+                        try {
+                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            if (!resCheck.ok) {
+                                await supabase.auth.signOut();
+                                window.location.href = '/?error=unauthorized';
+                                return null;
+                            }
+                            const checkData = await resCheck.json();
+                            window.userData = checkData.data;
+                        } catch (errDb) {
                             await supabase.auth.signOut();
                             window.location.href = '/?error=unauthorized';
                             return null;
                         }
-                        userData = pengguna;
                     }
 
                     // Tampilkan nama user di header dashboard
                     const metadata = session.user.user_metadata || {};
-                    const fullName = userData ? userData.nama_lengkap : (metadata.full_name || email.split('@')[0]);
+                    const fullName = window.userData ? window.userData.nama_lengkap : (metadata.full_name || email.split('@')[0]);
+                    
+                    const roleText = window.userData ? window.userData.role : (isSuperAdmin ? 'Admin' : 'Guest');
+                    const roleLabel = document.querySelector('.role-text');
+                    if (roleLabel) roleLabel.textContent = `Log in sebagai ${roleText}`;
 
                     const updateName = () => {
                         const headerUserName = document.getElementById('header-user-name');
