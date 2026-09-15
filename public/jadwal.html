@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Pelayanan - KITTEENS HUB</title>
+
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Global, Dashboard layout & Spesifik Jadwal -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/jadwal.css">
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body data-active="jadwal" style="display: none;">
+
+    <!-- Supabase Init & Auth Check (Konsisten dengan Dashboard & Manajemen Akun) -->
+    <script>
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
+
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/';
+                    return null;
+                } else {
+                    const email = session.user.email;
+                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
+                    window.isSuperAdmin = isSuperAdmin;
+                    window.userData = null;
+
+                    if (!isSuperAdmin) {
+                        try {
+                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            if (!resCheck.ok) {
+                                await supabase.auth.signOut();
+                                window.location.href = '/?error=unauthorized';
+                                return null;
+                            }
+                            const checkData = await resCheck.json();
+                            window.userData = checkData.data;
+                        } catch (errDb) {
+                            await supabase.auth.signOut();
+                            window.location.href = '/?error=unauthorized';
+                            return null;
+                        }
+                    }
+
+                    document.body.style.display = '';
+                    return session;
+                }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
+                document.body.style.display = '';
+            }
+        })();
+    </script>
+
+    <div class="layout">
+        <!-- Container untuk Sidebar (Loaded via layout.js) -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header Section -->
+            <header class="content-header">
+                <div class="header-title">
+                    <h1>Jadwal Pelayanan</h1>
+                    <p id="jadwal-subtitle">Kalender Pelayanan KITTEENS</p>
+                </div>
+                <div class="header-actions">
+                    <!-- Tombol Tambah Jadwal (Ditampilkan pada List View) -->
+                    <button class="btn-primary" id="btn-tambah-jadwal">
+                        <i class="ph ph-plus-circle"></i> Tambah Jadwal
+                    </button>
+                    <!-- Tombol Trash Merah (Ditampilkan pada Form View sesuai Gambar User) -->
+                    <button class="btn-trash-header" id="btn-trash-header" style="display: none;" title="Batal / Hapus">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Filter Status Bar (Muncul saat filter tanggal aktif di List View) -->
+            <div id="filter-status-bar" class="filter-status-bar" style="display: none;">
+                <div class="filter-status-info">
+                    <i class="ph ph-funnel"></i>
+                    <span>Menampilkan jadwal untuk: <strong id="filter-date-text">-</strong></span>
+                </div>
+                <button id="btn-reset-filter" class="btn-reset-filter">
+                    <i class="ph ph-x"></i> Tampilkan Semua Jadwal
+                </button>
+            </div>
+
+            <!-- Main Layout Grid: Kalender di Kiri, Konten Dinamis di Kanan -->
+            <section class="jadwal-grid">
+
+                <!-- Section Kalender (Kiri) -->
+                <div class="calendar-card">
+                    <div class="calendar-header">
+                        <button class="cal-nav-btn" id="prev-month" title="Bulan Sebelumnya">
+                            <i class="ph ph-arrow-left"></i>
+                        </button>
+                        <span class="calendar-month-year" id="month-year-text">Juni 2026</span>
+                        <button class="cal-nav-btn" id="next-month" title="Bulan Berikutnya">
+                            <i class="ph ph-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="calendar-days-header">
+                        <div>MIN</div>
+                        <div>SEN</div>
+                        <div>SEL</div>
+                        <div>RAB</div>
+                        <div>KAM</div>
+                        <div>JUM</div>
+                        <div>SAB</div>
+                    </div>
+
+                    <!-- Grid Tanggal Kalender (diisi dinamis oleh jadwal.js) -->
+                    <div class="calendar-dates-grid" id="calendar-dates-grid">
+                        <!-- Diisi via JS -->
+                    </div>
+
+                    <!-- Keterangan Legend Kalender -->
+                    <div class="calendar-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot has-event"></span>
+                            <span>Ada Jadwal</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot selected"></span>
+                            <span>Terpilih</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot today"></span>
+                            <span>Hari Ini</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section KANAN (Tampilan A: List Kartu Jadwal) -->
+                <div class="schedule-section" id="schedule-list-section">
+                    <div class="schedule-section-header">
+                        <h2 class="schedule-section-title" id="list-title">Daftar Pelayanan</h2>
+                        <span class="schedule-count-badge" id="schedule-count-badge">0 Jadwal</span>
+                    </div>
+
+                    <div class="schedule-cards-list" id="schedule-cards-list">
+                        <!-- Kartu jadwal di-render via jadwal.js -->
+                        <div class="loading-state">
+                            <i class="ph ph-spinner ph-spin"></i>
+                            <p>Memuat data jadwal...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section KANAN (Tampilan B: Form Tambah / Edit Jadwal Sesuai Gambar User) -->
+                <div class="schedule-form-card" id="schedule-form-section" style="display: none;">
+                    <form id="form-jadwal-inline">
+                        <input type="hidden" id="input-jadwal-id" value="">
+
+                        <!-- 1. Kategori (Pill Buttons) -->
+                        <div class="form-group-field">
+                            <label class="field-label">Kategori</label>
+                            <div class="category-pills">
+                                <button type="button" class="btn-category active"
+                                    data-category="Pelayanan">Pelayanan</button>
+                                <button type="button" class="btn-category" data-category="Latihan">Latihan</button>
+                                <button type="button" class="btn-category" data-category="Event">Event</button>
+                            </div>
+                            <input type="hidden" id="input-kategori" value="Pelayanan">
+                        </div>
+
+                        <!-- 2. Tema Kotbah / Nama Latihan -->
+                        <div class="form-group-field" id="field-tema">
+                            <label class="field-label" for="input-tema" id="label-tema">Tema Kotbah</label>
+                            <input type="text" id="input-tema" class="form-input" placeholder="Masukkan tema kotbah...">
+                        </div>
+
+                        <!-- 3. Ringkasan / Tujuan -->
+                        <div class="form-group-field" id="field-ringkasan">
+                            <label class="field-label" for="input-ringkasan" id="label-ringkasan">Ringkasan / Tujuan</label>
+                            <input type="text" id="input-ringkasan" class="form-input"
+                                placeholder="Masukkan ringkasan atau tujuan firman...">
+                        </div>
+
+                        <!-- 4. Pengkotbah -->
+                        <div class="form-group-field" id="field-pengkotbah">
+                            <label class="field-label" for="input-pengkotbah" id="label-pengkotbah">Pengkotbah</label>
+                            <input type="text" id="input-pengkotbah" class="form-input"
+                                placeholder="Nama pengkotbah (contoh: Ps. Sebastian Marco)">
+                        </div>
+
+                        <!-- 5. Tanggal & Waktu -->
+                        <div class="form-group-field">
+                            <label class="field-label">Tanggal</label>
+                            <div class="date-time-row">
+                                <div class="input-with-icon">
+                                    <input type="date" id="input-tanggal" class="form-input" required>
+                                </div>
+                                <div class="input-with-icon">
+                                    <input type="time" id="input-waktu" class="form-input" value="17:00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. TIM PELAYANAN (Section & 2-Column Grid of Selects) -->
+                        <div class="tim-pelayanan-section">
+                            <h3 class="tim-pelayanan-title">TIM PELAYANAN</h3>
+                            <div class="tim-grid">
+                                <!-- Row 1: Worship Leader & Singer 1 -->
+                                <div class="tim-field">
+                                    <label class="field-label">Worship Leader</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-wl" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="tim-field">
+                                    <label class="field-label">Singer 1</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-singer1" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Row 2: Singer 2 & Pianist -->
+                                <div class="tim-field">
+                                    <label class="field-label">Singer 2</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-singer2" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="tim-field">
+                                    <label class="field-label">Pianist</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-pianist" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Row 3: Bassist & Gitaris -->
+                                <div class="tim-field">
+                                    <label class="field-label">Bassist</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-bassist" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="tim-field">
+                                    <label class="field-label">Gitaris</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-gitaris" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Row 4: Drummer & MCM (Pelayanan Only) -->
+                                <div class="tim-field role-pelayanan-only">
+                                    <label class="field-label">Drummer</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-drummer" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="tim-field role-pelayanan-only">
+                                    <label class="field-label">MCM</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-mcm" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Row 5: Lighting & Soundman (Pelayanan Only) -->
+                                <div class="tim-field role-pelayanan-only">
+                                    <label class="field-label">Lighting</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-lighting" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="tim-field role-pelayanan-only">
+                                    <label class="field-label">Soundman</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-soundman" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Row 6: Usher 1 & Usher 2 (Pelayanan Only) -->
+                                <div class="tim-field role-pelayanan-only">
+                                    <label class="field-label">Usher 1</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-usher1" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="tim-field role-pelayanan-only">
+                                    <label class="field-label">Usher 2</label>
+                                    <div class="custom-select-wrapper">
+                                        <select id="select-usher2" class="form-select">
+                                            <option value="">-- Pilih --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 7. Tombol Hijau Tambah Jadwal -->
+                        <div class="form-submit-container">
+                            <button type="submit" class="btn-submit-green" id="btn-submit-form">
+                                Tambah Jadwal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- Script Injector & Logic Halaman Jadwal -->
+    <script src="/js/layout.js"></script>
+    <script src="/js/jadwal.js"></script>
+</body>
+
+</html>
