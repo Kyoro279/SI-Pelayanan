@@ -1,0 +1,277 @@
+/* --- Detail Lagu Styles --- */
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.header-left {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--text-main);
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+.song-title-large {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 4px;
+}
+
+.song-artist-large {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn-edit {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-edit:hover {
+    background-color: #F8FAFC;
+}
+
+.btn-delete-filled {
+    background-color: var(--danger);
+    color: #fff;
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-delete-filled:hover {
+    background-color: #DC2626;
+}
+
+.control-bar {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.control-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.control-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.control-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.control-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.control-divider {
+    width: 1px;
+    height: 36px;
+    background-color: var(--border-color);
+}
+
+.transpose-select {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 4px 32px 4px 12px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-light);
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%231E293B%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.transpose-select:focus {
+    outline: none;
+    border-color: var(--primary-light);
+}
+
+.btn-toggle-chord {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-toggle-chord i {
+    font-size: 20px;
+}
+
+.btn-toggle-chord:hover {
+    background-color: #F8FAFC;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 40px;
+}
+
+/* Lyrics Section */
+.lyrics-container {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.lyrics-section {
+    margin-bottom: 24px;
+}
+
+.section-title {
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.lyric-line {
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chord {
+    font-weight: 700;
+    color: var(--primary-light);
+    height: 24px; /* fixed height so hiding it collapses space but doesn't break flow if empty */
+    display: flex;
+    gap: 24px;
+}
+
+.chord span {
+    display: inline-block;
+    min-width: 20px;
+}
+
+.text {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* Hide Chords Logic */
+.hide-chords .chord {
+    display: none;
+}
+
+/* Right Sidebar */
+.video-thumbnail-link {
+    display: block;
+    text-decoration: none;
+}
+
+.video-thumbnail {
+    width: 100%;
+    height: 180px;
+    border-radius: 12px;
+    background-image: url('https://img.youtube.com/vi/n0FBb6hnwTo/maxresdefault.jpg');
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+.video-thumbnail:hover {
+    transform: scale(1.02);
+}
+
+.video-thumbnail::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.2);
+}
+
+.jump-box {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.jump-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.jump-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.jump-list a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.jump-list a:hover {
+    color: var(--primary-color);
+}
