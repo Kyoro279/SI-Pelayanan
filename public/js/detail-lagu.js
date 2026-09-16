@@ -235,37 +235,37 @@ function parseLyricsToHtml(rawLyrics) {
             // Parsing inline chord e.g. "I love you, [G]Lord"
             const segments = line.split(/(\[[A-G][#b]?m?[0-9]*(?:\/[A-G][#b]?)?\])/g);
             
-            let chordsHtml = `<div class="chord">`;
-            let textHtml = `<div class="text">`;
-            
-            // Flag untuk ngecek apakah baris ini punya teks atau murni chord
-            let hasChords = false;
-            let hasText = false;
+            let htmlSegment = '';
+            let currentChord = '';
 
             segments.forEach(seg => {
                 if (seg.startsWith('[') && seg.endsWith(']')) {
-                    const chordName = seg.slice(1, -1);
-                    chordsHtml += `<span data-original="${chordName}">${chordName}</span>`;
-                    hasChords = true;
+                    // Flush if there is a pending chord without text
+                    if (currentChord) {
+                        htmlSegment += `<span class="lyric-segment"><span class="chord"><span data-original="${currentChord}">${currentChord}</span></span><span class="text">&nbsp;</span></span>`;
+                    }
+                    currentChord = seg.slice(1, -1);
                 } else {
-                    const cleanText = seg.replace(/\s+/g, '&nbsp;'); // preserve spaces
-                    if (seg.trim() !== '') {
-                        textHtml += seg;
-                        hasText = true;
-                    } else if (seg !== '') {
-                        // just spaces
-                        textHtml += seg.replace(/ /g, '&nbsp;');
+                    const cleanText = seg.replace(/ /g, '&nbsp;');
+                    if (currentChord || cleanText) {
+                        htmlSegment += `<span class="lyric-segment">`;
+                        if (currentChord) {
+                            htmlSegment += `<span class="chord"><span data-original="${currentChord}">${currentChord}</span></span>`;
+                            currentChord = '';
+                        } else {
+                            htmlSegment += `<span class="chord empty"></span>`;
+                        }
+                        htmlSegment += `<span class="text">${cleanText || '&nbsp;'}</span></span>`;
                     }
                 }
             });
 
-            chordsHtml += `</div>`;
-            textHtml += `</div>`;
+            // Flush remaining chord if end of line
+            if (currentChord) {
+                htmlSegment += `<span class="lyric-segment"><span class="chord"><span data-original="${currentChord}">${currentChord}</span></span><span class="text">&nbsp;</span></span>`;
+            }
 
-            if (hasChords) html += chordsHtml;
-            html += textHtml;
-
-            html += `</div>`;
+            html += `${htmlSegment}</div>`;
         }
 
         html += `</div>`;

@@ -84,11 +84,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             label: `${lagu.judul} - ${lagu.penyanyi || 'Tanpa Penyanyi'} (Key Asli: ${lagu.nada_dasar})`
         }));
         
+        // Bersihkan HTML bawaan agar tidak duplikat
+        selectLagu.innerHTML = '';
+        
         choicesInstance = new Choices(selectLagu, {
             searchEnabled: true,
             itemSelectText: '',
             shouldSort: false,
-            choices: [{value: '', label: 'Cari Nama Lagu', disabled: true, selected: true}, ...options]
+            choices: [
+                { value: '', label: 'Cari Nama Lagu', placeholder: true },
+                ...options
+            ]
         });
 
         // Event listener saat pilih lagu, otomatis set key bawaannya

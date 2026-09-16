@@ -187,25 +187,30 @@
 .lyric-line {
     margin-bottom: 8px;
     display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.lyric-segment {
+    display: inline-flex;
     flex-direction: column;
 }
 
 .chord {
     font-weight: 700;
     color: var(--primary-light);
-    height: 24px; /* fixed height so hiding it collapses space but doesn't break flow if empty */
-    display: flex;
-    gap: 24px;
+    height: 24px;
+    display: block;
 }
 
 .chord span {
     display: inline-block;
-    min-width: 20px;
 }
 
 .text {
     font-weight: 600;
     color: var(--text-main);
+    white-space: pre-wrap;
 }
 
 /* Hide Chords Logic */

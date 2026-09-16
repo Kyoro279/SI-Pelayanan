@@ -236,6 +236,18 @@
     100% { transform: rotate(360deg); }
 }
 
+/* Choices.js Override agar tidak terlihat abu-abu (disabled) */
+.choices[data-type*="select-one"] .choices__inner {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    padding-bottom: 2px !important;
+}
+
+.choices[data-type*="select-one"].is-open .choices__inner {
+    border-radius: 8px 8px 0 0 !important;
+}
+
 @media (max-width: 768px) {
     .detail-grid {
         grid-template-columns: 1fr;
