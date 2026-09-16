@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const urlParams = new URLSearchParams(window.location.search);
     const songId = urlParams.get('id');
+    const jadwalId = urlParams.get('jadwal_id');
+    const songIndexStr = urlParams.get('index');
 
     if (!songId) {
         alert('ID Lagu tidak ditemukan!');
@@ -23,7 +25,81 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await fetchSongDetail(songId);
     setupInteractions(songId);
+
+    if (jadwalId) {
+        await handleSetlistMode(jadwalId, songIndexStr);
+    }
 });
+
+async function handleSetlistMode(jadwalId, songIndexStr) {
+    try {
+        const res = await fetch(`/api/jadwal/${jadwalId}`);
+        const { data } = await res.json();
+        
+        if (data && data.daftar_lagu) {
+            const index = parseInt(songIndexStr);
+            const daftar = data.daftar_lagu;
+            
+            // 1. Ganti Back Button
+            const btnBack = document.getElementById('btn-back-lagu');
+            const backText = document.getElementById('back-text');
+            if (btnBack) btnBack.onclick = () => window.location.href = `/detail-jadwal.html?id=${jadwalId}`;
+            if (backText) backText.style.display = 'inline';
+
+            // 2. Munculkan Setlist Bar
+            const setlistBar = document.getElementById('setlist-bar');
+            if (setlistBar) setlistBar.style.display = 'flex';
+            
+            const setlistTitle = document.getElementById('setlist-title');
+            const setlistDate = document.getElementById('setlist-date');
+            
+            if (setlistTitle) setlistTitle.textContent = data.judul || data.tema_pelayanan;
+            
+            if (setlistDate && data.tanggal) {
+                const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                const d = new Date(data.tanggal);
+                setlistDate.textContent = `${HARI[d.getDay()]}, ${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
+            }
+
+            // 3. Tombol Prev & Next
+            const btnPrev = document.getElementById('btn-setlist-prev');
+            const btnNext = document.getElementById('btn-setlist-next');
+            
+            if (btnPrev) {
+                if (index > 0) {
+                    btnPrev.onclick = () => window.location.href = `/detail-lagu.html?id=${daftar[index-1].id_lagu}&jadwal_id=${jadwalId}&index=${index-1}`;
+                    btnPrev.style.color = 'var(--primary-color)';
+                    btnPrev.style.cursor = 'pointer';
+                } else {
+                    btnPrev.style.color = '#cbd5e0';
+                    btnPrev.style.cursor = 'not-allowed';
+                }
+            }
+            
+            if (btnNext) {
+                if (index < daftar.length - 1) {
+                    btnNext.onclick = () => window.location.href = `/detail-lagu.html?id=${daftar[index+1].id_lagu}&jadwal_id=${jadwalId}&index=${index+1}`;
+                    btnNext.style.background = 'var(--primary-color)';
+                    btnNext.style.cursor = 'pointer';
+                } else {
+                    btnNext.style.background = '#cbd5e0';
+                    btnNext.style.cursor = 'not-allowed';
+                }
+            }
+
+            // 4. Override Transpose sesuai nada dasar yang diset di jadwal
+            const targetKey = daftar[index].nada_dasar;
+            const transposeSelect = document.querySelector('.transpose-select');
+            if (targetKey && transposeSelect && targetKey !== currentSong.nada_dasar) {
+                transposeSelect.value = targetKey;
+                transposeSelect.dispatchEvent(new Event('change'));
+            }
+        }
+    } catch (err) {
+        console.error("Setlist mode error:", err);
+    }
+}
 
 async function fetchSongDetail(id) {
     try {

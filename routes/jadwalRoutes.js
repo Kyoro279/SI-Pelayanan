@@ -175,7 +175,8 @@ router.post('/', async (req, res) => {
         tujuan,
         ringkasan_tujuan,
         pengkotbah,
-        tim_pelayanan = {}
+        tim_pelayanan = {},
+        daftar_lagu = []
     } = req.body;
 
     const finalJudul = judul || tema_kotbah;
@@ -208,6 +209,7 @@ router.post('/', async (req, res) => {
             tujuan: finalTujuan,
             pengkotbah: pengkotbah || '',
             tim_pelayanan,
+            daftar_lagu,
             tanggal_pelayanan: tanggal, 
             jam_pelayanan: waktu.length === 5 ? waktu + ':00' : waktu 
         };
@@ -267,7 +269,8 @@ router.put('/:id', async (req, res) => {
         tujuan,
         ringkasan_tujuan,
         pengkotbah,
-        tim_pelayanan
+        tim_pelayanan,
+        daftar_lagu
     } = req.body;
 
     const updateFields = {};
@@ -284,6 +287,7 @@ router.put('/:id', async (req, res) => {
     if (tujuan !== undefined || ringkasan_tujuan !== undefined) updateFields.tujuan = (tujuan !== undefined ? tujuan : ringkasan_tujuan);
     if (pengkotbah !== undefined) updateFields.pengkotbah = pengkotbah;
     if (tim_pelayanan !== undefined) updateFields.tim_pelayanan = tim_pelayanan;
+    if (daftar_lagu !== undefined) updateFields.daftar_lagu = daftar_lagu;
 
     try {
         const { data, error } = await trySupabaseQuery(tableName =>

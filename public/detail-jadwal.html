@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Jadwal - KITTEENS HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/detail-jadwal.css">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Choices.js untuk Searchable Dropdown -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body data-active="jadwal" style="display: none;">
+
+    <!-- Supabase Init & Auth Check -->
+    <script>
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/'; 
+                    return null;
+                } else {
+                    const email = session.user.email;
+                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
+                    window.isSuperAdmin = isSuperAdmin;
+                    window.userData = null;
+
+                    if (!isSuperAdmin) {
+                        try {
+                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            if (!resCheck.ok) {
+                                await supabase.auth.signOut();
+                                window.location.href = '/?error=unauthorized';
+                                return null;
+                            }
+                            const checkData = await resCheck.json();
+                            window.userData = checkData.data;
+                        } catch (errDb) {
+                            await supabase.auth.signOut();
+                            window.location.href = '/?error=unauthorized';
+                            return null;
+                        }
+                    }
+
+                    document.body.style.display = '';
+                    return session;
+                }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
+            }
+        })();
+    </script>
+
+    <div class="layout">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <!-- Header Page -->
+            <header class="detail-header">
+                <div class="header-left">
+                    <button class="btn-back" onclick="window.history.back()">
+                        <i class="ph ph-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Jadwal Pelayanan</h1>
+                        <p class="page-subtitle">Informasi seputar pelayanan minggu ini</p>
+                    </div>
+                </div>
+                <div class="header-right admin-only">
+                    <button class="btn-edit" id="btn-edit-jadwal">Edit</button>
+                    <button class="btn-delete" id="btn-delete-jadwal"><i class="ph ph-trash"></i></button>
+                </div>
+            </header>
+
+            <!-- Loading Spinner -->
+            <div id="loading-indicator" class="loading-container">
+                <div class="spinner"></div>
+                <p>Memuat detail jadwal...</p>
+            </div>
+
+            <!-- Content Grid -->
+            <div id="detail-content" class="detail-grid" style="display: none;">
+                <!-- Left Column -->
+                <div class="left-col">
+                    <!-- Info Card -->
+                    <div class="card info-card">
+                        <p class="tanggal" id="detail-tanggal">-</p>
+                        <h2 class="judul" id="detail-judul">-</h2>
+                        
+                        <div class="section">
+                            <p class="label">TUJUAN</p>
+                            <p class="value" id="detail-tujuan">-</p>
+                        </div>
+                        
+                        <div class="section">
+                            <p class="label">PENGKOTBAH</p>
+                            <p class="value" id="detail-pengkotbah">-</p>
+                        </div>
+                    </div>
+
+                    <!-- Tim Pelayanan Card -->
+                    <div class="card tim-card">
+                        <h3>TIM PELAYANAN</h3>
+                        <div class="tim-list" id="tim-list-container">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="right-col">
+                    <div class="lagu-header">
+                        <h3>DAFTAR LAGU</h3>
+                        <button class="btn-tambah-lagu admin-only" id="btn-tambah-lagu">+ Tambah Lagu</button>
+                    </div>
+
+                    <div class="lagu-list" id="lagu-list-container">
+                        <!-- Injected via JS -->
+                        <div class="empty-lagu">Belum ada lagu.</div>
+                    </div>
+
+                    <!-- Form Tambah Lagu (Inline) -->
+                    <div class="card form-tambah-lagu" id="form-tambah-lagu" style="display: none;">
+                        <select id="select-lagu">
+                            <option value="">Cari Nama Lagu</option>
+                        </select>
+                        <div class="key-selector">
+                            <label>Nada Dasar (Key):</label>
+                            <select id="select-key" class="select-css">
+                                <option value="C">C</option>
+                                <option value="C#">C# / Db</option>
+                                <option value="D">D</option>
+                                <option value="D#">D# / Eb</option>
+                                <option value="E">E</option>
+                                <option value="F">F</option>
+                                <option value="F#">F# / Gb</option>
+                                <option value="G">G</option>
+                                <option value="G#">G# / Ab</option>
+                                <option value="A">A</option>
+                                <option value="A#">A# / Bb</option>
+                                <option value="B">B</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn-masukkan" id="btn-submit-lagu">Masukkan</button>
+                            <button class="btn-batal" id="btn-cancel-lagu">Batal</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/layout.js"></script>
+    <script src="/js/detail-jadwal.js"></script>
+</body>
+</html>

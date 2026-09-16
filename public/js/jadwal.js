@@ -94,6 +94,15 @@ function populateTimPelayananDropdowns() {
             opt.textContent = `${user.nama_lengkap} (${user.role})`;
             selectEl.appendChild(opt);
         });
+
+        // Initialize Choices.js if loaded
+        if (typeof Choices !== 'undefined') {
+            new Choices(selectEl, {
+                searchEnabled: true,
+                itemSelectText: '',
+                shouldSort: false
+            });
+        }
     });
 }
 
@@ -703,15 +712,20 @@ function renderScheduleList() {
             ` : ''}
         `;
 
-        // Klik seluruh kartu atau tombol detail -> Buka Form Edit!
+        // Klik tombol edit -> Buka Form Edit!
         card.addEventListener('click', (e) => {
-            // Jangan trigger jika klik tombol hapus
             if (e.target.closest('.btn-card-delete')) {
                 e.stopPropagation();
                 hapusCardJadwal(item.id, item.judul);
                 return;
             }
-            openForm(item);
+            if (e.target.closest('.btn-card-edit')) {
+                e.stopPropagation();
+                openForm(item);
+                return;
+            }
+            // Klik kartu atau tombol detail -> Buka Detail Page
+            window.location.href = `/detail-jadwal.html?id=${item.id}`;
         });
 
         listContainer.appendChild(card);

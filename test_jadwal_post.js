@@ -1,21 +1,19 @@
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY);
 
 async function testJadwalPost() {
-    console.log("Testing Jadwal POST...");
+    console.log("Testing Jadwal POST with hardcoded ID...");
     
     const newRecord = {
+        id_jadwal: 9999, // try to bypass sequence
+        tanggal_pelayanan: '2026-09-20',
+        jam_pelayanan: '17:00:00',
         kategori: 'Pelayanan',
         tanggal: '2026-09-20',
-        waktu: '17:00',
-        judul: 'Test Title',
-        tujuan: 'Test Tujuan',
-        pengkotbah: 'Test Pengkotbah',
-        tim_pelayanan: { "worship_leader": "Test WL" }
+        waktu: '17:00:00',
+        judul: 'Test Title'
     };
 
     const { data, error } = await supabase.from('jadwal').insert([newRecord]).select();
@@ -23,6 +21,9 @@ async function testJadwalPost() {
         console.error("Error inserting jadwal:", error);
     } else {
         console.log("Success! Data:", data);
+        
+        // Clean up
+        await supabase.from('jadwal').delete().eq('id_jadwal', 9999);
     }
 }
 

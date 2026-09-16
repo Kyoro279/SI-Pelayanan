@@ -3,14 +3,13 @@
 .detail-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 24px;
 }
 
 .header-left {
     display: flex;
-    gap: 16px;
-    align-items: flex-start;
+    align-items: center;
 }
 
 .btn-back {
@@ -19,7 +18,9 @@
     font-size: 28px;
     color: var(--text-main);
     cursor: pointer;
-    margin-top: 4px;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
 }
 
 .song-title-large {
