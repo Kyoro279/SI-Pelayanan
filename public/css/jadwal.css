@@ -413,6 +413,18 @@
     width: 100%;
 }
 
+/* Choices.js Override agar tidak terlihat abu-abu (disabled) */
+.choices[data-type*="select-one"] .choices__inner {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    padding-bottom: 2px !important;
+}
+
+.choices[data-type*="select-one"].is-open .choices__inner {
+    border-radius: 10px 10px 0 0 !important;
+}
+
 .form-select {
     width: 100%;
     box-sizing: border-box;
@@ -432,19 +444,6 @@
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.custom-select-wrapper::after {
-    content: '';
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 10px;
-    height: 6px;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2364748b'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-size: contain;
-    pointer-events: none;
-}
 
 .form-select:focus {
     border-color: #0284c7;

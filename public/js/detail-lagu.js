@@ -40,11 +40,17 @@ async function handleSetlistMode(jadwalId, songIndexStr) {
             const index = parseInt(songIndexStr);
             const daftar = data.daftar_lagu;
             
-            // 1. Ganti Back Button
+            // 1. Ganti Back Button & Sidebar
             const btnBack = document.getElementById('btn-back-lagu');
             const backText = document.getElementById('back-text');
-            if (btnBack) btnBack.onclick = () => window.location.href = `/detail-jadwal.html?id=${jadwalId}`;
+            if (btnBack) {
+                btnBack.removeAttribute('onclick');
+                btnBack.onclick = () => window.location.href = `/detail-jadwal.html?id=${jadwalId}`;
+            }
             if (backText) backText.style.display = 'inline';
+
+            // Ganti sidebar aktif ke menu jadwal (sudah dihandle secara sinkron di HTML, tapi kita pastikan ulang atributnya saja)
+            document.body.setAttribute('data-active', 'jadwal');
 
             // 2. Munculkan Setlist Bar
             const setlistBar = document.getElementById('setlist-bar');

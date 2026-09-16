@@ -91,7 +91,7 @@ function populateTimPelayananDropdowns() {
         allUsers.forEach(user => {
             const opt = document.createElement('option');
             opt.value = user.nama_lengkap;
-            opt.textContent = `${user.nama_lengkap} (${user.role})`;
+            opt.textContent = user.nama_lengkap;
             selectEl.appendChild(opt);
         });
 

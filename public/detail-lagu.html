@@ -17,6 +17,10 @@
 <body data-active="lagu" style="display: none;">
 
     <script>
+        if (new URLSearchParams(window.location.search).has('jadwal_id')) {
+            document.body.setAttribute('data-active', 'jadwal');
+        }
+        
         window.authReady = (async function initAndCheckAuth() {
             try {
                 const respons = await fetch('/api/config');
