@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap History - KITTEENS HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/rekap-history.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body data-active="history" style="display: none;">
+    <script>
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
+
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/'; 
+                    return null;
+                } else {
+                    document.body.style.display = '';
+                    return session;
+                }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
+            }
+        })();
+    </script>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="rekap-header">
+                <div class="header-text">
+                    <h1>Rekap History</h1>
+                    <p>Rekap bulanan dan progres pelayanan yang sudah berjalan vs tersisa.</p>
+                </div>
+                <div class="month-selector">
+                    <button id="btnPrevMonth"><i class="ph-bold ph-caret-left"></i></button>
+                    <span id="currentMonthLabel">September 2026</span>
+                    <button id="btnNextMonth"><i class="ph-bold ph-caret-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="summary-title">Total jadwal bulan ini</div>
+                    <div class="summary-value" id="summaryTotal">0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-title">Sudah selesai</div>
+                    <div class="summary-value" id="summarySelesai">0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-title">Sisa jadwal</div>
+                    <div class="summary-value highlight" id="summarySisa">0</div>
+                </div>
+            </div>
+
+            <!-- Status Jadwal -->
+            <div class="section-card">
+                <h2 class="section-title">Status Jadwal (<span id="statusMonthLabel">September 2026</span>)</h2>
+                <div class="jadwal-list" id="jadwalList">
+                    <!-- Dinamis dari JS -->
+                </div>
+            </div>
+
+            <!-- Progres per Penatalayan -->
+            <div class="section-card">
+                <h2 class="section-title">Progres per Penatalayan</h2>
+                <p class="section-subtitle">Berapa tugas yang sudah dijalani dan berapa yang masih tersisa bulan ini.</p>
+                <div class="progres-list" id="progresList">
+                    <!-- Dinamis dari JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/layout.js"></script>
+    <script src="/js/rekap-history.js"></script>
+</body>
+</html>

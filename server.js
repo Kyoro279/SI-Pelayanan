@@ -81,6 +81,11 @@ app.get('/jadwal', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'jadwal.html'));
 });
 
+// Rute untuk halaman Rekap History
+app.get('/rekap-history', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'rekap-history.html'));
+});
+
 
 
 // ==========================================

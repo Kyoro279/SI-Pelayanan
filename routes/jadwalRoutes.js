@@ -7,7 +7,7 @@ let fallbackJadwal = [
     {
         id: '1',
         kategori: 'Pelayanan',
-        tanggal: '2026-06-06',
+        tanggal: '2026-09-05',
         waktu: '17:00',
         judul: 'Iman yang Tidak Goyah',
         tujuan: 'Mengajak jemaat untuk berakar kuat dalam Kristus di tengah tantangan hidup.',
@@ -30,7 +30,7 @@ let fallbackJadwal = [
     {
         id: '2',
         kategori: 'Pelayanan',
-        tanggal: '2026-06-13',
+        tanggal: '2026-09-12',
         waktu: '17:00',
         judul: 'Kasih yang Memulihkan',
         tujuan: 'Mengajak jemaat untuk mengenal dan merasakan Kasih Tuhan yang memulihkan.',
@@ -53,7 +53,7 @@ let fallbackJadwal = [
     {
         id: '3',
         kategori: 'Pelayanan',
-        tanggal: '2026-06-20',
+        tanggal: '2026-09-19',
         waktu: '17:00',
         judul: 'Pengharapan di Dalam Tuhan',
         tujuan: 'Mengajak jemaat untuk terus memiliki harapan di dalam Tuhan di tengah kondisi yang tidak baik.',
