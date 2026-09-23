@@ -148,6 +148,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.innerHTML = `<div class="tim-label">${t.label}</div><div class="tim-value">${val}</div>`;
             timListContainer.appendChild(row);
         });
+
+        // Tampilkan section berhalangan untuk semua role/user yang sedang login
+        const userName = window.userData ? window.userData.nama_lengkap : (window.isSuperAdmin ? 'Super Admin' : '');
+        const berhalanganSection = document.getElementById('berhalangan-section');
+        if (userName && berhalanganSection) {
+            berhalanganSection.style.display = 'block';
+        }
     }
 
     function renderDaftarLagu() {
@@ -287,6 +294,59 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error(err);
             alert('Gagal menghapus lagu.');
         }
+    }
+
+    // Submit Berhalangan
+    const btnSubmitBerhalangan = document.getElementById('btn-submit-berhalangan');
+    if (btnSubmitBerhalangan) {
+        btnSubmitBerhalangan.addEventListener('click', async () => {
+            const inputAlasan = document.getElementById('input-alasan-berhalangan');
+            const alasan = inputAlasan.value.trim();
+
+            if (!alasan) {
+                alert('Silakan tulis alasan berhalangan Anda terlebih dahulu.');
+                return;
+            }
+
+            if (!confirm('Kirim laporan berhalangan untuk jadwal ini?')) return;
+
+            btnSubmitBerhalangan.disabled = true;
+            btnSubmitBerhalangan.textContent = 'Mengirim...';
+
+            const payload = {
+                nama: window.userData ? window.userData.nama_lengkap : 'Super Admin',
+                catatan: `Laporan dari ${window.userData ? window.userData.nama_lengkap : 'Super Admin'}`,
+                id_jadwal: currentJadwal.id,
+                judul_pelayanan: currentJadwal.judul || currentJadwal.tema_pelayanan,
+                jadwal_tanggal: new Date(currentJadwal.tanggal || currentJadwal.tanggal_pelayanan).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+                alasan: alasan
+            };
+
+            try {
+                const res = await fetch('/api/berhalangan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert('Laporan berhalangan berhasil dikirim.');
+                    inputAlasan.value = '';
+                    inputAlasan.disabled = true;
+                    btnSubmitBerhalangan.textContent = 'Terkirim';
+                } else {
+                    alert(data.message || 'Gagal mengirim laporan berhalangan.');
+                    btnSubmitBerhalangan.disabled = false;
+                    btnSubmitBerhalangan.textContent = 'Kirim Laporan';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Terjadi kesalahan sistem.');
+                btnSubmitBerhalangan.disabled = false;
+                btnSubmitBerhalangan.textContent = 'Kirim Laporan';
+            }
+        });
     }
 
     // Init

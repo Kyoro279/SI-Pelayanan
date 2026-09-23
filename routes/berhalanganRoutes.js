@@ -4,32 +4,7 @@ const router = express.Router();
 const supabase = require('../config/supabase');
 
 // Fallback in-memory data jika tabel berhalangan belum ada di Supabase
-let fallbackBerhalangan = [
-    {
-        id: 1,
-        nama: 'Aldo Wijaya',
-        catatan: 'Catatan Aldo',
-        id_jadwal: 1,
-        judul_pelayanan: 'Iman yang Tidak Goyah',
-        jadwal_tanggal: 'Sabtu, 6 Juni 2026',
-        alasan: 'Saya sakit tidak bisa mengikuti latihan untuk pelayanan.',
-        status: 'Belum Diproses',
-        nama_pengganti: null,
-        created_at: new Date('2026-06-01T08:30:00Z').toISOString()
-    },
-    {
-        id: 2,
-        nama: 'Jonathan Vincentius',
-        catatan: 'Catatan Jonathan',
-        id_jadwal: 2,
-        judul_pelayanan: 'Kasih Yang Memulihkan',
-        jadwal_tanggal: '13 Juni 2026.',
-        alasan: 'Harus ke luar kota ada keperluan.',
-        status: 'Belum Diproses',
-        nama_pengganti: null,
-        created_at: new Date('2026-06-05T10:15:00Z').toISOString()
-    }
-];
+let fallbackBerhalangan = [];
 
 // Helper: Cek apakah tabel 'berhalangan' ada di Supabase
 async function isTableAvailable() {
@@ -49,7 +24,21 @@ router.get('/', async (req, res) => {
     const { status } = req.query; // 'Belum Diproses' | 'all' | dll.
     try {
         const tableExists = await isTableAvailable();
+        
+        // Auto-cleanup: hapus data yang sudah diproses dan lebih dari 2 minggu
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
         if (tableExists) {
+            // Hapus di background (non-blocking)
+            supabase.from('berhalangan')
+                .delete()
+                .neq('status', 'Belum Diproses')
+                .lt('updated_at', twoWeeksAgo.toISOString())
+                .then(({ error }) => {
+                    if (error) console.error('Error cleaning up old berhalangan:', error);
+                });
+
             let query = supabase.from('berhalangan').select('*').order('created_at', { ascending: false });
             if (status && status !== 'all' && status !== 'Semua') {
                 query = query.eq('status', status);
@@ -58,6 +47,15 @@ router.get('/', async (req, res) => {
             if (error) throw error;
             return res.json({ success: true, data });
         } else {
+            // Cleanup fallback data
+            fallbackBerhalangan = fallbackBerhalangan.filter(item => {
+                if (item.status !== 'Belum Diproses') {
+                    const dateToCheck = new Date(item.updated_at || item.created_at);
+                    if (dateToCheck < twoWeeksAgo) return false; // Hapus
+                }
+                return true; // Simpan
+            });
+
             // Gunakan fallback in-memory data
             let result = [...fallbackBerhalangan];
             if (status && status !== 'all' && status !== 'Semua') {

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,10 +9,10 @@
     <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/detail-jadwal.css">
-    
+
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
+
     <!-- Choices.js untuk Searchable Dropdown -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
@@ -19,6 +20,7 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body data-active="jadwal" style="display: none;">
 
     <!-- Supabase Init & Auth Check -->
@@ -32,7 +34,7 @@
 
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {
-                    window.location.href = '/'; 
+                    window.location.href = '/';
                     return null;
                 } else {
                     const email = session.user.email;
@@ -101,12 +103,12 @@
                     <div class="card info-card">
                         <p class="tanggal" id="detail-tanggal">-</p>
                         <h2 class="judul" id="detail-judul">-</h2>
-                        
+
                         <div class="section">
                             <p class="label">TUJUAN</p>
                             <p class="value" id="detail-tujuan">-</p>
                         </div>
-                        
+
                         <div class="section">
                             <p class="label">PENGKOTBAH</p>
                             <p class="value" id="detail-pengkotbah">-</p>
@@ -119,6 +121,20 @@
                         <div class="tim-list" id="tim-list-container">
                             <!-- Injected via JS -->
                         </div>
+                    </div>
+
+                    <!-- Section Berhalangan (Hidden by default, shown if isAssigned) -->
+                    <div class="card berhalangan-card" id="berhalangan-section"
+                        style="display: none; margin-top: 24px; padding-bottom: 32px;">
+                        <h3>LAPORKAN BERHALANGAN</h3>
+                        <p class="section-subtitle"
+                            style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+                            Jika Anda berhalangan untuk hadir / pelayanan, silakan laporkan alasan Anda.</p>
+                        <textarea id="input-alasan-berhalangan" class="input-css"
+                            placeholder="Tuliskan alasan Anda di sini..." rows="3"
+                            style="width:100%; margin-bottom: 16px; resize: vertical; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);"></textarea>
+                        <button class="btn-masukkan" id="btn-submit-berhalangan" style="width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; margin-bottom: 8px;">Kirim
+                            Laporan</button>
                     </div>
                 </div>
 
@@ -169,4 +185,5 @@
     <script src="/js/layout.js"></script>
     <script src="/js/detail-jadwal.js"></script>
 </body>
+
 </html>

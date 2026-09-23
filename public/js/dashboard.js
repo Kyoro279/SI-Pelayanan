@@ -146,3 +146,112 @@ function escapeHtml(str) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
+// --- Notification Logic ---
+
+function openNotificationModal() {
+    document.getElementById('notif-overlay').style.display = 'block';
+    document.getElementById('notif-modal').style.display = 'flex';
+}
+
+function closeNotificationModal() {
+    document.getElementById('notif-overlay').style.display = 'none';
+    document.getElementById('notif-modal').style.display = 'none';
+}
+
+async function fetchNotifications() {
+    let notifications = [];
+    const badge = document.getElementById('notif-badge');
+    const body = document.getElementById('notif-body');
+
+    if (!window.userData && !window.isSuperAdmin) return;
+
+    const role = window.isSuperAdmin ? 'Admin' : (window.userData.role || 'Member');
+    const userName = window.isSuperAdmin ? 'Admin' : window.userData.name;
+
+    // 1. Admin/WP: Check Berhalangan reports
+    if (role === 'Admin' || role === 'WP') {
+        try {
+            const res = await fetch('/api/berhalangan?status=Belum%20Diproses');
+            if (res.ok) {
+                const { data } = await res.json();
+                if (data && data.length > 0) {
+                    data.forEach(item => {
+                        notifications.push({
+                            type: 'berhalangan',
+                            title: 'Laporan Berhalangan',
+                            desc: `${item.nama} berhalangan untuk pelayanan '${item.judul_pelayanan}'`,
+                            date: new Date(item.created_at),
+                            link: '/berhalangan'
+                        });
+                    });
+                }
+            }
+        } catch (e) { console.error('Error fetching berhalangan:', e); }
+    }
+
+    // 2. All roles: Check Schedule < 14 days
+    try {
+        const resJadwal = await fetch('/api/jadwal');
+        if (resJadwal.ok) {
+            const { data } = await resJadwal.json();
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const twoWeeksFromNow = new Date(today);
+            twoWeeksFromNow.setDate(today.getDate() + 14);
+
+            if (data && data.length > 0) {
+                data.forEach(jadwal => {
+                    const jDate = new Date(jadwal.tanggal);
+                    if (jDate >= today && jDate <= twoWeeksFromNow) {
+                        // Check if user is in this schedule
+                        let isAssigned = false;
+                        if (jadwal.pengkotbah && userName && jadwal.pengkotbah.toLowerCase() === userName.toLowerCase()) isAssigned = true;
+                        if (jadwal.tim_pelayanan && Array.isArray(jadwal.tim_pelayanan)) {
+                            const found = jadwal.tim_pelayanan.find(p => p.nama_pelayan && userName && p.nama_pelayan.toLowerCase() === userName.toLowerCase());
+                            if (found) isAssigned = true;
+                        }
+
+                        if (isAssigned) {
+                            notifications.push({
+                                type: 'jadwal',
+                                title: 'Pengingat Pelayanan',
+                                desc: `Anda memiliki pelayanan '${jadwal.judul || jadwal.tema_pelayanan}' pada ${formatTanggalLengkap(jadwal.tanggal)}`,
+                                date: new Date(),
+                                link: `/detail-jadwal.html?id=${jadwal.id}`
+                            });
+                        }
+                    }
+                });
+            }
+        }
+    } catch (e) { console.error('Error fetching jadwal:', e); }
+
+    // Render notifications
+    if (notifications.length > 0) {
+        badge.textContent = notifications.length;
+        badge.style.display = 'flex';
+        body.innerHTML = '';
+        notifications.sort((a,b) => b.date - a.date);
+        
+        notifications.forEach(notif => {
+            const item = document.createElement('div');
+            item.className = 'notif-item';
+            item.onclick = () => window.location.href = notif.link;
+            item.innerHTML = `
+                <div class="notif-title">${notif.title}</div>
+                <div class="notif-desc">${notif.desc}</div>
+            `;
+            body.appendChild(item);
+        });
+    } else {
+        badge.textContent = '0';
+        badge.style.display = 'none';
+        body.innerHTML = '<p style="text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px;">Tidak ada notifikasi baru.</p>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    if (window.authReady) await window.authReady;
+    fetchNotifications();
+});

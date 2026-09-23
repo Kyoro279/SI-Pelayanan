@@ -27,11 +27,34 @@
                     window.location.href = '/'; 
                     return null;
                 } else {
+                    const email = session.user.email;
+                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
+                    window.isSuperAdmin = isSuperAdmin;
+                    window.userData = null;
+
+                    if (!isSuperAdmin) {
+                        try {
+                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            if (!resCheck.ok) {
+                                await supabase.auth.signOut();
+                                window.location.href = '/?error=unauthorized';
+                                return null;
+                            }
+                            const checkData = await resCheck.json();
+                            window.userData = checkData.data;
+                        } catch (errDb) {
+                            await supabase.auth.signOut();
+                            window.location.href = '/?error=unauthorized';
+                            return null;
+                        }
+                    }
+
                     document.body.style.display = '';
                     return session;
                 }
             } catch (err) {
                 console.error("Gagal memuat auth:", err);
+                document.body.style.display = '';
             }
         })();
     </script>
