@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Dashboard - SI Pelayanan</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body style="text-align: center; margin-top: 100px;">
-    
+
     <h1 id="pesan-selamat-datang">Memuat data...</h1>
     <p id="email-user"></p>
-    
+
     <button id="btn-logout" style="padding: 5px 15px; margin-top: 20px; cursor: pointer; color: red;">Logout</button>
 
     <script>
         // Masukkan URL dan Key yang sama persis dengan yang ada di auth.js
-        const SUPABASE_URL = 'URL_SUPABASE_ANDA'; 
+        const SUPABASE_URL = 'URL_SUPABASE_ANDA';
         const SUPABASE_ANON_KEY = 'KUNCI_ANON_ANDA';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Fungsi mengecek user yang sedang login
         async function cekUser() {
             const { data: { session } } = await supabase.auth.getSession();
-            
+
             if (session) {
                 // Jika sudah login, tampilkan nama dan email dari Google
                 document.getElementById('pesan-selamat-datang').innerText = `Selamat Datang, ${session.user.user_metadata.full_name}!`;
@@ -39,5 +41,75 @@
             window.location.href = '/'; // Kembali ke halaman utama
         });
     </script>
+
+    <div class="layout">
+        <!-- Container untuk Component Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Konten Utama -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="welcome-text">
+                    <p class="subtitle">Selamat datang kembali,</p>
+                    <h1 class="title" id="header-user-name">Memuat...</h1>
+                    <p class="role-text">Log in sebagai Admin</p>
+                </div>
+                <div class="notification-icon" onclick="window.location.href='/berhalangan'" style="cursor: pointer;"
+                    title="Notifikasi Berhalangan">
+                    <i class="ph ph-bell"></i>
+                    <span class="badge">2</span>
+                </div>
+            </header>
+
+            <!-- Quick Links -->
+            <section class="quick-links">
+                <div class="quick-card" onclick="window.location.href='/jadwal'" style="cursor: pointer;">
+                    <div class="icon-box"><i class="ph ph-calendar-blank"></i></div>
+                    <div class="card-title">Jadwal Pelayanan</div>
+                    <div class="arrow"><i class="ph ph-arrow-right"></i></div>
+                </div>
+                <div class="quick-card" onclick="window.location.href='/bank-lagu'" style="cursor: pointer;">
+                    <div class="icon-box"><i class="ph ph-music-notes"></i></div>
+                    <div class="card-title">Bank Lagu</div>
+                    <div class="arrow"><i class="ph ph-arrow-right"></i></div>
+                </div>
+                <div class="quick-card" onclick="window.location.href='/manajemen-akun'" style="cursor: pointer;">
+                    <div class="icon-box"><i class="ph ph-users"></i></div>
+                    <div class="card-title">Manajemen Akun</div>
+                    <div class="arrow"><i class="ph ph-arrow-right"></i></div>
+                </div>
+            </section>
+
+            <!-- Pelayanan Berikutnya -->
+            <section class="next-service">
+                <div class="card-header">
+                    <span class="label">PELAYANAN BERIKUTNYA</span>
+                    <button class="btn-detail" onclick="window.location.href='/jadwal'">Detail →</button>
+                </div>
+                <div class="service-content">
+                    <h2>Memuat...</h2>
+                    <p class="date">-</p>
+                    <p class="desc">Sedang memuat data...</p>
+                </div>
+            </section>
+
+            <!-- Jadwal Mendatang -->
+            <section class="upcoming-schedule">
+                <div class="section-header">
+                    <h2>Jadwal Mendatang</h2>
+                    <a href="/jadwal" class="view-all">Lihat Semua</a>
+                </div>
+                <div class="schedule-grid">
+                    <p style="color: #64748B; font-size: 14px; grid-column: 1 / -1;">Memuat data...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Script Injector & Logic Layout -->
+    <script src="/js/layout.js"></script>
+    <script src="/js/dashboard.js"></script>
 </body>
+
 </html>

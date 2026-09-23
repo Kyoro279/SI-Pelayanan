@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permintaan Berhalangan - KITTEENS HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/berhalangan.css">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body data-active="berhalangan" style="display: none;">
+
+    <!-- Supabase Init & Auth Check -->
+    <script>
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                // Ambil config Supabase dari backend
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
+
+                // Buat instance global
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/'; 
+                    return null;
+                } else {
+                    const email = session.user.email;
+                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
+                    window.isSuperAdmin = isSuperAdmin;
+                    window.userData = null;
+
+                    if (!isSuperAdmin) {
+                        try {
+                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            if (!resCheck.ok) {
+                                await supabase.auth.signOut();
+                                window.location.href = '/?error=unauthorized';
+                                return null;
+                            }
+                            const checkData = await resCheck.json();
+                            window.userData = checkData.data;
+                        } catch (errDb) {
+                            await supabase.auth.signOut();
+                            window.location.href = '/?error=unauthorized';
+                            return null;
+                        }
+                    }
+
+                    document.body.style.display = '';
+                    return session;
+                }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
+                document.body.style.display = '';
+            }
+        })();
+    </script>
+
+    <div class="layout">
+        <!-- Sidebar Container (di-inject oleh layout.js) -->
+        <div id="sidebar-container"></div>
+
+        <!-- Konten Utama -->
+        <main class="main-content">
+            <!-- Header Halaman -->
+            <header class="berhalangan-header">
+                <div class="header-text">
+                    <h1 class="page-title">Permintaan Berhalangan</h1>
+                    <p class="page-subtitle">Notifikasi dari tim yang berhalangan melayani.</p>
+                </div>
+
+                <div class="header-actions">
+                    <!-- Segmented Filter Buttons -->
+                    <div class="filter-pill-group">
+                        <button type="button" class="filter-pill-btn active" id="btn-filter-belum" data-status="belum">Belum Diproses</button>
+                        <button type="button" class="filter-pill-btn" id="btn-filter-semua" data-status="semua">Semua</button>
+                    </div>
+
+                    <!-- Tombol Ajukan (opsional / pelayan yang ingin membuat izin baru) -->
+                    <button type="button" class="btn-ajukan-baru" id="btn-open-modal-ajukan" title="Ajukan permintaan berhalangan baru">
+                        <i class="ph ph-plus"></i> Ajukan
+                    </button>
+                </div>
+            </header>
+
+            <!-- Container List Kartu Berhalangan -->
+            <section class="berhalangan-list-container" id="berhalangan-container">
+                <!-- Data dimuat secara dinamis oleh berhalangan.js -->
+                <div class="loading-state">
+                    <i class="ph ph-spinner ph-spin"></i>
+                    <p>Memuat daftar permintaan berhalangan...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Form Tambah Permintaan Berhalangan Baru -->
+    <div class="modal-overlay" id="modal-ajukan" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="ph ph-note-pencil"></i> Ajukan Permintaan Berhalangan</h3>
+                <button type="button" class="btn-modal-close" id="btn-close-modal">&times;</button>
+            </div>
+            <form id="form-ajukan-berhalangan">
+                <div class="form-group">
+                    <label for="input-nama-pelayan">Nama Pelayan <span class="required">*</span></label>
+                    <input type="text" id="input-nama-pelayan" placeholder="Contoh: Aldo Wijaya" required>
+                </div>
+                <div class="form-group">
+                    <label for="select-pelayanan">Jadwal Pelayanan</label>
+                    <select id="select-pelayanan">
+                        <option value="">Pilih Jadwal Pelayanan...</option>
+                        <!-- Dimuat otomatis dari jadwal yang ada -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="input-alasan">Alasan Berhalangan <span class="required">*</span></label>
+                    <textarea id="input-alasan" rows="3" placeholder="Tuliskan alasan mengapa berhalangan melayani..." required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" id="btn-cancel-modal">Batal</button>
+                    <button type="submit" class="btn-submit-modal" id="btn-submit-ajukan">Kirim Permintaan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Script Injector & Logic Layout -->
+    <script src="/js/layout.js"></script>
+    <script src="/js/berhalangan.js"></script>
+</body>
+
+</html>
