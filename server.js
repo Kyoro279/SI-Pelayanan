@@ -13,7 +13,7 @@ const berhalanganRoutes = require('./routes/berhalanganRoutes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware untuk mem-parsing JSON (berguna untuk fitur selanjutnya)
+// Middleware untuk mem-parsing JSON
 app.use(express.json());
 
 // Menyajikan semua file statis (HTML, CSS, JS) di dalam folder 'public'
@@ -24,7 +24,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // RUTE API (BACKEND)
 // ==========================================
 
-// Endpoint untuk mengirimkan kunci Supabase ke file frontend (auth.js & dashboard.html)
+// Endpoint untuk mengirimkan kunci Supabase ke file frontend
 app.get('/api/config', (req, res) => {
     res.json({
         SUPABASE_URL: process.env.SUPABASE_URL,
@@ -45,10 +45,10 @@ app.use('/api/berhalangan', berhalanganRoutes);
 
 // Rute untuk halaman utama (Login)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// Rute untuk halaman Dashboard (Setelah Login)
+// Rute untuk halaman Dashboard
 app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
@@ -87,7 +87,6 @@ app.get('/jadwal', (req, res) => {
 app.get('/berhalangan', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'berhalangan.html'));
 });
-
 
 
 // ==========================================

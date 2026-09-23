@@ -3,43 +3,86 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - SI Pelayanan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - KITTEENS HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+<!-- Atribut data-active digunakan layout.js untuk highlight menu -->
 
-<body style="text-align: center; margin-top: 100px;">
+<body data-active="dashboard" style="display: none;">
 
-    <h1 id="pesan-selamat-datang">Memuat data...</h1>
-    <p id="email-user"></p>
-
-    <button id="btn-logout" style="padding: 5px 15px; margin-top: 20px; cursor: pointer; color: red;">Logout</button>
-
+    <!-- Supabase Init & Auth Check -->
     <script>
-        // Masukkan URL dan Key yang sama persis dengan yang ada di auth.js
-        const SUPABASE_URL = 'URL_SUPABASE_ANDA';
-        const SUPABASE_ANON_KEY = 'KUNCI_ANON_ANDA';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Buat promise agar script lain (seperti layout.js) bisa menunggu auth selesai
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                // Ambil config Supabase dari backend (membaca dari .env)
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
 
-        // Fungsi mengecek user yang sedang login
-        async function cekUser() {
-            const { data: { session } } = await supabase.auth.getSession();
+                // Buat instance global
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
 
-            if (session) {
-                // Jika sudah login, tampilkan nama dan email dari Google
-                document.getElementById('pesan-selamat-datang').innerText = `Selamat Datang, ${session.user.user_metadata.full_name}!`;
-                document.getElementById('email-user').innerText = session.user.email;
-            } else {
-                // Jika belum login, tendang balik ke halaman awal
-                window.location.href = '/';
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/'; // Redirect ke halaman login jika belum login
+                    return null;
+                } else {
+                    const email = session.user.email;
+                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
+                    window.isSuperAdmin = isSuperAdmin;
+                    window.userData = null;
+
+                    // Verifikasi apakah email ada di database (kecuali super admin)
+                    if (!isSuperAdmin) {
+                        try {
+                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            if (!resCheck.ok) {
+                                await supabase.auth.signOut();
+                                window.location.href = '/?error=unauthorized';
+                                return null;
+                            }
+                            const checkData = await resCheck.json();
+                            window.userData = checkData.data;
+                        } catch (errDb) {
+                            await supabase.auth.signOut();
+                            window.location.href = '/?error=unauthorized';
+                            return null;
+                        }
+                    }
+
+                    // Tampilkan nama user di header dashboard
+                    const metadata = session.user.user_metadata || {};
+                    const fullName = window.userData ? window.userData.nama_lengkap : (metadata.full_name || email.split('@')[0]);
+                    
+                    const roleText = window.userData ? window.userData.role : (isSuperAdmin ? 'Admin' : 'Guest');
+                    const roleLabel = document.querySelector('.role-text');
+                    if (roleLabel) roleLabel.textContent = `Log in sebagai ${roleText}`;
+
+                    const updateName = () => {
+                        const headerUserName = document.getElementById('header-user-name');
+                        if (headerUserName) headerUserName.textContent = fullName;
+                    };
+
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', () => { updateName(); document.body.style.display = ''; });
+                    } else {
+                        updateName();
+                        document.body.style.display = '';
+                    }
+                    return session;
+                }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
             }
-        }
-        cekUser();
-
-        // Fungsi Logout
-        document.getElementById('btn-logout').addEventListener('click', async () => {
-            await supabase.auth.signOut();
-            window.location.href = '/'; // Kembali ke halaman utama
-        });
+        })();
     </script>
 
     <div class="layout">

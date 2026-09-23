@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goodness of God - KITTEENS HUB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/detail-lagu.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body data-active="lagu" style="display: none;">
+
+    <script>
+        if (new URLSearchParams(window.location.search).has('jadwal_id')) {
+            document.body.setAttribute('data-active', 'jadwal');
+        }
+        
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
+
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/'; 
+                    return null;
+                } else {
+                    const email = session.user.email;
+                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
+                    window.isSuperAdmin = isSuperAdmin;
+                    window.userData = null;
+
+                    if (!isSuperAdmin) {
+                        try {
+                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            if (!resCheck.ok) {
+                                await supabase.auth.signOut();
+                                window.location.href = '/?error=unauthorized';
+                                return null;
+                            }
+                            const checkData = await resCheck.json();
+                            window.userData = checkData.data;
+                        } catch (errDb) {
+                            await supabase.auth.signOut();
+                            window.location.href = '/?error=unauthorized';
+                            return null;
+                        }
+                    }
+
+                    document.body.style.display = '';
+                    return session;
+                }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
+            }
+        })();
+    </script>
+
+    <div class="layout">
+        <!-- Container untuk Component Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Konten Utama -->
+        <main class="main-content">
+            <div class="detail-header">
+                <div class="header-left">
+                    <button class="btn-back" id="btn-back-lagu" onclick="window.location.href='/bank-lagu'">
+                        <i class="ph ph-arrow-left"></i>
+                        <span id="back-text" style="margin-left: 8px; font-size: 16px; font-weight: 600; display: none; color: #4a5568;">Kembali ke Jadwal Pelayanan</span>
+                    </button>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-edit" onclick="window.location.href='/edit-lagu'">Edit</button>
+                    <button class="btn-delete-filled"><i class="ph-bold ph-trash"></i></button>
+                </div>
+            </div>
+
+            <!-- Setlist Bar (Hidden by default) -->
+            <div id="setlist-bar" style="display: none; align-items: center; justify-content: space-between; background: white; border: 1px solid #e2e8f0; border-radius: 20px; padding: 8px 16px; margin-bottom: 24px; font-size: 13px;">
+                <div style="color: #4a5568;">
+                    <span style="font-weight: 600; color: #3182ce;">Setlist :</span> 
+                    <span id="setlist-title" style="font-weight: 600; margin-left: 4px;">-</span> 
+                    <span id="setlist-date" style="color: #3182ce; font-weight: 600; margin-left: 8px;">-</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-setlist-prev" style="background: none; border: none; cursor: pointer; color: #718096; font-size: 13px;">&lt; Sebelumnya</button>
+                    <button id="btn-setlist-next" style="background: var(--primary-color); color: white; border: none; cursor: pointer; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;">Selanjutnya &gt;</button>
+                </div>
+            </div>
+
+            <div id="title-wrapper" style="margin-bottom: 24px;">
+                <h1 class="song-title-large">Memuat...</h1>
+                <p class="song-artist-large">-</p>
+            </div>
+
+
+            <div class="control-bar">
+                <div class="control-left">
+                    <div class="control-item">
+                        <span class="control-label">Original</span>
+                        <span class="control-value">G</span>
+                    </div>
+                    <div class="control-divider"></div>
+                    <div class="control-item">
+                        <span class="control-label">Transpose</span>
+                        <select class="transpose-select">
+                            <option>G</option>
+                            <option>A</option>
+                            <option>B</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn-toggle-chord" id="toggleChordBtn">
+                    CHORD <i class="ph ph-eye-slash" id="chordIcon"></i>
+                </button>
+            </div>
+
+            <div class="content-grid">
+                <div class="lyrics-container" id="lyricsContainer">
+                    <div style="text-align: center; padding: 40px; color: #64748b;">
+                        <i class="ph ph-spinner ph-spin" style="font-size: 2rem;"></i>
+                        <p>Memuat lirik lagu...</p>
+                    </div>
+                </div>
+                
+                <div class="sidebar-right">
+                    <a href="#" target="_blank" class="video-thumbnail-link">
+                        <div class="video-thumbnail">
+                            <!-- Background image di-set di CSS -->
+                        </div>
+                    </a>
+                    <div class="jump-box">
+                        <div class="jump-title">JUMP TO SECTION</div>
+                        <ul class="jump-list">
+                            <!-- Diisi dinamis -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script Injector & Logic Layout -->
+    <script src="/js/layout.js"></script>
+    <script src="/js/detail-lagu.js"></script>
+</body>
+
+</html>
