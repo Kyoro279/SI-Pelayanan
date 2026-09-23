@@ -13,9 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Hanya tampilkan tombol admin jika isSuperAdmin atau role == 'Admin'
-    const isAdmin = window.isSuperAdmin || (window.userData && window.userData.role === 'Admin');
-    if (!isAdmin) {
+    // Cek role untuk manajemen lagu di jadwal
+    const role = window.userData ? window.userData.role : (window.isSuperAdmin ? 'Admin' : 'Guest');
+    const canManageLaguJadwal = window.isSuperAdmin || role === 'Admin' || role === 'Worship Planner' || role === 'Worship Leader';
+    if (!canManageLaguJadwal) {
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
     }
 
@@ -57,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentJadwal = dataJadwal.data;
 
             // Fetch Semua Lagu (Untuk Form Tambah)
-            if (isAdmin) {
+            if (canManageLaguJadwal) {
                 const resLagu = await fetch('/api/lagu');
                 const dataLagu = await resLagu.json();
                 if (dataLagu.success) {
@@ -171,7 +172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             item.className = 'lagu-item';
             item.style.cursor = 'pointer'; // Make the box look clickable
             
-            const btnDelete = isAdmin ? `<button class="btn-remove-lagu" data-index="${index}"><i class="ph ph-trash"></i></button>` : '';
+            const btnDelete = canManageLaguJadwal ? `<button class="btn-remove-lagu" data-index="${index}"><i class="ph ph-trash"></i></button>` : '';
 
             item.innerHTML = `
                 <div style="display:flex; align-items:center; gap: 12px;">
@@ -196,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // Bind delete events
-        if (isAdmin) {
+        if (canManageLaguJadwal) {
             document.querySelectorAll('.btn-remove-lagu').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const idx = e.currentTarget.getAttribute('data-index');

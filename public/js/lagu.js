@@ -23,7 +23,7 @@ async function initAuthPermissions() {
     }
 
     const role = window.userData ? window.userData.role : (window.isSuperAdmin ? 'Admin' : 'Guest');
-    canManageLagu = window.isSuperAdmin || role === 'Admin' || role === 'Worship Planner';
+    canManageLagu = window.isSuperAdmin || role === 'Admin' || role === 'Music Director';
 
     const btnTambah = document.querySelector('.btn-primary');
     if (btnTambah && !canManageLagu) {

@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const role = window.userData ? window.userData.role : (window.isSuperAdmin ? 'Admin' : 'Guest');
-    canManageLagu = window.isSuperAdmin || role === 'Admin' || role === 'Worship Planner';
+    canManageLagu = window.isSuperAdmin || role === 'Admin' || role === 'Music Director';
 
     const urlParams = new URLSearchParams(window.location.search);
     const songId = urlParams.get('id');

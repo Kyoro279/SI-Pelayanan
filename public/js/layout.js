@@ -61,12 +61,18 @@ async function setupSidebarLogic() {
         const userNameOption = document.getElementById('sidebar-user-name');
         if(userNameOption) userNameOption.textContent = `${fullName} - ${role}`;
 
-        // Sembunyikan menu Manajemen Akun jika bukan Admin
+        // Sembunyikan menu berdasarkan role
+        const menuAkun = document.querySelector('.sidebar-menu a[data-menu="akun"]');
+        const menuBerhalangan = document.querySelector('.sidebar-menu a[data-menu="berhalangan"]');
+        const menuHistory = document.querySelector('.sidebar-menu a[data-menu="history"]');
+
         if (role !== 'Admin') {
-            const menuAkun = document.querySelector('.sidebar-menu a[data-menu="akun"]');
-            if (menuAkun) {
-                menuAkun.parentElement.style.display = 'none';
-            }
+            if (menuAkun) menuAkun.parentElement.style.display = 'none';
+        }
+
+        if (role === 'Servant' || role === 'Worship Leader' || role === 'Music Director') {
+            if (menuBerhalangan) menuBerhalangan.parentElement.style.display = 'none';
+            if (menuHistory) menuHistory.parentElement.style.display = 'none';
         }
     }
 
