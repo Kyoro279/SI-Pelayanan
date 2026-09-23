@@ -47,7 +47,7 @@ body {
 }
 
 .sidebar-header h2 {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
     color: var(--text-main);
 }
@@ -145,7 +145,8 @@ body {
 
 /* --- Main Content Styles --- */
 .main-content {
-    margin-left: 260px; /* Lebar sidebar */
+    margin-left: 260px;
+    /* Lebar sidebar */
     padding: 40px;
     flex-grow: 1;
 }

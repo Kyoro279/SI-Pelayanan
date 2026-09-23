@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         await window.authReady;
     }
 
-    const role = window.userData ? window.userData.role : (window.isSuperAdmin ? 'Admin' : 'Guest');
-    canManageLagu = window.isSuperAdmin || role === 'Admin' || role === 'Music Director';
+    const role = window.userData ? (window.userData.role || '').toLowerCase() : (window.isSuperAdmin ? 'admin' : 'guest');
+    canManageLagu = window.isSuperAdmin || role === 'admin' || role === 'music director';
 
     const urlParams = new URLSearchParams(window.location.search);
     const songId = urlParams.get('id');

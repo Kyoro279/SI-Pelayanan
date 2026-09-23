@@ -53,8 +53,8 @@ async function initAuthPermissions() {
         await window.authReady;
     }
 
-    const role = window.userData ? window.userData.role : (window.isSuperAdmin ? 'Admin' : 'Guest');
-    canManageJadwal = window.isSuperAdmin || role === 'Admin' || role === 'Worship Planner';
+    const role = window.userData ? (window.userData.role || '').toLowerCase() : (window.isSuperAdmin ? 'admin' : 'guest');
+    canManageJadwal = window.isSuperAdmin || role === 'admin' || role === 'worship planner';
 
     const btnTambah = document.getElementById('btn-tambah-jadwal');
     if (btnTambah && !canManageJadwal) {

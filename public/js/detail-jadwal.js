@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Cek role untuk manajemen lagu di jadwal
-    const role = window.userData ? window.userData.role : (window.isSuperAdmin ? 'Admin' : 'Guest');
-    const canManageLaguJadwal = window.isSuperAdmin || role === 'Admin' || role === 'Worship Planner' || role === 'Worship Leader';
+    const role = window.userData ? (window.userData.role || '').toLowerCase() : (window.isSuperAdmin ? 'admin' : 'guest');
+    const canManageLaguJadwal = window.isSuperAdmin || role === 'admin' || role === 'worship planner' || role === 'worship leader';
     if (!canManageLaguJadwal) {
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
     }

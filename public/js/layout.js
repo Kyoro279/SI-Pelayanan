@@ -50,27 +50,28 @@ async function setupSidebarLogic() {
     if (session && session.user) {
         // Ambil data nama dan role dari window.userData yang diset oleh authReady
         const isSuperAdmin = window.isSuperAdmin;
-        const role = window.userData ? window.userData.role : (isSuperAdmin ? 'Admin' : 'Guest');
+        const originalRole = window.userData ? window.userData.role : (isSuperAdmin ? 'Admin' : 'Guest');
+        const role = originalRole.toLowerCase();
         const metadata = session.user.user_metadata || {};
         const fullName = window.userData ? window.userData.nama_lengkap : (metadata.full_name || session.user.email.split('@')[0]);
         
         // Update UI Sidebar
         const roleLabel = document.getElementById('sidebar-role-label');
-        if(roleLabel) roleLabel.textContent = `Log in sebagai (${role})`;
+        if(roleLabel) roleLabel.textContent = `Log in sebagai (${originalRole})`;
         
         const userNameOption = document.getElementById('sidebar-user-name');
-        if(userNameOption) userNameOption.textContent = `${fullName} - ${role}`;
+        if(userNameOption) userNameOption.textContent = `${fullName} - ${originalRole}`;
 
         // Sembunyikan menu berdasarkan role
         const menuAkun = document.querySelector('.sidebar-menu a[data-menu="akun"]');
         const menuBerhalangan = document.querySelector('.sidebar-menu a[data-menu="berhalangan"]');
         const menuHistory = document.querySelector('.sidebar-menu a[data-menu="history"]');
 
-        if (role !== 'Admin') {
+        if (role !== 'admin') {
             if (menuAkun) menuAkun.parentElement.style.display = 'none';
         }
 
-        if (role === 'Servant' || role === 'Worship Leader' || role === 'Music Director') {
+        if (role === 'servant' || role === 'worship leader' || role === 'music director') {
             if (menuBerhalangan) menuBerhalangan.parentElement.style.display = 'none';
             if (menuHistory) menuHistory.parentElement.style.display = 'none';
         }
