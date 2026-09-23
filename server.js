@@ -83,10 +83,18 @@ app.get('/jadwal', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'jadwal.html'));
 });
 
+<<<<<<< HEAD
 // Rute untuk halaman Berhalangan
 app.get('/berhalangan', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'berhalangan.html'));
 });
+=======
+// Rute untuk halaman Rekap History
+app.get('/rekap-history', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'rekap-history.html'));
+});
+
+>>>>>>> origin/Rekap-History
 
 
 // ==========================================
