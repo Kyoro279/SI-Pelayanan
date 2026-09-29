@@ -61,7 +61,7 @@
                     // Tampilkan nama user di header dashboard
                     const metadata = session.user.user_metadata || {};
                     const fullName = window.userData ? window.userData.nama_lengkap : (metadata.full_name || email.split('@')[0]);
-                    
+
                     const roleText = window.userData ? window.userData.role : (isSuperAdmin ? 'Admin' : 'Guest');
                     const roleLabel = document.querySelector('.role-text');
                     if (roleLabel) roleLabel.textContent = `Log in sebagai ${roleText}`;
@@ -159,7 +159,8 @@
         </div>
         <div class="notif-body" id="notif-body">
             <!-- Injected by JS -->
-            <p style="text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px;">Tidak ada notifikasi baru.</p>
+            <p style="text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px;">Tidak ada
+                notifikasi baru.</p>
         </div>
     </div>
 
