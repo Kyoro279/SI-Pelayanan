@@ -19,52 +19,9 @@
 <body data-active="berhalangan" style="display: none;">
 
     <!-- Supabase Init & Auth Check -->
+    <script src="/js/checkAuth.js"></script>
     <script>
-        window.authReady = (async function initAndCheckAuth() {
-            try {
-                // Ambil config Supabase dari backend
-                const respons = await fetch('/api/config');
-                const config = await respons.json();
-
-                // Buat instance global
-                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
-                const supabase = window.supabaseClient;
-
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) {
-                    window.location.href = '/'; 
-                    return null;
-                } else {
-                    const email = session.user.email;
-                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
-                    window.isSuperAdmin = isSuperAdmin;
-                    window.userData = null;
-
-                    if (!isSuperAdmin) {
-                        try {
-                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
-                            if (!resCheck.ok) {
-                                await supabase.auth.signOut();
-                                window.location.href = '/?error=unauthorized';
-                                return null;
-                            }
-                            const checkData = await resCheck.json();
-                            window.userData = checkData.data;
-                        } catch (errDb) {
-                            await supabase.auth.signOut();
-                            window.location.href = '/?error=unauthorized';
-                            return null;
-                        }
-                    }
-
-                    document.body.style.display = '';
-                    return session;
-                }
-            } catch (err) {
-                console.error("Gagal memuat auth:", err);
-                document.body.style.display = '';
-            }
-        })();
+        window.authReady = window.initAndCheckAuth();
     </script>
 
     <div class="layout">

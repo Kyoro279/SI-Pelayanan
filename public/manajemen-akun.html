@@ -17,59 +17,10 @@
 <body data-active="akun" style="display: none;">
 
     <!-- Supabase Init & Auth Check -->
+    <script src="/js/checkAuth.js"></script>
     <script>
-        // Buat promise agar script lain (seperti layout.js) bisa menunggu auth selesai
-        window.authReady = (async function initAndCheckAuth() {
-            try {
-                // Ambil config Supabase dari backend
-                const respons = await fetch('/api/config');
-                const config = await respons.json();
-                
-                // Buat instance global
-                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
-                const supabase = window.supabaseClient;
-
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) {
-                    window.location.href = '/'; // Redirect jika belum login
-                    return null;
-                } else {
-                    const email = session.user.email;
-                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
-                    window.isSuperAdmin = isSuperAdmin;
-                    window.userData = null;
-
-                    // Verifikasi apakah email ada di database (kecuali super admin)
-                    if (!isSuperAdmin) {
-                        try {
-                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
-                            if (!resCheck.ok) {
-                                await supabase.auth.signOut();
-                                window.location.href = '/?error=unauthorized';
-                                return null;
-                            }
-                            const checkData = await resCheck.json();
-                            window.userData = checkData.data;
-                            
-                            // Jika bukan admin, tendang kembali ke dashboard
-                            if (window.userData.role !== 'Admin') {
-                                alert('Akses Ditolak: Halaman ini hanya untuk Admin.');
-                                window.location.href = '/dashboard';
-                                return null;
-                            }
-                        } catch (errDb) {
-                            await supabase.auth.signOut();
-                            window.location.href = '/?error=unauthorized';
-                            return null;
-                        }
-                    }
-                    document.body.style.display = '';
-                    return session;
-                }
-            } catch (err) {
-                console.error("Gagal memuat auth:", err);
-            }
-        })();
+        // Membutuhkan role Admin untuk masuk ke halaman ini
+        window.authReady = window.initAndCheckAuth({ requireAdmin: true });
     </script>
 
     <div class="layout">

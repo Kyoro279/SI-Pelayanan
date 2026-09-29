@@ -32,7 +32,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/config', (req, res) => {
     res.json({
         SUPABASE_URL: process.env.SUPABASE_URL,
-        SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY
+        SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+        SUPERADMIN_EMAILS: process.env.SUPERADMIN_EMAILS || ''
     });
 });
 
