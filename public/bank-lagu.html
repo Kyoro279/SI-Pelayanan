@@ -5,43 +5,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bank Lagu - KITTEENS HUB</title>
+    <!-- Import font Inter dari Google Fonts biar tulisannya keliatan modern dan rapi -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Panggil file CSS biar tampilannya cantik, global.css buat layout umum, bank-lagu.css buat styling spesifik halaman ini -->
     <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/bank-lagu.css">
+    
+    <!-- Panggil library icon dari Phosphor, ini yang bikin icon-icon (kayak lup pencarian) muncul -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Supabase CDN -->
+    <!-- Supabase CDN: Senjata utama kita buat nyambung ke database tanpa ribet instal backend aneh-aneh -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<!-- Atribut data-active digunakan layout.js untuk highlight menu -->
 
+<!-- Atribut data-active="lagu" ini kepake banget buat nandain di Sidebar kalau kita lagi buka menu Bank Lagu. 
+     style="display: none;" buat ngumpetin layar dulu sampai proses ngecek login kelar, biar gak berkedip aneh -->
 <body data-active="lagu" style="display: none;">
 
-    <!-- Supabase Init & Auth Check -->
+    <!-- Supabase Init & Auth Check: Bagian yang ngecek apakah user udah login apa belum -->
     <script src="/js/checkAuth.js"></script>
     <script>
+        // Jalanin fungsi ngecek login dan simpan 'janjinya' (Promise) di authReady
+        // Nanti skrip lagu.js bakal nungguin ini kelar sebelum ngapa-ngapain
         window.authReady = window.initAndCheckAuth();
     </script>
 
+    <!-- Bungkus utama seluruh layar (Sidebar + Konten Kanan) -->
     <div class="layout">
-        <!-- Container untuk Component Sidebar -->
+        <!-- Tempat kosong ini (Container) nantinya bakal diisi HTML Sidebar secara otomatis sama script layout.js -->
         <div id="sidebar-container"></div>
 
-        <!-- Konten Utama -->
+        <!-- Bagian Konten Kanan Utama -->
         <main class="main-content">
+            <!-- Header Halaman: Judul, Subjudul, sama Tombol Tambah -->
             <div class="page-header">
                 <div class="header-title">
                     <h1>Bank Lagu</h1>
+                    <!-- Angka jumlah lagunya ntar bakal diganti pake JS pas data dapet dari database -->
                     <p class="subtitle" id="totalSongs">Memuat...</p>
                 </div>
+                <!-- Tombol biru nambah lagu. Kalo diklik lari ke halaman /tambah-lagu. 
+                     Ntar tombol ini disembunyiin JS kalo yang login bukan admin! -->
                 <button class="btn-primary" onclick="window.location.href='/tambah-lagu'">+ Tambah Lagu</button>
             </div>
 
+            <!-- Area Pencarian dan Filter -->
             <div class="filters">
+                <!-- Kotak search pake icon lup -->
                 <div class="search-box">
                     <i class="ph ph-magnifying-glass"></i>
+                    <!-- Tempat user ngetik pencarian -->
                     <input type="text" id="searchInput" placeholder="Cari Lagu atau Artist">
                 </div>
+                <!-- Dropdown buat milih kategori lagu. Ntar JS bakal filter sesuai pilihan ini -->
                 <select class="category-select" id="filterCategory">
                     <option value="all">Semua Kategori</option>
                     <option value="Worship">Worship</option>
@@ -49,15 +66,18 @@
                 </select>
             </div>
 
+            <!-- Wadah (Grid) buat naro kotak-kotak card lagu -->
             <div class="song-grid" id="songGrid">
-                <!-- Data lagu akan dimuat secara dinamis oleh lagu.js -->
+                <!-- Nah ini dikosongin soalnya data lagu bakal dimuat (ditarik) secara otomatis 
+                     oleh file lagu.js trus dimasukin ke sini satu per satu -->
             </div>
         </main>
     </div>
 
     <!-- Script Injector & Logic Layout -->
+    <!-- layout.js ini tugasnya nyuntikin file sidebar.html ke dalem div sidebar-container di atas -->
     <script src="/js/layout.js"></script>
+    <!-- lagu.js ini otaknya halaman ini, mulai dari narik data, ngerender list lagu, sampe hapus lagu -->
     <script src="/js/lagu.js"></script>
 </body>
-
 </html>

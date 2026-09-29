@@ -5,37 +5,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Lagu - KITTEENS HUB</title>
+    <!-- Import font Inter dari Google Fonts biar desainnya clean -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Panggil CSS global dan CSS khusus form edit/tambah lagu -->
     <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/edit-lagu.css">
+    
+    <!-- Phosphor icons buat nampilin icon silang (X) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Supabase CDN -->
+    <!-- Supabase CDN buat koneksi ke database -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
+<!-- data-active="lagu" ngasi tau sidebar buat highlight menu "Bank Lagu" pas di halaman ini -->
 <body data-active="lagu" style="display: none;">
 
+    <!-- Cek dulu, nih user udah login belum? -->
     <script src="/js/checkAuth.js"></script>
     <script>
         window.authReady = window.initAndCheckAuth();
     </script>
 
     <div class="layout">
-        <!-- Container untuk Component Sidebar -->
+        <!-- Wadah kosong yang nanti bakal diisi sama komponen Sidebar -->
         <div id="sidebar-container"></div>
 
-        <!-- Konten Utama -->
+        <!-- Ruang konten utama form -->
         <main class="main-content">
+            <!-- Header Halaman -->
             <div class="edit-header">
                 <h1 class="edit-title">Edit Lagu</h1>
-                <button class="btn-cancel" onclick="window.location.href='/detail-lagu'">
+                <!-- Tombol Batal, pake history.back() aja biar balik ke halaman lagu yang tadi lagi dibuka -->
+                <button class="btn-cancel" onclick="window.history.back()">
                     Batal <i class="ph-bold ph-x"></i>
                 </button>
             </div>
 
+            <!-- Form kita bagi dua kolom (kiri & kanan) biar lebarnya pas di layar desktop -->
             <div class="edit-grid">
-                <!-- Left Column -->
+                <!-- Kolom Kiri: Isian data simpel (Judul, Penyanyi, dll) -->
                 <div class="form-left">
                     <div class="form-group">
                         <label class="form-label">Judul</label>
@@ -47,6 +57,7 @@
                         <input type="text" id="inputPenyanyi" class="form-control" value="">
                     </div>
 
+                    <!-- Kategori dan Nada Dasar kita jejerin sebelahan -->
                     <div class="row-2">
                         <div class="form-group">
                             <label class="form-label">Kategori</label>
@@ -69,27 +80,31 @@
                         </div>
                     </div>
 
+                    <!-- Kotak buat nempelin link YouTube -->
                     <div class="form-group">
                         <label class="form-label">Link Youtube</label>
                         <input type="text" id="inputLinkYoutube" class="form-control" value="">
                     </div>
                 </div>
 
-                <!-- Right Column -->
+                <!-- Kolom Kanan: Kotak gede khusus teks panjang Lirik & Chord -->
                 <div class="form-right">
                     <div class="form-group">
                         <label class="form-label">Chord & Lirik</label>
+                        <!-- Pake textarea biar ngetiknya bisa dienter-enter -->
                         <textarea id="inputChordLirik" class="form-control textarea-lyrics"></textarea>
                     </div>
                     
+                    <!-- Tombol buat nge-submit alias ngirim hasil editan ke database -->
                     <button class="btn-save" id="saveBtn">Simpan</button>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Script Injector & Logic Layout -->
+    <!-- layout.js manggil file html sidebar -->
     <script src="/js/layout.js"></script>
+    <!-- lagu-form.js yang ngurusin nembak data form ini ke API update (PUT) -->
     <script src="/js/lagu-form.js"></script>
 </body>
 
