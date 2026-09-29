@@ -24,7 +24,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 // RUTE API (BACKEND)
 // ==========================================
 
-// Endpoint untuk mengirimkan kunci Supabase ke file frontend
+/**
+ * Endpoint: /api/config
+ * Fungsi: Mengirimkan kredensial Supabase ke frontend agar file JS di frontend (seperti login.js) dapat terkoneksi.
+ * Dipanggil di: public/js/supabase-client.js atau frontend script lainnya yang melakukan fetch('/api/config')
+ */
 app.get('/api/config', (req, res) => {
     res.json({
         SUPABASE_URL: process.env.SUPABASE_URL,
@@ -32,11 +36,15 @@ app.get('/api/config', (req, res) => {
     });
 });
 
-// Pendaftaran endpoint API routes
-app.use('/api/lagu', laguRoutes);
-app.use('/api/akun', akunRoutes);
-app.use('/api/jadwal', jadwalRoutes);
-app.use('/api/berhalangan', berhalanganRoutes);
+/**
+ * Pendaftaran endpoint API routes.
+ * Baris-baris ini menghubungkan URL prefix (seperti /api/lagu) dengan file router spesifik.
+ * Misalnya, semua permintaan ke /api/lagu/... akan diteruskan ke laguRoutes.js
+ */
+app.use('/api/lagu', laguRoutes); // Mengelola fitur Bank Lagu
+app.use('/api/akun', akunRoutes); // Mengelola pengguna/akun
+app.use('/api/jadwal', jadwalRoutes); // Mengelola jadwal pelayanan
+app.use('/api/berhalangan', berhalanganRoutes); // Mengelola fitur izin berhalangan
 
 
 // ==========================================

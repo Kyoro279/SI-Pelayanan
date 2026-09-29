@@ -19,7 +19,12 @@ async function isTableAvailable() {
     }
 }
 
-// 1. GET: Ambil daftar permintaan berhalangan
+/**
+ * 1. GET: Ambil daftar permintaan berhalangan
+ * Fungsi: Mengambil semua data izin/berhalangan yang diajukan oleh pengguna.
+ * Dipanggil di: public/js/berhalangan.js (fungsi fetchBerhalangan())
+ * Alur kerja: Melakukan query ke tabel 'berhalangan', dan juga membersihkan data otomatis yang sudah lewat dari 2 minggu (auto-cleanup).
+ */
 router.get('/', async (req, res) => {
     const { status } = req.query; // 'Belum Diproses' | 'all' | dll.
     try {
@@ -73,7 +78,12 @@ router.get('/', async (req, res) => {
     }
 });
 
-// 2. GET: Detail permintaan berdasarkan ID
+/**
+ * 2. GET: Detail permintaan berdasarkan ID
+ * Fungsi: Mengambil satu data berhalangan tertentu.
+ * Dipanggil di: Biasanya dipanggil oleh frontend sebelum melakukan persetujuan/tolak (jika dibutuhkan detail spesifik).
+ * Alur kerja: Query 1 baris berdasarkan kolom 'id'.
+ */
 router.get('/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     try {
@@ -92,7 +102,12 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// 3. POST: Buat permintaan berhalangan baru
+/**
+ * 3. POST: Buat permintaan berhalangan baru
+ * Fungsi: Menerima form pengajuan berhalangan (izin) dari pengguna.
+ * Dipanggil di: public/js/berhalangan-form.js atau public/js/detail-jadwal.js (saat user klik 'berhalangan' pada jadwal tertentu).
+ * Alur kerja: Menerima alasan, tanggal, dan id jadwal, mengatur status awalnya ke 'Belum Diproses', lalu insert ke database.
+ */
 router.post('/', async (req, res) => {
     const { nama, catatan, id_jadwal, judul_pelayanan, jadwal_tanggal, alasan } = req.body;
 
@@ -130,7 +145,12 @@ router.post('/', async (req, res) => {
     }
 });
 
-// 4. PUT: Tandai Selesai (dengan memilih nama pengganti)
+/**
+ * 4. PUT: Tandai Selesai (dengan memilih nama pengganti)
+ * Fungsi: Admin menyetujui izin berhalangan dan menetapkan pengganti.
+ * Dipanggil di: public/js/berhalangan.js (fungsi handleApprove())
+ * Alur kerja: Mengubah 'status' menjadi 'Selesai' dan mengisi 'nama_pengganti' di database.
+ */
 router.put('/:id/selesai', async (req, res) => {
     const id = parseInt(req.params.id);
     const { nama_pengganti } = req.body;
@@ -167,7 +187,12 @@ router.put('/:id/selesai', async (req, res) => {
     }
 });
 
-// 5. PUT: Tolak permintaan
+/**
+ * 5. PUT: Tolak permintaan
+ * Fungsi: Admin menolak permintaan berhalangan.
+ * Dipanggil di: public/js/berhalangan.js (fungsi handleReject())
+ * Alur kerja: Mengupdate field 'status' menjadi 'Ditolak' di database.
+ */
 router.put('/:id/tolak', async (req, res) => {
     const id = parseInt(req.params.id);
 
@@ -201,7 +226,12 @@ router.put('/:id/tolak', async (req, res) => {
     }
 });
 
-// 6. DELETE: Hapus data permintaan
+/**
+ * 6. DELETE: Hapus data permintaan
+ * Fungsi: Menghapus log/data berhalangan secara manual (misal oleh admin).
+ * Dipanggil di: public/js/berhalangan.js (fitur hapus jika ada)
+ * Alur kerja: Menjalankan perintah delete ke Supabase berdasarkan ID.
+ */
 router.delete('/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     try {

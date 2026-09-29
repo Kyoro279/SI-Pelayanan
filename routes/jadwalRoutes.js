@@ -91,7 +91,12 @@ async function trySupabaseQuery(actionFn) {
     }
 }
 
-// 1. GET: Mengambil semua data jadwal pelayanan
+/**
+ * 1. GET: Mengambil semua data jadwal pelayanan
+ * Fungsi: Mengambil seluruh jadwal dari database, urut berdasarkan tanggal.
+ * Dipanggil di: public/js/jadwal.js (fungsi fetchJadwal())
+ * Alur kerja: Mencoba memanggil tabel 'jadwal' atau 'jadwal_pelayanan'. Jika error, gunakan fallback in-memory data (data contoh hardcode).
+ */
 router.get('/', async (req, res) => {
     try {
         const { data, error } = await trySupabaseQuery(tableName =>
@@ -127,7 +132,12 @@ router.get('/', async (req, res) => {
     }
 });
 
-// 2. GET: Mengambil detail jadwal berdasarkan ID
+/**
+ * 2. GET: Mengambil detail jadwal berdasarkan ID
+ * Fungsi: Mengambil 1 jadwal spesifik berdasarkan ID-nya.
+ * Dipanggil di: public/js/detail-jadwal.js (fungsi loadJadwalDetail()) dan public/js/jadwal-form.js (mode edit)
+ * Alur kerja: Query jadwal dimana id_jadwal sama dengan parameter id.
+ */
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -164,7 +174,12 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// 3. POST: Menambahkan jadwal pelayanan baru
+/**
+ * 3. POST: Menambahkan jadwal pelayanan baru
+ * Fungsi: Membuat jadwal baru dan menyimpannya ke database.
+ * Dipanggil di: public/js/jadwal-form.js (fungsi saveJadwal() ketika membuat jadwal baru)
+ * Alur kerja: Menerima data dari body (judul, tanggal, petugas, dll), mencari ID terbesar, lalu insert baris baru.
+ */
 router.post('/', async (req, res) => {
     const {
         kategori = 'Pelayanan',
@@ -257,7 +272,12 @@ router.post('/', async (req, res) => {
     }
 });
 
-// 4. PUT: Mengedit / memperbarui data jadwal
+/**
+ * 4. PUT: Mengedit / memperbarui data jadwal
+ * Fungsi: Mengupdate jadwal yang sudah ada.
+ * Dipanggil di: public/js/jadwal-form.js (fungsi saveJadwal() saat edit jadwal yang sudah ada)
+ * Alur kerja: Menerima parameter ID dan field yang mau diubah, lalu update baris terkait di database.
+ */
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const {
@@ -338,7 +358,12 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// 5. DELETE: Menghapus jadwal pelayanan
+/**
+ * 5. DELETE: Menghapus jadwal pelayanan
+ * Fungsi: Menghapus jadwal.
+ * Dipanggil di: public/js/detail-jadwal.js (fungsi hapusJadwal())
+ * Alur kerja: Menghapus baris dari tabel 'jadwal' berdasarkan parameter ID.
+ */
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;
 

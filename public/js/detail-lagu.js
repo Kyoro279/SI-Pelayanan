@@ -35,11 +35,11 @@ async function handleSetlistMode(jadwalId, songIndexStr) {
     try {
         const res = await fetch(`/api/jadwal/${jadwalId}`);
         const { data } = await res.json();
-        
+
         if (data && data.daftar_lagu) {
             const index = parseInt(songIndexStr);
             const daftar = data.daftar_lagu;
-            
+
             // 1. Ganti Back Button & Sidebar
             const btnBack = document.getElementById('btn-back-lagu');
             const backText = document.getElementById('back-text');
@@ -55,12 +55,12 @@ async function handleSetlistMode(jadwalId, songIndexStr) {
             // 2. Munculkan Setlist Bar
             const setlistBar = document.getElementById('setlist-bar');
             if (setlistBar) setlistBar.style.display = 'flex';
-            
+
             const setlistTitle = document.getElementById('setlist-title');
             const setlistDate = document.getElementById('setlist-date');
-            
+
             if (setlistTitle) setlistTitle.textContent = data.judul || data.tema_pelayanan;
-            
+
             if (setlistDate && data.tanggal) {
                 const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
                 const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -71,10 +71,10 @@ async function handleSetlistMode(jadwalId, songIndexStr) {
             // 3. Tombol Prev & Next
             const btnPrev = document.getElementById('btn-setlist-prev');
             const btnNext = document.getElementById('btn-setlist-next');
-            
+
             if (btnPrev) {
                 if (index > 0) {
-                    btnPrev.onclick = () => window.location.href = `/detail-lagu.html?id=${daftar[index-1].id_lagu}&jadwal_id=${jadwalId}&index=${index-1}`;
+                    btnPrev.onclick = () => window.location.href = `/detail-lagu.html?id=${daftar[index - 1].id_lagu}&jadwal_id=${jadwalId}&index=${index - 1}`;
                     btnPrev.style.color = 'var(--primary-color)';
                     btnPrev.style.cursor = 'pointer';
                 } else {
@@ -82,10 +82,10 @@ async function handleSetlistMode(jadwalId, songIndexStr) {
                     btnPrev.style.cursor = 'not-allowed';
                 }
             }
-            
+
             if (btnNext) {
                 if (index < daftar.length - 1) {
-                    btnNext.onclick = () => window.location.href = `/detail-lagu.html?id=${daftar[index+1].id_lagu}&jadwal_id=${jadwalId}&index=${index+1}`;
+                    btnNext.onclick = () => window.location.href = `/detail-lagu.html?id=${daftar[index + 1].id_lagu}&jadwal_id=${jadwalId}&index=${index + 1}`;
                     btnNext.style.background = 'var(--primary-color)';
                     btnNext.style.cursor = 'pointer';
                 } else {
@@ -151,7 +151,7 @@ function renderSongDetail() {
     const transposeSelect = document.querySelector('.transpose-select');
     const originalKey = currentSong.nada_dasar || 'C'; // Default to C if none
     const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    
+
     if (transposeSelect) {
         transposeSelect.innerHTML = '';
         NOTES.forEach(note => {
@@ -179,7 +179,7 @@ function renderSongDetail() {
     // Parse Lyrics
     const lyricsContainer = document.getElementById('lyricsContainer');
     const jumpList = document.querySelector('.jump-list');
-    
+
     if (lyricsContainer && jumpList && currentSong.chord_lirik) {
         const { html, jumpLinks } = parseLyricsToHtml(currentSong.chord_lirik);
         lyricsContainer.innerHTML = html;
@@ -204,7 +204,7 @@ function parseLyricsToHtml(rawLyrics) {
         if (!block.trim()) return;
 
         const lines = block.split('\n');
-        
+
         // Cari nama section (misal: (Verse 1), [Chorus], dll) pada baris pertama
         let sectionTitle = '';
         let sectionId = `section-${sectionCount}`;
@@ -234,7 +234,7 @@ function parseLyricsToHtml(rawLyrics) {
 
             // Parsing inline chord e.g. "I love you, [G]Lord"
             const segments = line.split(/(\[[A-G][#b]?m?[0-9]*(?:\/[A-G][#b]?)?\])/g);
-            
+
             let htmlSegment = '';
             let currentChord = '';
 
@@ -326,23 +326,23 @@ function setupInteractions(songId) {
         }
     });
 
-    // 4. Transpose Logic
+    //4. Transpose Logic
     const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const transposeSelect = document.querySelector('.transpose-select');
 
     function transposeChord(chord, steps) {
         const match = chord.match(/^([A-G][#b]?)(.*)$/);
-        if (!match) return chord; 
-        
+        if (!match) return chord;
+
         let root = match[1];
         const suffix = match[2];
-        
+
         let index = NOTES.indexOf(root);
         if (index === -1) return chord;
-        
+
         let newIndex = (index + steps) % 12;
-        if (newIndex < 0) newIndex += 12; 
-        
+        if (newIndex < 0) newIndex += 12;
+
         return NOTES[newIndex] + suffix;
     }
 
@@ -352,9 +352,9 @@ function setupInteractions(songId) {
             const originalKey = currentSong.nada_dasar || 'C';
             const originalIndex = NOTES.indexOf(originalKey);
             const selectedIndex = NOTES.indexOf(selectedKey);
-            
+
             const steps = selectedIndex - originalIndex;
-            
+
             const chordSpans = document.querySelectorAll('.chord span');
             chordSpans.forEach(span => {
                 const originalChord = span.getAttribute('data-original');
