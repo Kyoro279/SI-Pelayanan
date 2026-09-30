@@ -1,4 +1,4 @@
-let allAccounts = [];
+let allAccounts = []; //menyimpan data sementara di browser agar proses berjalan cepat tidak perlu request database terus menerus
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Otorisasi: Pastikan yang masuk adalah Admin
@@ -19,16 +19,12 @@ async function checkAdminAuth() {
     if (window.authReady) await window.authReady;
 }
 
-/**
- * FITUR MENGAMBIL DATA (READ)
- * Dipanggil saat halaman pertama kali dimuat.
- * Berfungsi menarik data dari API dan memanggil renderTable().
- */
+// narik data akun dari backend pas halaman pertama dibuka
 async function fetchAkun() {
     try {
         const response = await fetch('/api/akun');
         if (!response.ok) throw new Error('Gagal mengambil data akun');
-        
+
         allAccounts = await response.json(); // Simpan ke variabel global
         renderTable(allAccounts);            // Gambar tabelnya
         updateTotalText(allAccounts.length); // Update teks "X Akun Terdaftar"
@@ -38,11 +34,7 @@ async function fetchAkun() {
     }
 }
 
-/**
- * FITUR MENGGAMBAR TABEL (UI RENDERER)
- * Membangun elemen HTML <tr> dan <td> secara dinamis menggunakan Javascript, 
- * berdasarkan data array yang dikirim.
- */
+// ngebangun baris tabel (html tr td) pake javascript dari data array 
 function renderTable(data) {
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = ''; // Kosongkan tabel sebelum menggambar yang baru
@@ -54,7 +46,7 @@ function renderTable(data) {
 
     data.forEach(akun => {
         const tr = document.createElement('tr');
-        
+
         // Buat ID unik untuk class CSS warna Role
         const roleClass = `role-${akun.role.replace(/\\s+/g, '').toLowerCase()}`;
 
@@ -90,28 +82,21 @@ function updateTotalText(count) {
     document.getElementById('total-accounts-text').textContent = `${count} Akun Terdaftar`;
 }
 
+//menyaring daftar all account , mencocokan teks yang diketik dengan nama yang ada di database
 function handleSearch(e) {
-    const query = e.target.value.toLowerCase();
-    const filtered = allAccounts.filter(akun => 
-        akun.nama_lengkap.toLowerCase().includes(query) || 
+    const query = e.target.value.toLowerCase(); //mengambil teks yang diketik 
+    //membuat array baru berisi data yang cocok dengan teks yang diketik 
+    const filtered = allAccounts.filter(akun =>
+        akun.nama_lengkap.toLowerCase().includes(query) ||
         akun.email_gmail.toLowerCase().includes(query)
     );
-    renderTable(filtered);
+    renderTable(filtered); //menampilkan data yang cocok
 }
 
-/**
- * FITUR TAMBAH AKUN BARU
- * Berjalan saat formulir "Tambah Akun" disubmit (di-klik tombol "Tambah").
- * Alur:
- * 1. Mencegah layar refresh dengan `e.preventDefault()`.
- * 2. Mengambil nilai dari kotak input (nama, email, role).
- * 3. Mengirimkan data tersebut ke Backend (rute POST /api/akun).
- * 4. Backend-lah yang akan memasukkan data ini ke tabel 'pengguna' di Supabase.
- * 5. Jika sukses, form dibersihkan dan tabel di-refresh.
- */
+// fungsi buat nambahin akun ke database kalo tombol "Tambah" di-klik
 async function handleTambahAkun(e) {
     e.preventDefault(); // Mencegah form melakukan refresh halaman (sifat bawaan HTML)
-    
+
     // Ambil data dari elemen HTML
     const nama = document.getElementById('input-nama').value;
     const email = document.getElementById('input-email').value;
@@ -126,33 +111,25 @@ async function handleTambahAkun(e) {
         });
 
         const result = await response.json();
-        
+
         // Jika server membalas dengan status selain 2xx (artinya gagal)
         if (!response.ok) throw new Error(result.error || 'Gagal menambah akun');
 
         alert('Berhasil menambah akun!');
         document.getElementById('form-tambah-akun').reset(); // Kosongkan form kembali
-        
+
         // Tarik ulang data dari database agar data yang baru ditambahkan langsung muncul di tabel
-        await fetchAkun(); 
+        await fetchAkun();
 
     } catch (error) {
         alert(error.message);
     }
 }
 
-/**
- * FITUR EDIT ROLE (HAK AKSES)
- * Berjalan seketika saat user mengganti pilihan dropdown (Select) Role di tabel.
- * Alur:
- * 1. Menangkap email (sebagai penanda unik) dan elemen Select yang baru saja diubah.
- * 2. Mengubah class warna agar warnanya langsung ganti (UX halus).
- * 3. Menembak API Backend (PUT /api/akun/:email) untuk mengupdate data di Supabase.
- * 4. Jika di backend gagal (karena internet putus/server mati), tabel di-refresh lagi ke status sebelumnya (Revert).
- */
+// lgsg update role ke backend pas user milih dari dropdown
 async function handleRoleChange(email, selectElement) {
     const newRole = selectElement.value; // Dapatkan role pilihan yang baru
-    
+
     // Ganti class warna background dropdown sesuai role baru (misal Admin = merah, dll)
     selectElement.className = `role-select role-${newRole.replace(/\\s+/g, '').toLowerCase()}`;
 
@@ -168,11 +145,11 @@ async function handleRoleChange(email, selectElement) {
             const result = await response.json();
             throw new Error(result.error || 'Gagal mengubah role');
         }
-        
+
         // Update data array lokal juga agar kalau user langsung 'Cari', 
         // fiturnya tidak pakai data lama (tidak perlu request data utuh dari DB)
         const index = allAccounts.findIndex(a => a.email_gmail === email);
-        if(index > -1) allAccounts[index].role = newRole;
+        if (index > -1) allAccounts[index].role = newRole;
 
     } catch (error) {
         // Jika ada masalah koneksi atau error di backend
@@ -181,10 +158,7 @@ async function handleRoleChange(email, selectElement) {
     }
 }
 
-/**
- * FITUR HAPUS AKUN (DELETE)
- * Memicu konfirmasi browser, lalu mengirim permintaan hapus ke backend.
- */
+// hapus akun pake konfirmasi dulu
 async function handleHapusAkun(email) {
     if (!confirm(`Apakah Anda yakin ingin menghapus akun dengan email: ${email}?`)) return;
 
@@ -205,22 +179,18 @@ async function handleHapusAkun(email) {
     }
 }
 
-/**
- * FITUR EDIT MODE (Inline Edit)
- * Berjalan saat tombol pensil diklik.
- * Mengubah kolom baris tabel (Nama dan Email) menjadi kolom input yang bisa diketik.
- */
+// nyalain mode edit, ganti teks biasa jadi kolom ketikan (input text) pas pensil di-klik
 function handleEditMode(button, oldEmail, oldNama) {
     const tr = button.closest('tr');
-    
+
     // Ganti isi cell nama dengan text input
     const tdNama = tr.children[0];
     tdNama.innerHTML = `<input type="text" class="edit-input-nama" value="${oldNama}" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #CBD5E1; border-radius: 4px; outline: none;">`;
-    
+
     // Ganti isi cell email dengan text input
     const tdEmail = tr.children[1];
     tdEmail.innerHTML = `<input type="email" class="edit-input-email" value="${oldEmail}" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #CBD5E1; border-radius: 4px; outline: none;">`;
-    
+
     // Ganti tombol action menjadi tombol Simpan (Check) dan Batal (X)
     const tdAction = tr.children[3];
     tdAction.innerHTML = `
@@ -233,11 +203,7 @@ function handleEditMode(button, oldEmail, oldNama) {
     `;
 }
 
-/**
- * FITUR SIMPAN EDIT DATA (Update Profil)
- * Berjalan saat tombol Check hijau diklik setelah edit nama/email.
- * Mengirim request PUT ke Backend dengan data baru.
- */
+// simpen hasil editan dari kolom ketikan tadi ke backend
 async function handleSaveEdit(button, oldEmail) {
     const tr = button.closest('tr'); // Cari baris (table row) tempat tombol ini berada
     const newNama = tr.querySelector('.edit-input-nama').value.trim();
@@ -251,7 +217,7 @@ async function handleSaveEdit(button, oldEmail) {
 
     // Jika user menekan simpan tapi tidak ada yang diubah, batalkan edit saja (refresh)
     if (newNama === tr.querySelector('.edit-input-nama').defaultValue && newEmail === oldEmail) {
-        fetchAkun(); 
+        fetchAkun();
         return;
     }
 
@@ -269,7 +235,7 @@ async function handleSaveEdit(button, oldEmail) {
         }
 
         // Jika berhasil, refresh tabel secara otomatis
-        await fetchAkun(); 
+        await fetchAkun();
     } catch (error) {
         alert(error.message);
     }

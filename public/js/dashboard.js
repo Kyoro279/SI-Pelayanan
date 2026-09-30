@@ -1,46 +1,46 @@
 // public/js/dashboard.js
 
-// Event listener utama yang dijalankan saat halaman HTML selesai dimuat
+// pas halaman html selesai diload
 document.addEventListener('DOMContentLoaded', async () => {
-    // Menunggu proses autentikasi (pengecekan login dari checkAuth.js) selesai
+    // nunggu auth beres dulu
     if (window.authReady) {
         await window.authReady;
     }
 
     try {
-        // Mengambil seluruh data jadwal dari server (API)
+        // narik semua data jadwal dari api
         const response = await fetch('/api/jadwal');
         if (!response.ok) throw new Error('Gagal mengambil data jadwal');
         const result = await response.json();
         const allJadwal = result.data || [];
 
-        // Normalisasi format tanggal (menghilangkan jam/waktu jika formatnya ISO string)
+        // buang jam di tanggal kalo dia format iso
         allJadwal.forEach(j => {
             if (j.tanggal && j.tanggal.includes('T')) {
                 j.tanggal = j.tanggal.split('T')[0];
             }
         });
 
-        // Mendapatkan waktu hari ini dan mengubah jamnya menjadi 00:00:00
+        // ambil hari ini trus set jam ke 00:00
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Memfilter jadwal: hanya ambil jadwal yang tanggalnya mulai dari hari ini ke depan
+        // cari jadwal yang harinya hari ini ato ke depannya
         const futureJadwal = allJadwal.filter(j => new Date(j.tanggal) >= today);
 
-        // Mengurutkan jadwal masa depan berdasarkan yang paling dekat (ascending)
+        // urutin dari yang paling deket
         futureJadwal.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
 
-        // Memanggil fungsi untuk menampilkan jadwal ke HTML
+        // nampilin jadwal ke layar
         renderDashboard(futureJadwal, allJadwal);
     } catch (err) {
         console.error('Error saat memuat jadwal:', err);
     }
 });
 
-// Fungsi untuk memanipulasi HTML DOM dan menampilkan data jadwal
+// ini buat ngatur ui htmlnya
 function renderDashboard(futureJadwal, allJadwal) {
-    // --- 1. Menyiapkan Card "PELAYANAN BERIKUTNYA" (Bagian atas) ---
+    // 1. set up bagian atas (pelayanan selanjutnya)
     const nextServiceContainer = document.querySelector('.next-service');
 
     // Mencari 1 jadwal yang akan dijadikan sorotan utama

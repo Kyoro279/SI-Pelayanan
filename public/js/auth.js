@@ -1,19 +1,19 @@
 async function setupLogin() {
     try {
-        // 1. Mengambil kunci Supabase dari server (yang membaca file .env)
+        // narik config supabase dari server
         const respons = await fetch('/api/config');
         const config = await respons.json();
 
-        // Cek jika kunci gagal diambil
+        // cek kalo gagal dapet kunci
         if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
             alert("Kunci Supabase belum terhubung! Cek file .env Anda.");
             return;
         }
 
-        // 2. Hubungkan ke Supabase dengan kunci yang didapat
+        // inisialisasi client supabase
         const supabase = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
 
-        // 3. Logika tombol login
+        // nanganin aksi klik tombol login
         const btnLogin = document.getElementById('btn-login-google');
         if (btnLogin) {
             btnLogin.addEventListener('click', async () => {
@@ -35,5 +35,5 @@ async function setupLogin() {
     }
 }
 
-// Jalankan fungsi
+// jalanin langsung pas file ini diload
 setupLogin();
