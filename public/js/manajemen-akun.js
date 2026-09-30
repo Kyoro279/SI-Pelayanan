@@ -47,8 +47,9 @@ function renderTable(data) {
     data.forEach(akun => {
         const tr = document.createElement('tr');
 
+        const safeRole = akun.role || 'Servant'; // Fallback kalo di database kosong, anggap aja Servant
         // Buat ID unik untuk class CSS warna Role
-        const roleClass = `role-${akun.role.replace(/\\s+/g, '').toLowerCase()}`;
+        const roleClass = `role-${safeRole.replace(/\s+/g, '').toLowerCase()}`;
 
         tr.innerHTML = `
             <td>${akun.nama_lengkap}</td>
@@ -56,11 +57,11 @@ function renderTable(data) {
             <td>
                 <!-- Dropdown Role yang langsung memicu handleRoleChange jika dipilih -->
                 <select class="role-select ${roleClass}" onchange="handleRoleChange('${akun.email_gmail}', this)">
-                    <option value="Admin" ${akun.role === 'Admin' ? 'selected' : ''}>Admin</option>
-                    <option value="Worship Planner" ${akun.role === 'Worship Planner' ? 'selected' : ''}>Worship Planner</option>
-                    <option value="Worship Leader" ${akun.role === 'Worship Leader' ? 'selected' : ''}>Worship Leader</option>
-                    <option value="Music Director" ${akun.role === 'Music Director' ? 'selected' : ''}>Music Director</option>
-                    <option value="Servant" ${akun.role === 'Servant' ? 'selected' : ''}>Servant</option>
+                    <option value="Admin" ${safeRole === 'Admin' ? 'selected' : ''}>Admin</option>
+                    <option value="Worship Planner" ${safeRole === 'Worship Planner' ? 'selected' : ''}>Worship Planner</option>
+                    <option value="Worship Leader" ${safeRole === 'Worship Leader' ? 'selected' : ''}>Worship Leader</option>
+                    <option value="Music Director" ${safeRole === 'Music Director' ? 'selected' : ''}>Music Director</option>
+                    <option value="Servant" ${safeRole === 'Servant' ? 'selected' : ''}>Servant</option>
                 </select>
             </td>
             <td style="text-align: right; white-space: nowrap;">
@@ -108,6 +109,7 @@ async function handleTambahAkun(e) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nama_lengkap: nama, email_gmail: email, role: role })
+            //data dibungkus menjadi format JSON dan dikirim ke backend server
         });
 
         const result = await response.json();
