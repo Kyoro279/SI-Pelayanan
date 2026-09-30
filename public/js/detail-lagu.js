@@ -232,35 +232,61 @@ function parseLyricsToHtml(rawLyrics) {
 
             html += `<div class="lyric-line">`;
 
-            // Parsing inline chord e.g. "I love you, [G]Lord"
+            // --- INTI ALGORITMA PENEMPATAN CHORD ---
+            // Format mentah dari database biasanya: "Tuhan Engkau [G]baik"
+            // Tujuannya agar chord G tepat berada di atas huruf 'b' pada kata 'baik'.
+            
+            // 1. Memotong baris teks menggunakan Regex (Regular Expression)
+            // Regex ini mendeteksi pola teks apapun yang diapit kurung siku, misal: [G], [Am7], [C#m/E]
+            // split() akan memecah string menjadi Array. 
+            // Contoh "Tuhan Engkau [G]baik" menjadi -> ["Tuhan Engkau ", "[G]", "baik"]
             const segments = line.split(/(\[[A-G][#b]?m?[0-9]*(?:\/[A-G][#b]?)?\])/g);
 
             let htmlSegment = '';
-            let currentChord = '';
+            let currentChord = ''; // Variabel "gantungan" untuk menyimpan chord sementara
 
+            // 2. Memproses setiap potongan (teks maupun chord) satu per satu
             segments.forEach(seg => {
+                // Jika potongan ini adalah chord (diawali '[' dan diakhiri ']')
                 if (seg.startsWith('[') && seg.endsWith(']')) {
-                    // Flush if there is a pending chord without text
+                    
+                    // Jika sebelumnya sudah ada chord yang "menggantung" (belum ada teks bawahnya), cetak dulu.
+                    // (Kasus di mana ada chord bersebelahan seperti [G][Am])
                     if (currentChord) {
                         htmlSegment += `<span class="lyric-segment"><span class="chord"><span data-original="${currentChord}">${currentChord}</span></span><span class="text">&nbsp;</span></span>`;
                     }
+                    // Simpan chord baru ini tanpa tanda kurung siku (ambil isi tengahnya)
                     currentChord = seg.slice(1, -1);
-                } else {
+                } 
+                // Jika potongan ini adalah lirik (teks biasa)
+                else {
+                    // Mengubah spasi biasa menjadi '&nbsp;' agar spasi tidak hilang/runtuh saat di-render HTML
                     const cleanText = seg.replace(/ /g, '&nbsp;');
+                    
                     if (currentChord || cleanText) {
+                        // Memulai membuat satu blok kolom vertikal
                         htmlSegment += `<span class="lyric-segment">`;
+                        
+                        // -- Bagian Atas (Kotak Chord) --
                         if (currentChord) {
+                            // Cetak chord yang sedang "menggantung" di atas
                             htmlSegment += `<span class="chord"><span data-original="${currentChord}">${currentChord}</span></span>`;
-                            currentChord = '';
+                            currentChord = ''; // Kosongkan gantungan karena sudah dipakai
                         } else {
+                            // Jika tidak ada chord, buat kotak kosong agar baris tetap sejajar
                             htmlSegment += `<span class="chord empty"></span>`;
                         }
+                        
+                        // -- Bagian Bawah (Kotak Teks Lirik) --
+                        // Cetak potongan teks persis di bawah kotak chord tadi
                         htmlSegment += `<span class="text">${cleanText || '&nbsp;'}</span></span>`;
                     }
                 }
             });
 
-            // Flush remaining chord if end of line
+            // 3. Membersihkan Sisa
+            // Jika baris lagu berakhir dengan chord (misal: "Haleluya [C]"), 
+            // maka cetak chord terakhir itu dengan teks kosong di bawahnya
             if (currentChord) {
                 htmlSegment += `<span class="lyric-segment"><span class="chord"><span data-original="${currentChord}">${currentChord}</span></span><span class="text">&nbsp;</span></span>`;
             }
