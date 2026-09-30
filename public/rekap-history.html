@@ -5,38 +5,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rekap History - KITTEENS HUB</title>
+    <!-- Panggil font inter dari mbah Google -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS andalan kita -->
     <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/rekap-history.css">
+    
+    <!-- Icon Phosphor -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Jangan lupa Supabase buat narik data API -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
+<!-- data-active="history" biar di menu sebelah kiri (sidebar) yang nyala itu menu History -->
 <body data-active="history" style="display: none;">
+    <!-- Satpam depan pintu: Ngecek login -->
     <script src="/js/checkAuth.js"></script>
     <script>
         window.authReady = window.initAndCheckAuth();
     </script>
 
     <div class="layout">
-        <!-- Sidebar -->
+        <!-- Wadah buat numpangin Sidebar HTML dari layout.js -->
         <div id="sidebar-container"></div>
 
-        <!-- Main Content -->
+        <!-- Bagian Utama Halaman -->
         <main class="main-content">
+            <!-- Header Halaman -->
             <div class="rekap-header">
                 <div class="header-text">
                     <h1>Rekap History</h1>
                     <p>Rekap bulanan dan progres pelayanan yang sudah berjalan vs tersisa.</p>
                 </div>
+                
+                <!-- Pilihan Bulan di Pojok Kanan Atas -->
                 <div class="month-selector">
+                    <!-- Tombol mundur sebulan -->
                     <button id="btnPrevMonth"><i class="ph-bold ph-caret-left"></i></button>
+                    <!-- Label bulan yang aktif saat ini -->
                     <span id="currentMonthLabel">September 2026</span>
+                    <!-- Tombol maju sebulan -->
                     <button id="btnNextMonth"><i class="ph-bold ph-caret-right"></i></button>
                 </div>
             </div>
 
-            <!-- Summary Cards -->
+            <!-- Tiga Kotak Statistik di Atas (Summary Cards) -->
             <div class="summary-cards">
                 <div class="summary-card">
                     <div class="summary-title">Total jadwal bulan ini</div>
@@ -52,18 +67,21 @@
                 </div>
             </div>
 
-            <!-- Status Jadwal -->
+            <!-- Bagian Kiri: Status Jadwal Per Hari -->
             <div class="section-card">
+                <!-- Label bulannya ikut keganti sesuai tombol di atas -->
                 <h2 class="section-title">Status Jadwal (<span id="statusMonthLabel">September 2026</span>)</h2>
+                <!-- Daftar jadwalnya bakal dilooping dan di-inject sama rekap-history.js di sini -->
                 <div class="jadwal-list" id="jadwalList">
                     <!-- Dinamis dari JS -->
                 </div>
             </div>
 
-            <!-- Progres per Penatalayan -->
+            <!-- Bagian Bawah: Progress Bar Tiap Pelayan -->
             <div class="section-card">
                 <h2 class="section-title">Progres per Penatalayan</h2>
                 <p class="section-subtitle">Berapa tugas yang sudah dijalani dan berapa yang masih tersisa bulan ini.</p>
+                <!-- Baris-baris nama pelayan sama progress barnya masuk ke div ini -->
                 <div class="progres-list" id="progresList">
                     <!-- Dinamis dari JS -->
                 </div>
@@ -71,8 +89,10 @@
         </main>
     </div>
 
-    <!-- Scripts -->
+    <!-- Skrip di akhir body biar loading pagenya nggak nyendat -->
+    <!-- Tukang pasang sidebar -->
     <script src="/js/layout.js"></script>
+    <!-- Otaknya halaman rekap, ngitung matematika progress dan bikin HTML -->
     <script src="/js/rekap-history.js"></script>
 </body>
 </html>
