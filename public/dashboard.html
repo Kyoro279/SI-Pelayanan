@@ -27,7 +27,7 @@
                 const email = session.user.email;
                 const metadata = session.user.user_metadata || {};
                 const fullName = window.userData ? window.userData.nama_lengkap : (metadata.full_name || email.split('@')[0]);
-                
+
                 // Memperbarui teks peran (role) user di tampilan header (misal: "Log in sebagai Admin")
                 const roleText = window.userData ? window.userData.role : (window.isSuperAdmin ? 'Admin' : 'Guest');
                 const roleLabel = document.querySelector('.role-text');
@@ -121,7 +121,8 @@
         </div>
         <div class="notif-body" id="notif-body">
             <!-- Injected by JS -->
-            <p style="text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px;">Tidak ada notifikasi baru.</p>
+            <p style="text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px;">Tidak ada
+                notifikasi baru.</p>
         </div>
     </div>
 
