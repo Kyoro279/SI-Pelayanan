@@ -37,11 +37,11 @@ router.post('/', async (req, res) => {
         // jika email belum terdaftar di sistem Auth Supabase.
         const { data, error } = await supabase
             .from('pengguna')
-            .insert([{ 
-                nama_lengkap, 
-                email_gmail, 
-                role, 
-                status_aktif: true 
+            .insert([{
+                nama_lengkap,
+                email_gmail,
+                role,
+                // status_aktif: true 
             }])
             .select();
 

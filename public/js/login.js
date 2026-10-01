@@ -34,7 +34,7 @@ async function setupLogin() {
         if (btnLogin) {
             btnLogin.addEventListener('click', async () => {
                 
-                // panggil oauth supabase buat buka popup login google
+                // panggil oauth supabase buat buka popup halaman resmi google
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google', 
                     options: {

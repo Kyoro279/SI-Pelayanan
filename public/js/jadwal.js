@@ -29,7 +29,6 @@ let activeEditId = null;
 // Status izin user: bernilai true jika user adalah Admin atau Worship Planner (boleh utak-atik jadwal)
 let canManageJadwal = false;
 
-// --- DAFTAR KONSTANTA TEKS BAHASA INDONESIA ---
 // Daftar nama hari dalam sepekan (dimulai dari indeks 0 = Minggu)
 const HARI_INDONESIA = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
@@ -86,14 +85,14 @@ async function initAuthPermissions() {
 
     // Cari tahu apa peran (role) dari user yang sedang login saat ini
     const role = window.userData ? (window.userData.role || '').toLowerCase() : (window.isSuperAdmin ? 'admin' : 'guest');
-    
+
     // Tentukan apakah user boleh mengelola jadwal:
     // Hanya Super Admin, Admin, atau Worship Planner yang diizinkan mengelola (true)
     canManageJadwal = window.isSuperAdmin || role === 'admin' || role === 'worship planner';
 
     // Cari tombol "Tambah Jadwal" di sudut kanan atas halaman
     const btnTambah = document.getElementById('btn-tambah-jadwal');
-    
+
     // Jika tombolnya ada tapi user ini ternyata tidak punya izin (misal: jemaat biasa), sembunyikan tombolnya
     if (btnTambah && !canManageJadwal) {
         btnTambah.style.display = 'none';
@@ -110,12 +109,12 @@ async function fetchUsers() {
     try {
         // Kirim permintaan HTTP GET ke alamat API akun
         const response = await fetch('/api/akun');
-        
+
         // Kalau server merespons dengan sukses (status 200 OK)
         if (response.ok) {
             // Ubah data respons JSON menjadi array objek pengguna dan simpan ke variabel allUsers
             allUsers = await response.json();
-            
+
             // Masukkan nama-nama pengguna ini ke dalam 12 kotak pilihan (dropdown) tim pelayanan
             populateTimPelayananDropdowns();
         }
@@ -136,7 +135,7 @@ function populateTimPelayananDropdowns() {
     Object.values(TIM_SELECT_IDS).forEach(selectId => {
         // Cari elemen HTML dropdown berdasarkan ID-nya
         const selectEl = document.getElementById(selectId);
-        
+
         // Kalau elemen tidak ditemukan di halaman, lewati saja
         if (!selectEl) return;
 
@@ -147,13 +146,13 @@ function populateTimPelayananDropdowns() {
         allUsers.forEach(user => {
             // Buat elemen tag <option> baru
             const opt = document.createElement('option');
-            
+
             // Nilai yang dikirim saat dipilih adalah nama lengkap anggota
             opt.value = user.nama_lengkap;
-            
+
             // Teks yang dibaca user di layar juga nama lengkap anggota
             opt.textContent = user.nama_lengkap;
-            
+
             // Tempelkan opsi nama ini ke dalam dropdown
             selectEl.appendChild(opt);
         });
@@ -255,7 +254,7 @@ function setupEventListeners() {
 async function fetchJadwal() {
     // Ambil elemen wadah tempat kartu-kartu jadwal ditampilkan
     const listContainer = document.getElementById('schedule-cards-list');
-    
+
     // Jika wadah ada dan kita sedang di mode daftar ('list'), tampilkan animasi loading berputar
     if (listContainer && currentView === 'list') {
         listContainer.innerHTML = `
@@ -269,13 +268,13 @@ async function fetchJadwal() {
     try {
         // Kirim permintaan HTTP GET ke endpoint API jadwal
         const response = await fetch('/api/jadwal');
-        
+
         // Jika server mengembalikan status error (bukan 200), lemparkan pesan error
         if (!response.ok) throw new Error('Gagal mengambil data jadwal pelayanan');
 
         // Baca data jawaban dari server dalam bentuk objek JSON
         const result = await response.json();
-        
+
         // Simpan array jadwal ke variabel allJadwal (jika kosong, gunakan array kosong [])
         allJadwal = result.data || [];
 
@@ -292,7 +291,7 @@ async function fetchJadwal() {
 
         // Gambar ulang kalender di sisi kiri agar tanggal-tanggal yang ada acaranya diberi tanda titik (dot)
         renderCalendar();
-        
+
         // Jika sedang di mode melihat daftar, gambarkan kartu-kartu jadwal di sisi kanan
         if (currentView === 'list') {
             renderScheduleList();
@@ -336,7 +335,7 @@ function renderCalendar() {
 
     // Cari tahu hari apa tanggal 1 pada bulan ini jatuh (0 = Minggu, 1 = Senin, dst)
     const firstDayIndex = new Date(year, month, 1).getDay();
-    
+
     // Cari tahu ada berapa total jumlah hari di bulan ini (misal 30 atau 31 hari)
     const totalDays = new Date(year, month + 1, 0).getDate();
 
@@ -406,7 +405,7 @@ function renderCalendar() {
                 selectedFilterDate = dateString;
                 // Gambar ulang kalender untuk memindahkan sorotan warna ke tanggal baru ini
                 renderCalendar();
-            } 
+            }
             // KONDISI 2: User sedang di mode melihat Daftar Kartu Jadwal
             else {
                 // Jika user mengklik tanggal yang sebelumnya sudah aktif dipilih, batalkan filternya
@@ -436,10 +435,10 @@ function renderCalendar() {
 function resetDateFilter() {
     // Kosongkan variabel tanggal terpilih
     selectedFilterDate = null;
-    
+
     // Perbarui kalender (menghilangkan warna sorotan pada tanggal yang tadi diklik)
     renderCalendar();
-    
+
     // Tampilkan kembali semua daftar jadwal tanpa filter
     renderScheduleList();
 }
@@ -454,23 +453,23 @@ function resetDateFilter() {
 function openForm(editData = null) {
     // Ubah status tampilan aktif menjadi 'form'
     currentView = 'form';
-    
+
     // Catat ID jadwal yang mau diedit (kalau tambah baru, nilainya null)
     activeEditId = editData ? editData.id : null;
 
     // Sembunyikan bagian daftar kartu jadwal di kolom kanan
     document.getElementById('schedule-list-section').style.display = 'none';
-    
+
     // Munculkan bagian form input jadwal di kolom kanan
     document.getElementById('schedule-form-section').style.display = 'block';
 
     // Atur tombol aksi di bagian header halaman:
     const btnTambah = document.getElementById('btn-tambah-jadwal');
     const btnTrash = document.getElementById('btn-trash-header');
-    
+
     // Sembunyikan tombol "Tambah Jadwal" karena form sudah terbuka
     if (btnTambah) btnTambah.style.display = 'none';
-    
+
     // Munculkan tombol ikon tempat sampah merah di header (untuk membatalkan atau menghapus jadwal)
     if (btnTrash) btnTrash.style.display = 'inline-flex';
 
@@ -489,7 +488,7 @@ function openForm(editData = null) {
     if (editData) {
         // Ganti label tombol submit menjadi "Simpan Perubahan"
         submitBtn.textContent = 'Simpan Perubahan';
-        
+
         // Masukkan ID jadwal lama ke input tersembunyi
         document.getElementById('input-jadwal-id').value = editData.id;
 
@@ -505,7 +504,7 @@ function openForm(editData = null) {
 
         // Ambil data penugasan tim pelayanan
         const tim = editData.tim_pelayanan || {};
-        
+
         // Cocokkan setiap posisi pelayanan dan atur nilai dropdown-nya sesuai data lama
         Object.entries(TIM_SELECT_IDS).forEach(([roleKey, selectId]) => {
             const selectEl = document.getElementById(selectId);
@@ -517,12 +516,12 @@ function openForm(editData = null) {
         // Tandai tanggal jadwal ini di kalender
         selectedFilterDate = editData.tanggal;
         renderCalendar();
-    } 
+    }
     // JIKA DALAM MODE TAMBAH JADWAL BARU:
     else {
         // Beri teks tombol submit "Tambah Jadwal"
         submitBtn.textContent = 'Tambah Jadwal';
-        
+
         // Pastikan input ID jadwal tersembunyi dalam keadaan kosong
         document.getElementById('input-jadwal-id').value = '';
 
@@ -539,13 +538,13 @@ function openForm(editData = null) {
             const dayOfWeek = d.getDay(); // 0 = Minggu, 6 = Sabtu
             const daysUntilSaturday = (6 - dayOfWeek + 7) % 7;
             d.setDate(d.getDate() + (daysUntilSaturday === 0 ? 0 : daysUntilSaturday));
-            
+
             // Formatkan tanggal Sabtu tersebut ke format YYYY-MM-DD
             const yyyy = d.getFullYear();
             const mm = String(d.getMonth() + 1).padStart(2, '0');
             const dd = String(d.getDate()).padStart(2, '0');
             const defaultDate = `${yyyy}-${mm}-${dd}`;
-            
+
             // Pasang ke input tanggal dan sorot di kalender
             document.getElementById('input-tanggal').value = defaultDate;
             selectedFilterDate = defaultDate;
@@ -571,10 +570,10 @@ function openForm(editData = null) {
 function setCategoryPill(categoryName) {
     // Pastikan kategori yang dimasukkan valid, jika tidak ada gunakan default 'Pelayanan'
     const validCategory = categoryName || 'Pelayanan';
-    
+
     // Simpan nilai kategori ke input tersembunyi agar ikut terkirim saat form di-submit
     document.getElementById('input-kategori').value = validCategory;
-    
+
     // Berikan efek visual tombol aktif pada tombol yang sesuai dan matikan efek pada tombol lainnya
     const categoryButtons = document.querySelectorAll('.category-pills .btn-category');
     categoryButtons.forEach(btn => {
@@ -604,7 +603,7 @@ function applyCategoryFormLayout(categoryName) {
     const inputRingkasan = document.getElementById('input-ringkasan');
     const fieldPengkotbah = document.getElementById('field-pengkotbah');
     const inputPengkotbah = document.getElementById('input-pengkotbah');
-    
+
     // Ambil elemen peran tambahan yang hanya dibutuhkan pada ibadah utama (Drummer, MCM, Sound, Usher, dll)
     const extraRoles = document.querySelectorAll('.role-pelayanan-only');
 
@@ -630,7 +629,7 @@ function applyCategoryFormLayout(categoryName) {
             if (select && currentView === 'form' && !activeEditId) select.value = '';
         });
 
-    } 
+    }
     // JIKA KATEGORI ADALAH 'EVENT':
     else if (categoryName === 'Event') {
         // 1. Ubah label menjadi "Nama Event"
@@ -652,7 +651,7 @@ function applyCategoryFormLayout(categoryName) {
             if (select && currentView === 'form' && !activeEditId) select.value = '';
         });
 
-    } 
+    }
     // JIKA KATEGORI ADALAH 'PELAYANAN' (IBADAH UTAMA / DEFAULT):
     else {
         // Kembalikan label ke format standar ibadah
@@ -679,23 +678,23 @@ function applyCategoryFormLayout(categoryName) {
 function closeForm() {
     // Ubah status tampilan aktif kembali ke mode 'list'
     currentView = 'list';
-    
+
     // Hapus ID jadwal aktif yang tadi diedit
     activeEditId = null;
 
     // Sembunyikan formulir input
     document.getElementById('schedule-form-section').style.display = 'none';
-    
+
     // Tampilkan kembali wadah daftar kartu jadwal
     document.getElementById('schedule-list-section').style.display = 'block';
 
     // Atur tombol aksi di bagian header:
     const btnTambah = document.getElementById('btn-tambah-jadwal');
     const btnTrash = document.getElementById('btn-trash-header');
-    
+
     // Tampilkan kembali tombol "+ Tambah Jadwal" jika user memiliki izin
     if (btnTambah && canManageJadwal) btnTambah.style.display = 'inline-flex';
-    
+
     // Sembunyikan tombol ikon tempat sampah merah
     if (btnTrash) btnTrash.style.display = 'none';
 
@@ -723,13 +722,13 @@ async function handleTrashHeaderClick() {
             try {
                 // Kirim permintaan HTTP DELETE ke backend API
                 const res = await fetch(`/api/jadwal/${activeEditId}`, { method: 'DELETE' });
-                
+
                 // Jika penghapusan gagal, lempar pesan error
                 if (!res.ok) throw new Error('Gagal menghapus');
-                
+
                 // Ambil kembali daftar jadwal terbaru dari database
                 await fetchJadwal();
-                
+
                 // Tutup form dan kembali ke tampilan daftar kartu
                 closeForm();
             } catch (err) {
@@ -737,7 +736,7 @@ async function handleTrashHeaderClick() {
                 alert('Gagal menghapus jadwal: ' + err.message);
             }
         }
-    } 
+    }
     // KONDISI 2: User sedang membuat jadwal baru dan ingin membatalkannya
     else {
         // Langsung tutup form dan kembali ke daftar kartu
@@ -801,7 +800,7 @@ async function handleFormSubmit(e) {
     // Ambil tombol submit untuk memberikan efek visual sedang memproses
     const submitBtn = document.getElementById('btn-submit-form');
     const originalText = submitBtn.textContent;
-    
+
     // Matikan tombol sementara dan ubah teksnya agar user tidak mengklik berkali-kali
     submitBtn.disabled = true;
     submitBtn.textContent = 'Menyimpan...';
@@ -816,7 +815,7 @@ async function handleFormSubmit(e) {
 
         // Baca hasil balasan dari server
         const result = await response.json();
-        
+
         // Jika server mengembalikan pesan error, lemparkan pesan tersebut
         if (!response.ok) {
             throw new Error(result.message || result.error || 'Gagal menyimpan jadwal');
@@ -824,7 +823,7 @@ async function handleFormSubmit(e) {
 
         // Ambil data jadwal terbaru dari server agar tampilan langsung sinkron
         await fetchJadwal();
-        
+
         // Tutup form dan kembali ke tampilan daftar kartu
         closeForm();
 
@@ -858,13 +857,13 @@ function renderScheduleList() {
 
     // Siapkan data jadwal yang akan ditampilkan
     let displayedJadwal = allJadwal;
-    
+
     // PENGECEKAN FILTER TANGGAL:
     // Jika ada tanggal yang sedang diklik user di kalender
     if (selectedFilterDate) {
         // Saring jadwal: ambil hanya jadwal yang tanggalnya sama persis dengan tanggal yang diklik
         displayedJadwal = allJadwal.filter(j => j.tanggal === selectedFilterDate);
-        
+
         // Tampilkan bilah informasi status filter di atas daftar
         if (filterStatusBar && filterDateText) {
             filterStatusBar.style.display = 'flex';
@@ -908,7 +907,7 @@ function renderScheduleList() {
 
     // KOSONGKAN WADAH DAN MULAI MERENDER SETIAP KARTU JADWAL
     listContainer.innerHTML = '';
-    
+
     // Telusuri setiap data jadwal yang lolos seleksi filter
     displayedJadwal.forEach(item => {
         // Buat elemen pembungkus kartu jadwal
@@ -989,14 +988,14 @@ function renderScheduleList() {
                 hapusCardJadwal(item.id, item.judul);
                 return;
             }
-            
+
             // 2. Jika yang diklik adalah tombol "Edit" di dalam kartu
             if (e.target.closest('.btn-card-edit')) {
                 e.stopPropagation(); // Cegah klik tembus ke kartu utama
                 openForm(item); // Buka form langsung terisi dengan data jadwal ini
                 return;
             }
-            
+
             // 3. Jika yang diklik adalah bagian badan kartu atau tombol panah detail
             // Pindahkan halaman user ke halaman detail jadwal lengkap
             window.location.href = `/detail-jadwal.html?id=${item.id}`;
@@ -1024,10 +1023,10 @@ async function hapusCardJadwal(id, judul) {
     try {
         // Kirim permintaan HTTP DELETE ke backend
         const res = await fetch(`/api/jadwal/${id}`, { method: 'DELETE' });
-        
+
         // Jika server mengabarkan gagal hapus, lempar error
         if (!res.ok) throw new Error('Gagal menghapus');
-        
+
         // Refresh data jadwal terbaru dari server
         await fetchJadwal();
     } catch (err) {
@@ -1047,25 +1046,25 @@ async function hapusCardJadwal(id, judul) {
 function formatTanggalLengkap(dateStr) {
     // Jika tidak ada data tanggal yang diberikan, kembalikan strip (-)
     if (!dateStr) return '-';
-    
+
     // Pecah string tanggal berdasarkan tanda hubung '-' menjadi [tahun, bulan, tanggal]
     const parts = dateStr.split('-');
     if (parts.length === 3) {
         const year = parseInt(parts[0], 10);
         const month = parseInt(parts[1], 10) - 1; // Kurangi 1 karena indeks bulan di JS dimulai dari 0
         const day = parseInt(parts[2], 10);
-        
+
         // Buat objek Date dari tahun, bulan, dan hari tersebut
         const dateObj = new Date(year, month, day);
 
         // Ambil nama hari dan nama bulan dalam Bahasa Indonesia
         const namaHari = HARI_INDONESIA[dateObj.getDay()];
         const namaBulan = BULAN_INDONESIA[month];
-        
+
         // Gabungkan menjadi kalimat tanggal yang lengkap
         return `${namaHari}, ${day} ${namaBulan} ${year}`;
     }
-    
+
     // Jika format tidak sesuai pecahan 3 bagian, kembalikan apa adanya
     return dateStr;
 }
@@ -1081,7 +1080,7 @@ function formatTanggalLengkap(dateStr) {
 function escapeHtml(str) {
     // Jika teks kosong atau bukan teks, kembalikan string kosong
     if (!str) return '';
-    
+
     // Ubah karakter khusus HTML menjadi kode entitas yang tidak bisa dieksekusi browser
     return str
         .replace(/&/g, "&amp;")
