@@ -27,37 +27,39 @@
 
 <body data-active="jadwal" style="display: none;">
 
-    <!-- Supabase Init & Auth Check (Konsisten dengan Dashboard & Manajemen Akun) -->
+    <!-- Supabase Init & Auth Check (Memeriksa sesi login pengguna ke database Supabase) -->
+    <!-- Variabel window.authReady menampung Promise hasil fungsi initAndCheckAuth() dari file checkAuth.js -->
     <script src="/js/checkAuth.js"></script>
     <script>
         window.authReady = window.initAndCheckAuth();
     </script>
 
     <div class="layout">
-        <!-- Container untuk Sidebar (Loaded via layout.js) -->
+        <!-- Sidebar Container (Bagian menu navigasi samping yang dimuat dinamis oleh layout.js) -->
         <div id="sidebar-container"></div>
 
-        <!-- Main Content Area -->
+        <!-- Main Content Area: Konten Utama Halaman Jadwal -->
         <main class="main-content">
-            <!-- Header Section -->
+            <!-- Header Section: Judul Halaman dan Tombol Aksi Utama -->
             <header class="content-header">
                 <div class="header-title">
                     <h1>Jadwal Pelayanan</h1>
                     <p id="jadwal-subtitle">Kalender Pelayanan KITTEENS</p>
                 </div>
                 <div class="header-actions">
-                    <!-- Tombol Tambah Jadwal (Ditampilkan pada List View) -->
+                    <!-- Tombol "+ Tambah Jadwal": Ditampilkan pada Mode Daftar (List View), diklik untuk membuka form jadwal baru -->
                     <button class="btn-primary" id="btn-tambah-jadwal">
                         <i class="ph ph-plus-circle"></i> Tambah Jadwal
                     </button>
-                    <!-- Tombol Trash Merah (Ditampilkan pada Form View sesuai Gambar User) -->
+                    <!-- Tombol Tempat Sampah Merah: Muncul saat Form Input terbuka, untuk membatalkan input atau menghapus jadwal dari database -->
                     <button class="btn-trash-header" id="btn-trash-header" style="display: none;" title="Batal / Hapus">
                         <i class="ph ph-trash"></i>
                     </button>
                 </div>
             </header>
 
-            <!-- Filter Status Bar (Muncul saat filter tanggal aktif di List View) -->
+            <!-- Filter Status Bar: Muncul otomatis saat user mengklik salah satu tanggal di kalender -->
+            <!-- Berisi info tanggal yang disaring dan tombol reset filter yang ditangani oleh fungsi resetDateFilter() -->
             <div id="filter-status-bar" class="filter-status-bar" style="display: none;">
                 <div class="filter-status-info">
                     <i class="ph ph-funnel"></i>
@@ -68,11 +70,12 @@
                 </button>
             </div>
 
-            <!-- Main Layout Grid: Kalender di Kiri, Konten Dinamis di Kanan -->
+            <!-- Main Layout Grid: Membagi layar jadi 2 kolom (Kalender di Kiri, Konten Dinamis di Kanan) -->
             <section class="jadwal-grid">
 
-                <!-- Section Kalender (Kiri) -->
+                <!-- SECTION KALENDER (KOLOM KIRI): Kalender interaktif bulanan -->
                 <div class="calendar-card">
+                    <!-- Navigasi Ganti Bulan: Tombol Panah Kiri (<), Nama Bulan-Tahun, dan Panah Kanan (>) -->
                     <div class="calendar-header">
                         <button class="cal-nav-btn" id="prev-month" title="Bulan Sebelumnya">
                             <i class="ph ph-arrow-left"></i>
@@ -83,6 +86,7 @@
                         </button>
                     </div>
 
+                    <!-- Baris Header 7 Nama Hari: Minggu s/d Sabtu -->
                     <div class="calendar-days-header">
                         <div>MIN</div>
                         <div>SEN</div>
@@ -93,12 +97,12 @@
                         <div>SAB</div>
                     </div>
 
-                    <!-- Grid Tanggal Kalender (diisi dinamis oleh jadwal.js) -->
+                    <!-- Grid Kotak Tanggal Kalender: Sel-sel tanggal digambar secara dinamis oleh fungsi renderCalendar() di jadwal.js -->
                     <div class="calendar-dates-grid" id="calendar-dates-grid">
-                        <!-- Diisi via JS -->
+                        <!-- Diisi via JavaScript jadwal.js -->
                     </div>
 
-                    <!-- Keterangan Legend Kalender -->
+                    <!-- Petunjuk Warna Kalender (Legend) -->
                     <div class="calendar-legend">
                         <div class="legend-item">
                             <span class="legend-dot has-event"></span>
@@ -115,13 +119,16 @@
                     </div>
                 </div>
 
-                <!-- Section KANAN (Tampilan A: List Kartu Jadwal) -->
+                <!-- SECTION KANAN (TAMPILAN A: DAFTAR KARTU JADWAL) -->
+                <!-- Bagian ini aktif saat currentView = 'list' -->
                 <div class="schedule-section" id="schedule-list-section">
                     <div class="schedule-section-header">
                         <h2 class="schedule-section-title" id="list-title">Daftar Pelayanan</h2>
+                        <!-- Lencana jumlah jadwal: Menampilkan jumlah jadwal hasil hitungan variabel displayedJadwal.length -->
                         <span class="schedule-count-badge" id="schedule-count-badge">0 Jadwal</span>
                     </div>
 
+                    <!-- Wadah Kartu Jadwal: Kartu-kartu jadwal pelayanan digambar oleh fungsi renderScheduleList() di jadwal.js -->
                     <div class="schedule-cards-list" id="schedule-cards-list">
                         <!-- Kartu jadwal di-render via jadwal.js -->
                         <div class="loading-state">
@@ -131,12 +138,14 @@
                     </div>
                 </div>
 
-                <!-- Section KANAN (Tampilan B: Form Tambah / Edit Jadwal Sesuai Gambar User) -->
+                <!-- SECTION KANAN (TAMPILAN B: FORM TAMBAH / EDIT JADWAL) -->
+                <!-- Bagian ini aktif saat currentView = 'form', diatur lewat fungsi openForm() dan closeForm() -->
                 <div class="schedule-form-card" id="schedule-form-section" style="display: none;">
                     <form id="form-jadwal-inline">
+                        <!-- Input tersembunyi untuk ID jadwal (berisi ID jika sedang edit, atau kosong jika tambah baru) -->
                         <input type="hidden" id="input-jadwal-id" value="">
 
-                        <!-- 1. Kategori (Pill Buttons) -->
+                        <!-- 1. Kategori: Tombol Pil (Pelayanan, Latihan, Event) yang diatur fungsinya oleh setCategoryPill() -->
                         <div class="form-group-field">
                             <label class="field-label">Kategori</label>
                             <div class="category-pills">
@@ -145,30 +154,32 @@
                                 <button type="button" class="btn-category" data-category="Latihan">Latihan</button>
                                 <button type="button" class="btn-category" data-category="Event">Event</button>
                             </div>
+                            <!-- Nilai kategori yang dikirim ke backend disimpan di input hidden ini -->
                             <input type="hidden" id="input-kategori" value="Pelayanan">
                         </div>
 
-                        <!-- 2. Tema Kotbah / Nama Latihan -->
+                        <!-- 2. Tema Kotbah / Nama Latihan / Nama Event: Teks diambil oleh variabel tema_kotbah di handleFormSubmit() -->
                         <div class="form-group-field" id="field-tema">
                             <label class="field-label" for="input-tema" id="label-tema">Tema Kotbah</label>
                             <input type="text" id="input-tema" class="form-input" placeholder="Masukkan tema kotbah...">
                         </div>
 
-                        <!-- 3. Ringkasan / Tujuan -->
+                        <!-- 3. Ringkasan / Tujuan Firman: Teks diambil oleh variabel ringkasan_tujuan di handleFormSubmit() -->
                         <div class="form-group-field" id="field-ringkasan">
-                            <label class="field-label" for="input-ringkasan" id="label-ringkasan">Ringkasan / Tujuan</label>
+                            <label class="field-label" for="input-ringkasan" id="label-ringkasan">Ringkasan /
+                                Tujuan</label>
                             <input type="text" id="input-ringkasan" class="form-input"
                                 placeholder="Masukkan ringkasan atau tujuan firman...">
                         </div>
 
-                        <!-- 4. Pengkotbah -->
+                        <!-- 4. Pengkotbah: Teks diambil oleh variabel pengkotbah di handleFormSubmit() -->
                         <div class="form-group-field" id="field-pengkotbah">
                             <label class="field-label" for="input-pengkotbah" id="label-pengkotbah">Pengkotbah</label>
                             <input type="text" id="input-pengkotbah" class="form-input"
                                 placeholder="Nama pengkotbah (contoh: Ps. Sebastian Marco)">
                         </div>
 
-                        <!-- 5. Tanggal & Waktu -->
+                        <!-- 5. Tanggal & Waktu: Nilai diambil oleh variabel tanggal dan waktu di handleFormSubmit() -->
                         <div class="form-group-field">
                             <label class="field-label">Tanggal</label>
                             <div class="date-time-row">
@@ -181,11 +192,12 @@
                             </div>
                         </div>
 
-                        <!-- 6. TIM PELAYANAN (Section & 2-Column Grid of Selects) -->
+                        <!-- 6. TIM PELAYANAN: Grid 12 dropdown posisi pelayanan -->
+                        <!-- Seluruh pilihan dropdown di bawah ini diisi otomatis dari database akun anggota oleh fungsi populateTimPelayananDropdowns() -->
                         <div class="tim-pelayanan-section">
                             <h3 class="tim-pelayanan-title">TIM PELAYANAN</h3>
                             <div class="tim-grid">
-                                <!-- Row 1: Worship Leader & Singer 1 -->
+                                <!-- Baris 1: Worship Leader & Singer 1 -->
                                 <div class="tim-field">
                                     <label class="field-label">Worship Leader</label>
                                     <div class="custom-select-wrapper">
@@ -203,7 +215,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Row 2: Singer 2 & Pianist -->
+                                <!-- Baris 2: Singer 2 & Pianist -->
                                 <div class="tim-field">
                                     <label class="field-label">Singer 2</label>
                                     <div class="custom-select-wrapper">
@@ -221,7 +233,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Row 3: Bassist & Gitaris -->
+                                <!-- Baris 3: Bassist & Gitaris -->
                                 <div class="tim-field">
                                     <label class="field-label">Bassist</label>
                                     <div class="custom-select-wrapper">
@@ -239,7 +251,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Row 4: Drummer & MCM (Pelayanan Only) -->
+                                <!-- Baris 4: Drummer & MCM (Khusus Kategori Pelayanan) -->
                                 <div class="tim-field role-pelayanan-only">
                                     <label class="field-label">Drummer</label>
                                     <div class="custom-select-wrapper">
@@ -257,7 +269,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Row 5: Lighting & Soundman (Pelayanan Only) -->
+                                <!-- Baris 5: Lighting & Soundman (Khusus Kategori Pelayanan) -->
                                 <div class="tim-field role-pelayanan-only">
                                     <label class="field-label">Lighting</label>
                                     <div class="custom-select-wrapper">
@@ -275,7 +287,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Row 6: Usher 1 & Usher 2 (Pelayanan Only) -->
+                                <!-- Baris 6: Usher 1 & Usher 2 (Khusus Kategori Pelayanan) -->
                                 <div class="tim-field role-pelayanan-only">
                                     <label class="field-label">Usher 1</label>
                                     <div class="custom-select-wrapper">
@@ -295,7 +307,7 @@
                             </div>
                         </div>
 
-                        <!-- 7. Tombol Hijau Tambah Jadwal -->
+                        <!-- 7. Tombol Hijau: Submit formulir untuk disimpan ke database melalui handleFormSubmit() -->
                         <div class="form-submit-container">
                             <button type="submit" class="btn-submit-green" id="btn-submit-form">
                                 Tambah Jadwal
@@ -308,7 +320,7 @@
         </main>
     </div>
 
-    <!-- Script Injector & Logic Halaman Jadwal -->
+    <!-- Script Injector & Logika Halaman Jadwal -->
     <script src="/js/layout.js"></script>
     <script src="/js/jadwal.js"></script>
 </body>
