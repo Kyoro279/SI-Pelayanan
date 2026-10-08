@@ -39,21 +39,21 @@ window.initAndCheckAuth = async function (options = {}) {
                 if (!resCheck.ok) {
                     await supabase.auth.signOut(); 
                     window.location.href = '/?error=unauthorized'; 
-                    return null;
+                    return null; 
                 }
                 
                 // kalo ketemu, simpen data usernya
                 const checkData = await resCheck.json();
                 window.userData = checkData.data; 
 
-                // nah kalo page ini butuh role admin tapi yg login bukan admin, tendang ke dashboard
+                // kalo page ini butuh role admin tapi yg login bukan admin, kirim ke dashboard
                 if (options.requireAdmin && window.userData.role !== 'Admin') {
                     alert('Akses Ditolak: Halaman ini hanya untuk Admin.'); 
                     window.location.href = '/dashboard'; 
                     return null;
                 }
             } catch (errDb) {
-                // kalo ada error sistem (koneksi dsb), main aman aja
+                // kalo ada error sistem (koneksi dsb)
                 await supabase.auth.signOut(); 
                 window.location.href = '/?error=unauthorized'; 
                 return null;
@@ -65,7 +65,7 @@ window.initAndCheckAuth = async function (options = {}) {
             options.onSuccess(session); 
         }
 
-        // nampilin halaman yg aslinya kita hide di html (biar ga ngintip sblm lolos cek)
+        // nampilin halaman yg aslinya kita hide di html
         if (options.showBody !== false) {
             document.body.style.display = ''; 
         }
