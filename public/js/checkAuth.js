@@ -32,19 +32,27 @@ window.initAndCheckAuth = async function (options = {}) {
         // kalo bukan super admin, kita cek emailnya ada ga di db pengguna
         if (!isSuperAdmin) {
             try {
-                // nembak api backend buat ngecek email
-                const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                // nembak api backend buat ngecek email dan otentikasi login
+                const resCheck = await fetch('/api/akun/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
                 
                 // kalo api ngembaliin error (misal ga ketemu), paksa logout
                 if (!resCheck.ok) {
+                    const errorResponse = await resCheck.json().catch(() => ({}));
+                    const errorMessage = errorResponse.error || 'unauthorized';
                     await supabase.auth.signOut(); 
-                    window.location.href = '/?error=unauthorized'; 
+                    window.location.href = `/?error=${encodeURIComponent(errorMessage)}`; 
                     return null; 
                 }
                 
                 // kalo ketemu, simpen data usernya
                 const checkData = await resCheck.json();
-                window.userData = checkData.data; 
+                window.userData = checkData; 
 
                 // kalo page ini butuh role admin tapi yg login bukan admin, kirim ke dashboard
                 if (options.requireAdmin && window.userData.role !== 'Admin') {

@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
  * menambahkan email yang belum pernah login bisa menyebabkan error (Foreign Key Constraint).
  */
 router.post('/', async (req, res) => {
-    const { nama_lengkap, email_gmail, role } = req.body;
+    const { nama_lengkap, email, role } = req.body;
     try {
         // PERHATIAN: Jika ada relasi FK id_pengguna ke auth.users, query ini bisa gagal 
         // jika email belum terdaftar di sistem Auth Supabase.
@@ -39,9 +39,9 @@ router.post('/', async (req, res) => {
             .from('pengguna')
             .insert([{
                 nama_lengkap,
-                email_gmail,
+                email,
                 role,
-                // status_aktif: true 
+                status_aktif: true 
             }])
             .select();
 
@@ -64,17 +64,17 @@ router.post('/', async (req, res) => {
  */
 router.put('/:email', async (req, res) => {
     const oldEmail = req.params.email;
-    const { role, nama_lengkap, email_gmail } = req.body;
+    const { role, nama_lengkap, email } = req.body;
     try {
         const updateData = {};
         if (role !== undefined) updateData.role = role;
         if (nama_lengkap !== undefined) updateData.nama_lengkap = nama_lengkap;
-        if (email_gmail !== undefined) updateData.email_gmail = email_gmail;
+        if (email !== undefined) updateData.email = email;
 
         const { data, error } = await supabase
             .from('pengguna')
             .update(updateData)
-            .eq('email_gmail', oldEmail)
+            .eq('email', oldEmail)
             .select();
 
         if (error) throw error;
@@ -96,7 +96,7 @@ router.delete('/:email', async (req, res) => {
         const { data, error } = await supabase
             .from('pengguna')
             .delete()
-            .eq('email_gmail', email);
+            .eq('email', email);
 
         if (error) throw error;
         res.json({ message: 'Akun berhasil dihapus' });
@@ -106,23 +106,37 @@ router.delete('/:email', async (req, res) => {
 });
 
 /**
- * 5. GET: Cek email terdaftar (Bypass RLS melalui backend)
- * Fungsi: Memeriksa apakah suatu email sudah terdaftar di tabel 'pengguna'.
- * Dipanggil di: public/js/authRoutes.js (kemungkinan) atau fitur validasi login awal sebelum allow masuk.
- * Alur kerja: Mengambil 1 baris berdasarkan email_gmail. Jika ada, kembalikan exists: true.
+ * 5. POST: Endpoint Login Backend
+ * Fungsi: Menerima email dari frontend untuk dicek ke tabel pengguna.
+ * Alur kerja: Mengambil 1 baris berdasarkan email dari req.body.
  */
-router.get('/check/:email', async (req, res) => {
+router.post('/login', async (req, res) => {
     try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: "Email diperlukan." });
+        }
+
         const { data, error } = await supabase
             .from('pengguna')
             .select('*')
-            .eq('email_gmail', req.params.email)
+            .eq('email', email)
             .single();
 
         if (error || !data) {
-            return res.status(404).json({ exists: false, error: 'Not found' });
+            return res.status(404).json({ error: "Akses ditolak: Akun Anda belum didaftarkan oleh Admin ke dalam sistem." });
         }
-        res.json({ exists: true, data });
+
+        if (data.status_aktif === false) {
+            return res.status(403).json({ error: "Akses ditolak: Akun Anda sedang dinonaktifkan." });
+        }
+
+        res.status(200).json({
+            id_pengguna: data.id_pengguna,
+            nama_lengkap: data.nama_lengkap,
+            role: data.role
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

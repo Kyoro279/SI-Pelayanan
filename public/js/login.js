@@ -16,13 +16,18 @@ async function setupLogin() {
         // inisialisasi client supabase pake kunci tadi
         const supabase = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
 
-        // ngecek kalo user dilempar balik ke sini bawa error (misal email ga terdaftar)
         const urlParams = new URLSearchParams(window.location.search);
+        const errorParam = urlParams.get('error');
         
-        if (urlParams.get('error') === 'unauthorized') {
+        if (errorParam) {
             // munculin teks error merah
             const errorMsg = document.getElementById('error-msg');
-            if (errorMsg) errorMsg.style.display = 'block'; 
+            if (errorMsg) {
+                if (errorParam !== 'unauthorized') {
+                    errorMsg.innerText = errorParam; // Menampilkan pesan error spesifik
+                }
+                errorMsg.style.display = 'block'; 
+            }
             
             // bersihin url bar biar ga keliatan kotor
             window.history.replaceState({}, document.title, "/");

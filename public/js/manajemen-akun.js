@@ -53,10 +53,10 @@ function renderTable(data) {
 
         tr.innerHTML = `
             <td>${akun.nama_lengkap}</td>
-            <td>${akun.email_gmail}</td>
+            <td>${akun.email}</td>
             <td>
                 <!-- Dropdown Role yang langsung memicu handleRoleChange jika dipilih -->
-                <select class="role-select ${roleClass}" onchange="handleRoleChange('${akun.email_gmail}', this)">
+                <select class="role-select ${roleClass}" onchange="handleRoleChange('${akun.email}', this)">
                     <option value="Admin" ${safeRole === 'Admin' ? 'selected' : ''}>Admin</option>
                     <option value="Worship Planner" ${safeRole === 'Worship Planner' ? 'selected' : ''}>Worship Planner</option>
                     <option value="Worship Leader" ${safeRole === 'Worship Leader' ? 'selected' : ''}>Worship Leader</option>
@@ -66,11 +66,11 @@ function renderTable(data) {
             </td>
             <td style="text-align: right; white-space: nowrap;">
                 <!-- Tombol Edit Nama & Email -->
-                <button class="btn-edit" onclick="handleEditMode(this, '${akun.email_gmail}', '${akun.nama_lengkap}')" title="Edit">
+                <button class="btn-edit" onclick="handleEditMode(this, '${akun.email}', '${akun.nama_lengkap}')" title="Edit">
                     <i class="ph ph-pencil-simple"></i>
                 </button>
                 <!-- Tombol Hapus Akun -->
-                <button class="btn-delete" onclick="handleHapusAkun('${akun.email_gmail}')">
+                <button class="btn-delete" onclick="handleHapusAkun('${akun.email}')">
                     <i class="ph ph-trash"></i>
                 </button>
             </td>
@@ -89,7 +89,7 @@ function handleSearch(e) {
     //membuat array baru berisi data yang cocok dengan teks yang diketik 
     const filtered = allAccounts.filter(akun =>
         akun.nama_lengkap.toLowerCase().includes(query) ||
-        akun.email_gmail.toLowerCase().includes(query)
+        akun.email.toLowerCase().includes(query)
     );
     renderTable(filtered); //menampilkan data yang cocok
 }
@@ -108,7 +108,7 @@ async function handleTambahAkun(e) {
         const response = await fetch('/api/akun', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nama_lengkap: nama, email_gmail: email, role: role })
+            body: JSON.stringify({ nama_lengkap: nama, email: email, role: role })
             //data dibungkus menjadi format JSON dan dikirim ke backend server
         });
 
@@ -150,7 +150,7 @@ async function handleRoleChange(email, selectElement) {
 
         // Update data array lokal juga agar kalau user langsung 'Cari', 
         // fiturnya tidak pakai data lama (tidak perlu request data utuh dari DB)
-        const index = allAccounts.findIndex(a => a.email_gmail === email);
+        const index = allAccounts.findIndex(a => a.email === email);
         if (index > -1) allAccounts[index].role = newRole;
 
     } catch (error) {
@@ -228,7 +228,7 @@ async function handleSaveEdit(button, oldEmail) {
         const response = await fetch(`/api/akun/${oldEmail}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nama_lengkap: newNama, email_gmail: newEmail })
+            body: JSON.stringify({ nama_lengkap: newNama, email: newEmail })
         });
 
         if (!response.ok) {
