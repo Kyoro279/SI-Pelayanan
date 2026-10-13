@@ -133,7 +133,7 @@ async function handleRoleChange(email, selectElement) {
     const newRole = selectElement.value; // Dapatkan role pilihan yang baru
 
     // Ganti class warna background dropdown sesuai role baru (misal Admin = merah, dll)
-    selectElement.className = `role-select role-${newRole.replace(/\\s+/g, '').toLowerCase()}`;
+    selectElement.className = `role-select role-${newRole.replace(/\s+/g, '').toLowerCase()}`;
 
     try {
         // Kirim request (PUT = Update) ke Backend API
