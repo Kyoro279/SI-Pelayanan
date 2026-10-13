@@ -131,8 +131,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     function initChoices() {
         // Susun pilihan lagu dengan menyertakan judul, penyanyi, dan nada dasar aslinya
         const options = allSongs.map(lagu => ({
-            value: lagu.id,
-            label: `${lagu.judul} - ${lagu.penyanyi || 'Tanpa Penyanyi'} (Key Asli: ${lagu.nada_dasar})`
+            value: lagu.id_lagu || lagu.id,
+            label: `${lagu.judul_lagu || lagu.judul} - ${lagu.pengarang || lagu.penyanyi || 'Tanpa Penyanyi'} (Key Asli: ${lagu.nada_dasar || '-'})`
         }));
         
         // Bersihkan isi HTML dropdown sebelumnya agar tidak terjadi duplikasi opsi
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         selectLagu.addEventListener('change', (e) => {
             const selectedId = e.target.value;
             // Cari data lagu yang dipilih dari daftar lagu
-            const lagu = allSongs.find(l => l.id === selectedId);
+            const lagu = allSongs.find(l => String(l.id_lagu || l.id) === String(selectedId));
             
             // Jika lagunya punya data nada dasar asli, otomatis pasang nada dasar itu di dropdown Key!
             if (lagu && lagu.nada_dasar) {
@@ -176,9 +176,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         detailTanggal.textContent = tgl.toLocaleDateString('id-ID', options);
         
         // Tampilkan judul/tema ibadah
-        detailJudul.textContent = currentJadwal.judul || currentJadwal.tema_pelayanan;
+        detailJudul.textContent = currentJadwal.tema_kotbah || currentJadwal.judul || currentJadwal.tema_pelayanan;
         // Tampilkan tujuan firman atau berikan strip jika kosong
-        detailTujuan.textContent = currentJadwal.tujuan || '-';
+        detailTujuan.textContent = currentJadwal.tujuan_ringkasan || currentJadwal.tujuan || '-';
         // Tampilkan nama pengkotbah atau berikan strip jika kosong
         detailPengkotbah.textContent = currentJadwal.pengkotbah || '-';
 
@@ -265,13 +265,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             const btnDelete = canManageLaguJadwal ? `<button class="btn-remove-lagu" data-index="${index}"><i class="ph ph-trash"></i></button>` : '';
 
             // Struktur tampilan item lagu: Nomor urut, Judul lagu, Nada Dasar (Key), dan Tombol Hapus
+            const namaJudul = lagu.judul_lagu || lagu.judul || 'Tanpa Judul';
+            const laguIdRef = lagu.id_lagu || lagu.id || '';
             item.innerHTML = `
                 <div style="display:flex; align-items:center; gap: 12px;">
                     <span style="font-weight:bold; color:#3182ce;">${index + 1}</span>
-                    <span class="lagu-title">${lagu.judul}</span>
+                    <span class="lagu-title">${namaJudul}</span>
                 </div>
                 <div class="lagu-actions">
-                    <div class="lagu-key">${lagu.nada_dasar}</div>
+                    <div class="lagu-key">${lagu.nada_dasar || '-'}</div>
                     ${btnDelete}
                 </div>
             `;
@@ -282,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (e.target.closest('.btn-remove-lagu')) return;
                 
                 // Buka halaman detail lagu dengan membawa informasi ID lagu, ID jadwal, dan nomor urut lagunya
-                window.location.href = `/detail-lagu.html?id=${lagu.id_lagu}&jadwal_id=${jadwalId}&index=${index}`;
+                window.location.href = `/detail-lagu.html?id=${laguIdRef}&jadwal_id=${jadwalId}&index=${index}`;
             });
             
             // Masukkan item lagu ke dalam daftar di layar
@@ -342,13 +344,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Temukan detail lagu tersebut dari bank data lagu
-            const laguData = allSongs.find(l => l.id === selectedId);
+            const laguData = allSongs.find(l => String(l.id_lagu || l.id) === String(selectedId));
             if (!laguData) return;
 
             // Buat objek ringkas lagu baru yang akan disimpan ke jadwal
             const newLaguObj = {
-                id_lagu: laguData.id,
-                judul: laguData.judul,
+                id_lagu: laguData.id_lagu || laguData.id,
+                judul: laguData.judul_lagu || laguData.judul,
+                judul_lagu: laguData.judul_lagu || laguData.judul,
                 nada_dasar: selectedKey // Nada dasar yang bisa disesuaikan untuk jadwal ini
             };
 

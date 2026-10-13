@@ -43,9 +43,11 @@ const TIM_SELECT_IDS = {
     mcm: 'select-mcm',
     lighting: 'select-lighting',
     soundman: 'select-soundman',
-    usher_1: 'select-usher1',
-    usher_2: 'select-usher2'
+    usher: 'select-usher'
 };
+
+// Wadah untuk menyimpan instans Choices.js dari dropdown tim pelayanan
+let choicesInstances = {};
 
 //saat struktur halaman web (DOM) selesai dimuat seluruhnya oleh browser
 document.addEventListener('DOMContentLoaded', async () => {
@@ -140,6 +142,7 @@ function populateTimPelayananDropdowns() {
 
             //nilai yang dikirim saat dipilih adalah nama lengkap anggota
             opt.value = user.nama_lengkap;
+            opt.setAttribute('data-id', user.id_pengguna);
 
             //teks yang dibaca user di layar juga nama lengkap anggota
             opt.textContent = user.nama_lengkap;
@@ -150,14 +153,34 @@ function populateTimPelayananDropdowns() {
 
         //cek apakah fitur pencarian dalam dropdown sudah ada
         if (typeof Choices !== 'undefined') {
+            if (choicesInstances[selectId]) {
+                choicesInstances[selectId].destroy();
+            }
             //aktifkan fitur pencarian di dropdown ini agar user bisa mengetik nama anggota dengan mudah
-            new Choices(selectEl, {
+            choicesInstances[selectId] = new Choices(selectEl, {
                 searchEnabled: true,  //aktifkan kolom ketik pencarian
                 itemSelectText: '',   //hilangkan teks bantuan bawaan "Press to select"
                 shouldSort: false     //jangan acak urutan nama yang sudah dimasukkan
             });
         }
     });
+}
+
+/**
+ * Fungsi bantu untuk mengatur nilai terpilih pada dropdown tim pelayanan dengan dukungan Choices.js
+ */
+function setSelectValue(selectId, value) {
+    const selectEl = document.getElementById(selectId);
+    if (!selectEl) return;
+    selectEl.value = value || '';
+    if (choicesInstances[selectId]) {
+        if (value) {
+            choicesInstances[selectId].setChoiceByValue(value);
+        } else {
+            choicesInstances[selectId].removeActiveItems();
+            choicesInstances[selectId].setChoiceByValue('');
+        }
+    }
 }
 
 // ==============================================================================================
@@ -271,6 +294,13 @@ async function fetchJadwal() {
 
         //bersihkan dan seragamkan format tanggal jika ada format jam bawaan database (misal: "2026-06-06T00:00:00Z")
         allJadwal.forEach(j => {
+            // Normalisasi atribut skema database baru dan kompatibilitas
+            if (!j.tanggal && j.tanggal_pelayanan) j.tanggal = j.tanggal_pelayanan;
+            if (!j.judul && j.tema_kotbah) j.judul = j.tema_kotbah;
+            if (!j.tujuan && j.tujuan_ringkasan) j.tujuan = j.tujuan_ringkasan;
+            if (!j.waktu && j.jam_pelayanan) j.waktu = j.jam_pelayanan.substring(0, 5);
+            if (!j.id && j.id_jadwal) j.id = String(j.id_jadwal);
+
             if (j.tanggal && j.tanggal.includes('T')) {
                 //ambil hanya bagian tanggalnya saja di depan huruf 'T' (menjadi "2026-06-06")
                 j.tanggal = j.tanggal.split('T')[0];
@@ -481,31 +511,32 @@ function openForm(editData = null) {
         submitBtn.textContent = 'Simpan Perubahan';
 
         //masukkan ID jadwal lama ke input tersembunyi
-        document.getElementById('input-jadwal-id').value = editData.id;
+        document.getElementById('input-jadwal-id').value = editData.id_jadwal || editData.id;
 
         //pilih tombol pil kategori sesuai data lama (misal: "Pelayanan", "Latihan", atau "Event")
         setCategoryPill(editData.kategori || 'Pelayanan');
 
         //isi kolom input teks dengan data jadwal yang sudah ada
-        document.getElementById('input-tema').value = editData.judul || '';
-        document.getElementById('input-ringkasan').value = editData.tujuan || '';
+        document.getElementById('input-tema').value = editData.tema_kotbah || editData.judul || '';
+        document.getElementById('input-ringkasan').value = editData.tujuan_ringkasan || editData.tujuan || '';
         document.getElementById('input-pengkotbah').value = editData.pengkotbah || '';
-        document.getElementById('input-tanggal').value = editData.tanggal || '';
-        document.getElementById('input-waktu').value = editData.waktu || '17:00';
+        document.getElementById('input-tanggal').value = editData.tanggal_pelayanan || editData.tanggal || '';
+        const rawWaktu = editData.jam_pelayanan || editData.waktu || '17:00';
+        document.getElementById('input-waktu').value = rawWaktu.length >= 5 ? rawWaktu.substring(0, 5) : rawWaktu;
 
         //ambil data penugasan tim pelayanan
         const tim = editData.tim_pelayanan || {};
+        if (!tim.usher && tim.usher_1) {
+            tim.usher = tim.usher_1;
+        }
 
         //cocokkan setiap posisi pelayanan dan atur nilai dropdown-nya sesuai data lama
         Object.entries(TIM_SELECT_IDS).forEach(([roleKey, selectId]) => {
-            const selectEl = document.getElementById(selectId);
-            if (selectEl && tim[roleKey]) {
-                selectEl.value = tim[roleKey];
-            }
+            setSelectValue(selectId, tim[roleKey] || '');
         });
 
         //tandai tanggal jadwal ini di kalender
-        selectedFilterDate = editData.tanggal;
+        selectedFilterDate = editData.tanggal_pelayanan || editData.tanggal;
         renderCalendar();
     }
     //jika dalam mode tambah jadwal baru:
@@ -518,6 +549,11 @@ function openForm(editData = null) {
 
         //tentukan kategori default awal sebagai "Pelayanan"
         setCategoryPill('Pelayanan');
+
+        //kosongkan seluruh pilihan dropdown tim pelayanan
+        Object.values(TIM_SELECT_IDS).forEach(selectId => {
+            setSelectValue(selectId, '');
+        });
 
         //tentukan tanggal bawaan awal:
         //jika user tadi sedang memilih suatu tanggal di kalender, gunakan tanggal itu
@@ -773,14 +809,19 @@ async function handleFormSubmit(e) {
     //bungkus semua data di atas ke dalam satu objek payload JSON yang siap dikirim ke backend
     const payload = {
         kategori,
-        judul: tema_kotbah,
+        // Kolom database baru
         tema_kotbah,
+        tujuan_ringkasan: ringkasan_tujuan,
+        tanggal_pelayanan: tanggal,
+        jam_pelayanan: waktu,
+        pengkotbah: (kategori === 'Latihan' || kategori === 'Event') ? '' : pengkotbah,
+        tim_pelayanan,
+        // Kolom alias untuk backward compatibility
+        judul: tema_kotbah,
         tujuan: ringkasan_tujuan,
         ringkasan_tujuan,
-        pengkotbah: (kategori === 'Latihan' || kategori === 'Event') ? '' : pengkotbah,
         tanggal,
-        waktu,
-        tim_pelayanan
+        waktu
     };
 
     //tentukan apakah aksi ini adalah edit (jika ID ada) atau tambah baru (jika ID kosong)
