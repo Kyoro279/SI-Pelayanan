@@ -55,6 +55,9 @@ function renderDashboard(futureJadwal, allJadwal) {
 
     if (nextJadwal) {
         const formattedDate = formatTanggalLengkap(nextJadwal.tanggal);
+        const rawWaktu = nextJadwal.jam_pelayanan || nextJadwal.waktu || '';
+        const cleanWaktu = rawWaktu.length >= 5 ? rawWaktu.substring(0, 5) : rawWaktu;
+        const timeDisplay = cleanWaktu ? ` • ${cleanWaktu} WIB` : '';
         const pengkotbahDisplay = nextJadwal.kategori === 'Latihan' || nextJadwal.kategori === 'Event' ? '-' : escapeHtml(nextJadwal.pengkotbah || '-');
         const judulDisplay = escapeHtml(nextJadwal.judul || nextJadwal.tema_pelayanan);
         const descDisplay = escapeHtml(nextJadwal.tujuan || '-');
@@ -66,7 +69,7 @@ function renderDashboard(futureJadwal, allJadwal) {
             </div>
             <div class="service-content">
                 <h2>${judulDisplay}</h2>
-                <p class="date">${formattedDate}</p>
+                <p class="date">${formattedDate}${timeDisplay}</p>
                 <p class="desc">${descDisplay}</p>
             </div>
             <div class="service-footer">
@@ -106,6 +109,9 @@ function renderDashboard(futureJadwal, allJadwal) {
     if (upcomingList.length > 0) {
         upcomingList.forEach(item => {
             const dateStr = formatTanggalLengkap(item.tanggal);
+            const rawWaktu = item.jam_pelayanan || item.waktu || '';
+            const cleanWaktu = rawWaktu.length >= 5 ? rawWaktu.substring(0, 5) : rawWaktu;
+            const timeDisplay = cleanWaktu ? ` • ${cleanWaktu} WIB` : '';
             const card = document.createElement('div');
             card.className = 'schedule-card';
             card.style.cursor = 'pointer';
@@ -114,7 +120,7 @@ function renderDashboard(futureJadwal, allJadwal) {
             const pPengkotbah = item.kategori === 'Latihan' || item.kategori === 'Event' ? '-' : escapeHtml(item.pengkotbah || '-');
 
             card.innerHTML = `
-                <p class="date">${dateStr}</p>
+                <p class="date">${dateStr}${timeDisplay}</p>
                 <h3>${escapeHtml(item.judul || item.tema_pelayanan)}</h3>
                 <p class="label">Pengkotbah</p>
                 <p class="value">${pPengkotbah}</p>

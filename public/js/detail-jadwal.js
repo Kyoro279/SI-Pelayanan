@@ -173,7 +173,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const tgl = new Date(currentJadwal.tanggal || currentJadwal.tanggal_pelayanan);
         // Format tanggal lengkap dalam bahasa Indonesia (contoh: "Minggu, 7 Juni 2026")
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        detailTanggal.textContent = tgl.toLocaleDateString('id-ID', options);
+        const rawWaktu = currentJadwal.jam_pelayanan || currentJadwal.waktu || '';
+        const cleanWaktu = rawWaktu.length >= 5 ? rawWaktu.substring(0, 5) : rawWaktu;
+        const timeDisplay = cleanWaktu ? ` • ${cleanWaktu} WIB` : '';
+        detailTanggal.textContent = `${tgl.toLocaleDateString('id-ID', options)}${timeDisplay}`;
         
         // Tampilkan judul/tema ibadah
         detailJudul.textContent = currentJadwal.tema_kotbah || currentJadwal.judul || currentJadwal.tema_pelayanan;

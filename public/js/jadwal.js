@@ -298,7 +298,8 @@ async function fetchJadwal() {
             if (!j.tanggal && j.tanggal_pelayanan) j.tanggal = j.tanggal_pelayanan;
             if (!j.judul && j.tema_kotbah) j.judul = j.tema_kotbah;
             if (!j.tujuan && j.tujuan_ringkasan) j.tujuan = j.tujuan_ringkasan;
-            if (!j.waktu && j.jam_pelayanan) j.waktu = j.jam_pelayanan.substring(0, 5);
+            const rawTime = j.jam_pelayanan || j.waktu || '17:00';
+            j.waktu = rawTime.length >= 5 ? rawTime.substring(0, 5) : rawTime;
             if (!j.id && j.id_jadwal) j.id = String(j.id_jadwal);
 
             if (j.tanggal && j.tanggal.includes('T')) {
@@ -308,7 +309,11 @@ async function fetchJadwal() {
         });
 
         //urutkan jadwal dari tanggal yang paling dekat (terdahulu) ke tanggal yang paling jauh di masa depan
-        allJadwal.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
+        allJadwal.sort((a, b) => {
+            const dateCompare = new Date(a.tanggal) - new Date(b.tanggal);
+            if (dateCompare !== 0) return dateCompare;
+            return (a.waktu || '').localeCompare(b.waktu || '');
+        });
 
         //gambar ulang kalender di sisi kiri agar tanggal-tanggal yang ada acaranya diberi tanda titik (dot)
         renderCalendar();
@@ -949,6 +954,11 @@ function renderScheduleList() {
         //ubah format tanggal menjadi format lengkap yang enak dibaca (contoh: "Sabtu, 6 Juni 2026")
         const formattedDate = formatTanggalLengkap(item.tanggal);
 
+        //ambil jam waktu pelaksanaan dari data jadwal (contoh: "17:00 WIB")
+        const rawWaktu = item.jam_pelayanan || item.waktu || '17:00';
+        const cleanWaktu = rawWaktu.length >= 5 ? rawWaktu.substring(0, 5) : rawWaktu;
+        const timeDisplay = cleanWaktu ? ` • ${cleanWaktu} WIB` : '';
+
         //identifikasi jenis kategori jadwal
         const isLatihan = item.kategori === 'Latihan';
         const isEvent = item.kategori === 'Event';
@@ -991,7 +1001,7 @@ function renderScheduleList() {
         //susun struktur isi HTML kartu jadwal
         card.innerHTML = `
             <div class="card-header">
-                <span class="card-date">${formattedDate.toUpperCase()} ${badgeKategori}</span>
+                <span class="card-date">${formattedDate.toUpperCase()}${timeDisplay} ${badgeKategori}</span>
                 <button class="btn-detail" title="Lihat & Edit Jadwal">
                     <i class="ph ph-arrow-right"></i>
                 </button>
