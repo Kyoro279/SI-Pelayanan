@@ -35,11 +35,12 @@ async function populateForm(id) {
         const { data: song } = await res.json();
 
         // Kalo lagunya ketemu, masukin satu-satu valuenya ke dalem elemen input HTML-nya
+        // Kompatibel dengan database baru (judul_lagu, pengarang) maupun alias lama (judul, penyanyi)
         if (song) {
-            document.getElementById('inputJudul').value = song.judul || '';
-            document.getElementById('inputPenyanyi').value = song.penyanyi || '';
+            document.getElementById('inputJudul').value = song.judul_lagu || song.judul || '';
+            document.getElementById('inputPenyanyi').value = song.pengarang || song.penyanyi || '';
             document.getElementById('inputKategori').value = song.kategori || '';
-            document.getElementById('inputNadaDasar').value = song.nada_dasar || '';
+            document.getElementById('inputNadaDasar').value = (song.nada_dasar || '').trim();
             document.getElementById('inputLinkYoutube').value = song.link_youtube || '';
             document.getElementById('inputChordLirik').value = song.chord_lirik || '';
         }
@@ -56,7 +57,7 @@ async function handleSave(id, mode) {
     const judul = document.getElementById('inputJudul').value.trim();
     const penyanyi = document.getElementById('inputPenyanyi').value.trim();
     const kategori = document.getElementById('inputKategori').value;
-    const nada_dasar = document.getElementById('inputNadaDasar').value;
+    const nada_dasar = document.getElementById('inputNadaDasar').value.trim();
     const link_youtube = document.getElementById('inputLinkYoutube').value.trim();
     const chord_lirik = document.getElementById('inputChordLirik').value.trim();
 
@@ -67,7 +68,17 @@ async function handleSave(id, mode) {
     }
 
     // Bungkus semua datanya ke dalam satu paket (payload)
-    const payload = { judul, penyanyi, kategori, nada_dasar, link_youtube, chord_lirik };
+    // Kirim format database baru sekaligus alias lama biar serbaguna
+    const payload = {
+        judul,
+        judul_lagu: judul,
+        penyanyi,
+        pengarang: penyanyi,
+        kategori,
+        nada_dasar,
+        link_youtube,
+        chord_lirik
+    };
 
     // Tentukan URL sama Metode HTTP-nya
     // Kalau edit pakai rute ber-ID dan metode PUT (update)

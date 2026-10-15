@@ -128,6 +128,11 @@ function renderSongs(songs) {
 
     // Lakukan pengulangan buat tiap lagu yang ada di array
     songs.forEach(song => {
+        const songId = song.id_lagu || song.id;
+        const songTitle = song.judul_lagu || song.judul || 'Tanpa Judul';
+        const songArtist = song.pengarang || song.penyanyi || 'Unknown Artist';
+        const rawKey = song.nada_dasar ? String(song.nada_dasar).trim() : '-';
+
         // Bikin elemen div baru
         const card = document.createElement('div');
         card.className = 'song-card';
@@ -136,11 +141,11 @@ function renderSongs(songs) {
 
         // Kalau card ini diklik, otomatis pindah halaman ke detail-lagu bawa parameter ID lagunya
         card.addEventListener('click', () => {
-            window.location.href = `/detail-lagu?id=${song.id}`;
+            window.location.href = `/detail-lagu?id=${songId}`;
         });
 
-        // Ambil nada dasar, kalau kosong kasih tanda strip aja
-        const key = song.nada_dasar ? song.nada_dasar : '-';
+        // Ambil nada dasar yang udah di-trim
+        const key = rawKey || '-';
 
         // Isi struktur HTML ke dalem div card-nya
         card.innerHTML = `
@@ -152,8 +157,8 @@ function renderSongs(songs) {
             </div>
             <div class="bottom-section">
                 <div class="card-details">
-                    <h3 class="song-title">${escapeHtml(song.judul)}</h3>
-                    <p class="song-artist">${escapeHtml(song.penyanyi || 'Unknown Artist')}</p>
+                    <h3 class="song-title">${escapeHtml(songTitle)}</h3>
+                    <p class="song-artist">${escapeHtml(songArtist)}</p>
                 </div>
                 <!-- Cuma nampilin tombol delete kalau usernya punya akses -->
                 ${canManageLagu ? `
@@ -170,7 +175,7 @@ function renderSongs(songs) {
             btnDelete.addEventListener('click', (e) => {
                 // Biar pas ngeklik tong sampah, card-nya ga ikut ngeklik ke halaman detail (stop event bubbling)
                 e.stopPropagation();
-                confirmDelete(song.id, song.judul);
+                confirmDelete(songId, songTitle);
             });
         }
 
@@ -185,14 +190,14 @@ function filterSongs() {
     const filterCategory = document.getElementById('filterCategory');
 
     // Ambil teks yang diketik, langsung jadiin huruf kecil semua biar pencariannya gak case-sensitive
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
     // Ambil value dari dropdown, kalau 'all' berarti nampilin semua
     const selectedCategory = filterCategory ? filterCategory.value : 'all';
 
     // Bikin array baru (filtered) dari array allSongs
     const filtered = allSongs.filter(song => {
-        const title = (song.judul || '').toLowerCase();
-        const artist = (song.penyanyi || '').toLowerCase();
+        const title = (song.judul_lagu || song.judul || '').toLowerCase();
+        const artist = (song.pengarang || song.penyanyi || '').toLowerCase();
         const category = song.kategori || 'Worship';
 
         // Cek apakah judul atau penyanyinya mengandung kata yang diketik

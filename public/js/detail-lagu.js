@@ -89,7 +89,8 @@ async function handleSetlistMode(jadwalId, songIndexStr) {
             // Logika buat tombol Mundur (Prev)
             if (btnPrev) {
                 if (index > 0) { // Kalau bukan lagu pertama, tombolnya bisa diklik
-                    btnPrev.onclick = () => window.location.href = `/detail-lagu.html?id=${daftar[index - 1].id_lagu}&jadwal_id=${jadwalId}&index=${index - 1}`;
+                    const prevId = daftar[index - 1].id_lagu || daftar[index - 1].id;
+                    btnPrev.onclick = () => window.location.href = `/detail-lagu.html?id=${prevId}&jadwal_id=${jadwalId}&index=${index - 1}`;
                     btnPrev.style.color = 'var(--primary-color)';
                     btnPrev.style.cursor = 'pointer';
                 } else { // Kalau udah paling awal, tombolnya dimatiin warnanya
@@ -101,7 +102,8 @@ async function handleSetlistMode(jadwalId, songIndexStr) {
             // Logika buat tombol Maju (Next)
             if (btnNext) {
                 if (index < daftar.length - 1) { // Kalau bukan lagu terakhir
-                    btnNext.onclick = () => window.location.href = `/detail-lagu.html?id=${daftar[index + 1].id_lagu}&jadwal_id=${jadwalId}&index=${index + 1}`;
+                    const nextId = daftar[index + 1].id_lagu || daftar[index + 1].id;
+                    btnNext.onclick = () => window.location.href = `/detail-lagu.html?id=${nextId}&jadwal_id=${jadwalId}&index=${index + 1}`;
                     btnNext.style.background = 'var(--primary-color)';
                     btnNext.style.cursor = 'pointer';
                 } else {
@@ -113,9 +115,10 @@ async function handleSetlistMode(jadwalId, songIndexStr) {
             // 4. Override Transpose!
             // Kadang nada dasar asli lagu 'C', tapi di jadwal ini disepakatin main di 'D'.
             // Maka kita paksa ganti selector nadanya ke nada yang ada di setlist jadwal.
-            const targetKey = daftar[index].nada_dasar;
+            const targetKey = (daftar[index].nada_dasar || '').trim();
+            const songKey = (currentSong.nada_dasar || '').trim();
             const transposeSelect = document.querySelector('.transpose-select');
-            if (targetKey && transposeSelect && targetKey !== currentSong.nada_dasar) {
+            if (targetKey && transposeSelect && targetKey !== songKey) {
                 transposeSelect.value = targetKey;
                 // Lempar event change biar fungsi transposer-nya (di bawah) jalan buat ganti teks lirik
                 transposeSelect.dispatchEvent(new Event('change'));
@@ -147,14 +150,19 @@ async function fetchSongDetail(id) {
 function renderSongDetail() {
     if (!currentSong) return;
 
+    const title = currentSong.judul_lagu || currentSong.judul || 'Tanpa Judul';
+    const artist = currentSong.pengarang || currentSong.penyanyi || 'Unknown Artist';
+    const songId = currentSong.id_lagu || currentSong.id;
+    const key = (currentSong.nada_dasar || '').trim() || '-';
+
     // 1. Header (Judul & Penyanyi)
     const titleEl = document.querySelector('.song-title-large');
     const artistEl = document.querySelector('.song-artist-large');
-    if (titleEl) titleEl.textContent = currentSong.judul;
-    if (artistEl) artistEl.textContent = currentSong.penyanyi || 'Unknown Artist';
+    if (titleEl) titleEl.textContent = title;
+    if (artistEl) artistEl.textContent = artist;
 
     // Ganti title tab browser biar dinamis
-    document.title = `${currentSong.judul} - KITTEENS HUB`;
+    document.title = `${title} - KITTEENS HUB`;
 
     // 2. Tunjukin / Umpetin Tombol Edit dan Hapus sesuai hak akses
     const btnEdit = document.querySelector('.btn-edit');
@@ -162,7 +170,7 @@ function renderSongDetail() {
     if (canManageLagu) {
         if (btnEdit) {
             // Arahin ke halaman edit bawa ID lagunya
-            btnEdit.onclick = () => window.location.href = `/edit-lagu?id=${currentSong.id}`;
+            btnEdit.onclick = () => window.location.href = `/edit-lagu?id=${songId}`;
         }
     } else {
         // Kalau bukan admin, sembunyiin tombolnya biar gak bisa iseng ngeklik
@@ -172,11 +180,11 @@ function renderSongDetail() {
 
     // 3. Tulis Nada Dasar Original di pojok kanan
     const originalKeyEl = document.querySelector('.control-value');
-    if (originalKeyEl) originalKeyEl.textContent = currentSong.nada_dasar || '-';
+    if (originalKeyEl) originalKeyEl.textContent = key;
 
     // 4. Bikin list dropdown buat fitur ubah nada (Transpose)
     const transposeSelect = document.querySelector('.transpose-select');
-    const originalKey = currentSong.nada_dasar || 'C'; // Default ke C kalau kosong
+    const originalKey = key !== '-' ? key : 'C'; // Default ke C kalau kosong
     const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
     if (transposeSelect) {

@@ -37,13 +37,10 @@
             <!-- Header Halaman -->
             <div class="edit-header">
                 <h1 class="edit-title">Edit Lagu</h1>
-<<<<<<< HEAD
-=======
                 <!-- Tombol Batal, pake history.back() aja biar balik ke halaman lagu yang tadi lagi dibuka -->
                 <button class="btn-cancel" onclick="window.history.back()">
                     Batal <i class="ph-bold ph-x"></i>
                 </button>
->>>>>>> origin/Lagu-History-Komen
             </div>
 
             <!-- Form kita bagi dua kolom (kiri & kanan) biar lebarnya pas di layar desktop -->
@@ -56,7 +53,7 @@
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Penyanyi</label>
+                        <label class="form-label">Penyanyi / Pengarang</label>
                         <input type="text" id="inputPenyanyi" class="form-control" value="">
                     </div>
 
@@ -72,13 +69,19 @@
                         <div class="form-group">
                             <label class="form-label">Nada Dasar</label>
                             <select id="inputNadaDasar" class="form-control">
-                                <option>C</option>
-                                <option>D</option>
-                                <option>E</option>
-                                <option>F</option>
-                                <option>G</option>
-                                <option>A</option>
-                                <option>B</option>
+                                <option value=""></option>
+                                <option value="C">C</option>
+                                <option value="C#">C#</option>
+                                <option value="D">D</option>
+                                <option value="Eb">Eb</option>
+                                <option value="E">E</option>
+                                <option value="F">F</option>
+                                <option value="F#">F#</option>
+                                <option value="G">G</option>
+                                <option value="Ab">Ab</option>
+                                <option value="A">A</option>
+                                <option value="Bb">Bb</option>
+                                <option value="B">B</option>
                             </select>
                         </div>
                     </div>
