@@ -1,54 +1,48 @@
-// file buat nyiapin halaman login
-// nyambungin aplikasi kita sama supabase & google
+// Fungsi untuk menyiapkan fitur Login
 async function setupLogin() {
     try {
-        // narik config (url & key) supabase dari backend (server.js baca dari .env)
-        // soalnya bahaya kalo ditaro langsung di front-end
+        // mengambil kunci Supabase dari server (yang membaca dari file .env)
+        // Endpoint '/api/config' dibuat di server.js
         const respons = await fetch('/api/config');
         const config = await respons.json();
 
-        // kalo misal .env kosong atau typo, stop prosesnya
+        // Cek jika kunci gagal diambil (misalnya .env kosong atau salah)
         if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
             alert("Kunci Supabase belum terhubung! Cek file .env Anda.");
-            return; 
+            return;
         }
 
-        // inisialisasi client supabase pake kunci tadi
+        // Membuat koneksi/instance client ke Supabase menggunakan library @supabase/supabase-js
         const supabase = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
 
+        // Cek parameter URL (Apakah ada ?error=unauthorized)
+        // Ini terjadi jika user berhasil login Google, tapi email-nya tidak ada di database "pengguna" kita.
         const urlParams = new URLSearchParams(window.location.search);
-        const errorParam = urlParams.get('error');
-        
-        if (errorParam) {
-            // munculin teks error merah
+        if (urlParams.get('error') === 'unauthorized') {
+            // Tampilkan pesan error warna merah di HTML
             const errorMsg = document.getElementById('error-msg');
-            if (errorMsg) {
-                if (errorParam !== 'unauthorized') {
-                    errorMsg.innerText = errorParam; // Menampilkan pesan error spesifik
-                }
-                errorMsg.style.display = 'block'; 
-            }
-            
-            // bersihin url bar biar ga keliatan kotor
+            if (errorMsg) errorMsg.style.display = 'block';
+
+            // Membersihkan URL bar dari parameter ?error... agar lebih rapi
             window.history.replaceState({}, document.title, "/");
         }
 
-        // pasang aksi klik di tombol google
+        // Menangani tombol "Login dengan Google"
         const btnLogin = document.getElementById('btn-login-google');
-        
         if (btnLogin) {
             btnLogin.addEventListener('click', async () => {
-                
-                // panggil oauth supabase buat buka popup halaman resmi google
+                // Memanggil fungsi bawaan Supabase untuk OAuth (Login pihak ketiga)
+                // Ini akan memicu popup/redirect ke halaman Login Google yang asli
                 const { error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google', 
+                    provider: 'google',
                     options: {
-                        // kalo sukses, lempar user ke halaman dashboard
+                        // Jika login Google sukses, Google akan mengembalikan user ke URL ini:
+                        // Yaitu halaman Dashboard aplikasi kita.
                         redirectTo: 'http://localhost:3000/dashboard'
                     }
                 });
 
-                // kalo gagal manggil (misal inet putus)
+                // Jika proses inisiasi login gagal (misal tidak ada internet), tangkap errornya
                 if (error) {
                     console.error("Gagal login:", error.message);
                     alert("Terjadi kesalahan saat mencoba login Google.");
@@ -60,5 +54,5 @@ async function setupLogin() {
     }
 }
 
-// langsung jalanin pas dipanggil di html
+// Menjalankan fungsi setupLogin() saat file JS ini pertama kali dimuat oleh HTML
 setupLogin();

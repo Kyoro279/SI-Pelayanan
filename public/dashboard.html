@@ -17,34 +17,75 @@
 
 <body data-active="dashboard" style="display: none;">
 
-    <!-- Script untuk inisialisasi Supabase dan mengecek apakah user sudah login -->
-    <script src="/js/checkAuth.js"></script>
+    <!-- Supabase Init & Auth Check -->
     <script>
-        // Memanggil fungsi pengecekan login, jika sukses akan mengeksekusi callback onSuccess
-        window.authReady = window.initAndCheckAuth({
-            onSuccess: (session) => {
-                // Mendapatkan nama dan email user dari sesi login
-                const email = session.user.email;
-                const metadata = session.user.user_metadata || {};
-                const fullName = window.userData ? window.userData.nama_lengkap : (metadata.full_name || email.split('@')[0]);
+        // Buat promise agar script lain (seperti layout.js) bisa menunggu auth selesai
+        window.authReady = (async function initAndCheckAuth() {
+            try {
+                // Ambil config Supabase dari backend (membaca dari .env)
+                const respons = await fetch('/api/config');
+                const config = await respons.json();
 
-                // Memperbarui teks peran (role) user di tampilan header (misal: "Log in sebagai Admin")
-                const roleText = window.userData ? window.userData.role : (window.isSuperAdmin ? 'Admin' : 'Guest');
-                const roleLabel = document.querySelector('.role-text');
-                if (roleLabel) roleLabel.textContent = `Log in sebagai ${roleText}`;
+                // Buat instance global
+                window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                const supabase = window.supabaseClient;
 
-                const updateName = () => {
-                    const headerUserName = document.getElementById('header-user-name');
-                    if (headerUserName) headerUserName.textContent = fullName;
-                };
-
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', updateName);
+                //mengecek isi memory lokal browser, jika kosong maka akan ditendang kembali ke halaman login
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/'; // Redirect ke halaman login jika belum login
+                    return null;
                 } else {
-                    updateName();
+                    //mengecek apa bila superadmin yang login dan jika cocok akan diloloskan
+                    const email = session.user.email;
+                    const isSuperAdmin = email === 'matthewanders2709@gmail.com';
+                    window.isSuperAdmin = isSuperAdmin;
+                    window.userData = null;
+
+                    // Verifikasi apakah email ada di database (kecuali super admin)
+                    // program front end akan bertanya ke backend untuk email" lain selain SuperAdmin
+                    if (!isSuperAdmin) {
+                        try {
+                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            if (!resCheck.ok) {
+                                await supabase.auth.signOut();
+                                window.location.href = '/?error=unauthorized';
+                                return null;
+                            }
+                            const checkData = await resCheck.json();
+                            window.userData = checkData.data;
+                        } catch (errDb) {
+                            await supabase.auth.signOut();
+                            window.location.href = '/?error=unauthorized';
+                            return null;
+                        }
+                    }
+
+                    // Tampilkan nama user di header dashboard
+                    const metadata = session.user.user_metadata || {};
+                    const fullName = window.userData ? window.userData.nama_lengkap : (metadata.full_name || email.split('@')[0]);
+
+                    const roleText = window.userData ? window.userData.role : (isSuperAdmin ? 'Admin' : 'Guest');
+                    const roleLabel = document.querySelector('.role-text');
+                    if (roleLabel) roleLabel.textContent = `Log in sebagai ${roleText}`;
+
+                    const updateName = () => {
+                        const headerUserName = document.getElementById('header-user-name');
+                        if (headerUserName) headerUserName.textContent = fullName;
+                    };
+
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', () => { updateName(); document.body.style.display = ''; });
+                    } else {
+                        updateName();
+                        document.body.style.display = '';
+                    }
+                    return session;
                 }
+            } catch (err) {
+                console.error("Gagal memuat auth:", err);
             }
-        });
+        })();
     </script>
 
     <div class="layout">

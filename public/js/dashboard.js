@@ -21,37 +21,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // ambil hari ini trus set jam ke 00:00
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // ambil tanggal hari ini (format YYYY-MM-DD sesuai waktu lokal)
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-        // cari jadwal yang harinya hari ini ato ke depannya
-        const futureJadwal = allJadwal.filter(j => new Date(j.tanggal) >= today);
+        // hanya ambil jadwal yang belum lewat (hari ini atau mendatang)
+        const futureJadwal = allJadwal.filter(j => j.tanggal && j.tanggal >= todayStr);
 
-        // urutin dari yang paling deket
-        futureJadwal.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
+        // urutin dari jadwal yang paling dekat
+        futureJadwal.sort((a, b) => a.tanggal.localeCompare(b.tanggal) || (a.waktu || a.jam_pelayanan || '').localeCompare(b.waktu || b.jam_pelayanan || ''));
 
         // nampilin jadwal ke layar
-        renderDashboard(futureJadwal, allJadwal);
+        renderDashboard(futureJadwal);
     } catch (err) {
         console.error('Error saat memuat jadwal:', err);
     }
 });
 
 // ini buat ngatur ui htmlnya
-function renderDashboard(futureJadwal, allJadwal) {
+function renderDashboard(futureJadwal) {
     // 1. set up bagian atas (pelayanan selanjutnya)
     const nextServiceContainer = document.querySelector('.next-service');
 
-    // Mencari 1 jadwal yang akan dijadikan sorotan utama
-    let nextJadwal = null;
-    if (futureJadwal.length > 0) {
-        nextJadwal = futureJadwal[0]; // Ambil jadwal pertama yang terdekat di masa depan
-    } else if (allJadwal.length > 0) {
-        // Jika tidak ada jadwal di masa depan, ambil jadwal masa lalu yang paling terakhir (terbaru)
-        const pastJadwal = [...allJadwal].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
-        nextJadwal = pastJadwal[0];
-    }
+    // Ambil jadwal terdekat yang belum terjadi
+    const nextJadwal = futureJadwal.length > 0 ? futureJadwal[0] : null;
 
     if (nextJadwal) {
         const formattedDate = formatTanggalLengkap(nextJadwal.tanggal);
@@ -90,21 +83,11 @@ function renderDashboard(futureJadwal, allJadwal) {
         `;
     }
 
-    // 2. Jadwal Mendatang (Sisa list)
+    // 2. Jadwal Mendatang (daftar jadwal selanjutnya setelah pelayanan berikutnya)
     const scheduleGrid = document.querySelector('.schedule-grid');
     scheduleGrid.innerHTML = '';
 
-    let upcomingList = [];
-    if (futureJadwal.length > 1) {
-        upcomingList = futureJadwal.slice(1, 4); // Ambil maks 3 jadwal selanjutnya
-    } else if (futureJadwal.length === 1 && allJadwal.length > 1) {
-        // Fallback jika cuma 1 di masa depan
-        const pastJadwal = [...allJadwal].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal)).filter(j => j.id !== nextJadwal.id);
-        upcomingList = pastJadwal.slice(0, 3);
-    } else if (futureJadwal.length === 0 && allJadwal.length > 1) {
-        const pastJadwal = [...allJadwal].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal)).filter(j => j.id !== nextJadwal.id);
-        upcomingList = pastJadwal.slice(0, 3);
-    }
+    const upcomingList = futureJadwal.slice(1, 4); // Ambil maks 3 jadwal selanjutnya
 
     if (upcomingList.length > 0) {
         upcomingList.forEach(item => {
@@ -131,18 +114,18 @@ function renderDashboard(futureJadwal, allJadwal) {
         scheduleGrid.innerHTML = '<p style="color: #64748B; font-size: 14px; grid-column: 1 / -1;">Tidak ada jadwal tambahan.</p>';
     }
 }
-//menyiapkan sebuah array berisi hari dan bulan 
+
+// menyiapkan sebuah array berisi hari dan bulan 
 const HARI_INDONESIA = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 const BULAN_INDONESIA = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
 function formatTanggalLengkap(dateStr) {
-    //memecah string tanggal (tahun, bulan, tanggal)
+    // memecah string tanggal (tahun, bulan, tanggal)
     if (!dateStr) return '-';
     const parts = dateStr.split('-');
     if (parts.length === 3) {
-
         const year = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10) - 1; //urutan bulan dimulai dari 0 makanya harus dikurang 1
+        const month = parseInt(parts[1], 10) - 1; // urutan bulan dimulai dari 0 makanya harus dikurang 1
         const day = parseInt(parts[2], 10);
         const dateObj = new Date(year, month, day);
 
@@ -191,10 +174,10 @@ async function fetchNotifications() {
     // 1. Admin/WP: Check Berhalangan reports
     if (role === 'Admin' || role === 'WP') {
         try {
-            //kalo admin/wp yang yg login. maka akan memeriksa apakah ada yang mengajukan berhalangan dan belum diproses
+            // kalo admin/wp yang yg login. maka akan memeriksa apakah ada yang mengajukan berhalangan dan belum diproses
             const res = await fetch('/api/berhalangan?status=Belum%20Diproses');
             if (res.ok) {
-                //jika ada maka laporan tersebut dimasukan ke notifikasi
+                // jika ada maka laporan tersebut dimasukan ke notifikasi
                 const { data } = await res.json();
                 if (data && data.length > 0) {
                     data.forEach(item => {
@@ -213,29 +196,29 @@ async function fetchNotifications() {
 
     // 2. All roles: Check Schedule < 14 days
     try {
-        //inisiasi mengambil data jadwal
+        // inisiasi mengambil data jadwal
         const resJadwal = await fetch('/api/jadwal');
         if (resJadwal.ok) {
             const { data } = await resJadwal.json();
-            const today = new Date(); //membuat variabel hari ini 
-            today.setHours(0, 0, 0, 0); //mengatur jam hari ini menjadi 00:00:00
-            const twoWeeksFromNow = new Date(today); //membuat variabel dua minggu dari hari ini
-            twoWeeksFromNow.setDate(today.getDate() + 14); //menambahkan 14 hari ke hari ini
+            const today = new Date(); // membuat variabel hari ini 
+            today.setHours(0, 0, 0, 0); // mengatur jam hari ini menjadi 00:00:00
+            const twoWeeksFromNow = new Date(today); // membuat variabel dua minggu dari hari ini
+            twoWeeksFromNow.setDate(today.getDate() + 14); // menambahkan 14 hari ke hari ini
 
             if (data && data.length > 0) {
-                data.forEach(jadwal => { //sistem mengecek semua jadwal satu persatu
-                    const jDate = new Date(jadwal.tanggal); //dirubah menjadi objek
-                    if (jDate >= today && jDate <= twoWeeksFromNow) { //cek jadwal dalam rentang 14 hari kedepan 
+                data.forEach(jadwal => { // sistem mengecek semua jadwal satu persatu
+                    const jDate = new Date(jadwal.tanggal); // dirubah menjadi objek
+                    if (jDate >= today && jDate <= twoWeeksFromNow) { // cek jadwal dalam rentang 14 hari kedepan 
                         // Check if user is in this schedule
                         let isAssigned = false;
                         if (jadwal.pengkotbah && userName && jadwal.pengkotbah.toLowerCase() === userName.toLowerCase()) isAssigned = true;
-                        //mengecek apakah user yang login merupakan bagian dari list tim pelayanan tersebut
+                        // mengecek apakah user yang login merupakan bagian dari list tim pelayanan tersebut
                         if (jadwal.tim_pelayanan && Array.isArray(jadwal.tim_pelayanan)) {
                             const found = jadwal.tim_pelayanan.find(p => p.nama_pelayan && userName && p.nama_pelayan.toLowerCase() === userName.toLowerCase());
                             if (found) isAssigned = true;
                         }
 
-                        if (isAssigned) {//jika terbukti ditugaskan maka akan memunculkan notifikasi
+                        if (isAssigned) { // jika terbukti ditugaskan maka akan memunculkan notifikasi
                             notifications.push({
                                 type: 'jadwal',
                                 title: 'Pengingat Pelayanan',
