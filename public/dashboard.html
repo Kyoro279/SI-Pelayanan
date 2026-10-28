@@ -46,14 +46,18 @@
                     // program front end akan bertanya ke backend untuk email" lain selain SuperAdmin
                     if (!isSuperAdmin) {
                         try {
-                            const resCheck = await fetch(`/api/akun/check/${encodeURIComponent(email)}`);
+                            const resCheck = await fetch('/api/akun/login', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email })
+                            });
                             if (!resCheck.ok) {
                                 await supabase.auth.signOut();
                                 window.location.href = '/?error=unauthorized';
                                 return null;
                             }
                             const checkData = await resCheck.json();
-                            window.userData = checkData.data;
+                            window.userData = checkData;
                         } catch (errDb) {
                             await supabase.auth.signOut();
                             window.location.href = '/?error=unauthorized';

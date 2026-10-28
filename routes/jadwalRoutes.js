@@ -30,7 +30,7 @@ function normalizeRoleKey(peran) {
     return clean;
 }
 
-// Helper: Menyeragamkan format objek jadwal (kolom database baru + alias untuk frontend)
+// Menyeragamkan format objek jadwal (kolom database baru + alias untuk frontend)
 function formatScheduleOutput(record, tim_pelayanan = {}, tim_pelayanan_id = {}, petugas = [], daftar_lagu = []) {
     const rawTime = record.jam_pelayanan || record.waktu || '17:00';
     const cleanTime = rawTime.length >= 5 ? rawTime.substring(0, 5) : rawTime;
@@ -480,7 +480,7 @@ router.delete('/:id', async (req, res) => {
         await supabase.from('jadwal_lagu').delete().eq('id_jadwal', intId);
         try {
             await supabase.from('chat_berhalangan').delete().eq('id_jadwal', intId);
-        } catch (_) {}
+        } catch (_) { }
 
         // Hapus baris jadwal utama
         const { error: delErr } = await supabase.from('jadwal').delete().eq('id_jadwal', intId);

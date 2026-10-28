@@ -74,7 +74,7 @@ router.delete('/:email', async (req, res) => {
         const { data, error } = await supabase
             .from('pengguna')
             .delete()
-            .eq('email', email);
+            .ilike('email', email.trim());
 
         if (error) throw error;
         res.json({ message: 'Akun berhasil dihapus' });
@@ -95,7 +95,7 @@ router.post('/login', async (req, res) => {
         const { data, error } = await supabase
             .from('pengguna')
             .select('*')
-            .eq('email', email)
+            .ilike('email', email.trim())
             .single();
 
         if (error || !data) {
