@@ -5,49 +5,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tambah Lagu - KITTEENS HUB</title>
-    <!--font modern standar Google-->
+    <!--import font inter dari google fonts-->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!--panggil CSS global dan CSS khusus edit/tambah lagu (karena tampilannya mirip, kita pake CSS yang sama buat edit)-->
+    <!--panggil css global dan css khusus form tambah/edit lagu-->
     <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/edit-lagu.css">
-
-    <!--ikon-ikon lucu-->
+    <!--library phosphor icons-->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-    <!--supabase! wajib buat nyambungin web kita ke database-->
+    <!--library supabase untuk cek sesi login-->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<!--data-active="lagu" ngasi tau layout buat nyalain menu "Bank Lagu" pas halaman ini dibuka-->
-
+<!--data-active="lagu" untuk menandai menu bank lagu di sidebar-->
 <body data-active="lagu" style="display: none;">
 
-    <!--penjaga gerbang: ngecek user login apa nggak, boleh masuk apa nggak-->
+    <!--cek status login user sebelum menampilkan form-->
     <script src="/js/checkAuth.js"></script>
     <script>
+        //simpan promise autentikasi agar ditunggu oleh lagu-form.js
         window.authReady = window.initAndCheckAuth();
     </script>
 
+    <!--pembungkus layout utama-->
     <div class="layout">
-        <!--wadah yang ntar bakal disuntik HTML Sidebar dari JS-->
+        <!--wadah tempat sidebar dimuat oleh layout.js-->
         <div id="sidebar-container"></div>
 
-        <!--ruang utama halaman-->
+        <!--area konten utama form tambah lagu-->
         <main class="main-content">
-            <!--header halaman-->
+            <!--bagian header form: judul halaman dan tombol batal-->
             <div class="edit-header">
-                <!--judul form-->
                 <h1 class="edit-title">Lagu Baru</h1>
-                <!--tombol Batal, balik lagi ke list lagu-->
                 <button class="btn-cancel" onclick="window.location.href='/bank-lagu'">
                     Batal <i class="ph-bold ph-x"></i>
                 </button>
             </div>
 
-            <!--formulirnya kita bagi dua kolom (kiri & kanan) biar lebar layarnya kepake maksimal-->
+            <!--grid dua kolom untuk form input lagu baru-->
             <div class="edit-grid">
-                <!--kolom kiri: isian data pendek (Judul, Penyanyi, dll)-->
+                <!--kolom kiri: input informasi dasar lagu (judul, penyanyi, kategori, nada dasar, link youtube)-->
                 <div class="form-left">
                     <div class="form-group">
                         <label class="form-label">Judul</label>
@@ -59,7 +55,7 @@
                         <input type="text" id="inputPenyanyi" class="form-control" value="">
                     </div>
 
-                    <!--kategori sama Nada Dasar dibikin sebelahan biar hemat tempat-->
+                    <!--baris dua kolom untuk pilihan kategori dan nada dasar-->
                     <div class="row-2">
                         <div class="form-group">
                             <label class="form-label">Kategori</label>
@@ -89,31 +85,28 @@
                         </div>
                     </div>
 
-                    <!--kolom isi link YouTube biar nanti bisa nampil videonya otomatis-->
                     <div class="form-group">
                         <label class="form-label">Link Youtube</label>
                         <input type="text" id="inputLinkYoutube" class="form-control" value="">
                     </div>
                 </div>
 
-                <!--kolom kanan: khusus buat kotak gede isi Lirik & Chord, dan tombol Simpan-->
+                <!--kolom kanan: textarea penulisan chord & lirik beserta tombol simpan-->
                 <div class="form-right">
                     <div class="form-group">
                         <label class="form-label">Chord & Lirik</label>
-                        <!--pake textarea biar bisa dienter-enter (multiline)-->
                         <textarea id="inputChordLirik" class="form-control textarea-lyrics"></textarea>
                     </div>
 
-                    <!--tombol buat nge-submit formnya-->
+                    <!--tombol untuk menyimpan lagu baru ke database-->
                     <button class="btn-save" id="saveBtn">Tambah</button>
                 </div>
             </div>
         </main>
     </div>
 
-    <!--layout.js manggil kerangka sidebar-->
+    <!--script pemuat sidebar dan pengendali form lagu-->
     <script src="/js/layout.js"></script>
-    <!--lagu-form.js yang ngurusin nembak data form ini ke server/database-->
     <script src="/js/lagu-form.js"></script>
 </body>
 

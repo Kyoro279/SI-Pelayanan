@@ -1,5 +1,6 @@
-/* --- Detail Lagu Styles --- */
+/*styling halaman detail lagu*/
 
+/*bagian header atas: tombol kembali di kiri dan tombol edit/hapus di kanan*/
 .detail-header {
     display: flex;
     justify-content: space-between;
@@ -23,6 +24,7 @@
     align-items: center;
 }
 
+/*judul lagu dan nama penyanyi ukuran besar*/
 .song-title-large {
     font-size: 32px;
     font-weight: 700;
@@ -35,6 +37,7 @@
     color: var(--text-muted);
 }
 
+/*kelompok tombol aksi edit dan hapus*/
 .header-actions {
     display: flex;
     gap: 12px;
@@ -76,6 +79,7 @@
     background-color: #DC2626;
 }
 
+/*bar kontrol nada dasar original, dropdown transpose, dan tombol toggle chord*/
 .control-bar {
     background-color: #fff;
     border: 1px solid var(--border-color);
@@ -118,6 +122,7 @@
     background-color: var(--border-color);
 }
 
+/*dropdown pemilih nada transpose*/
 .transpose-select {
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -139,6 +144,7 @@
     border-color: var(--primary-light);
 }
 
+/*tombol untuk menyembunyikan atau menampilkan chord*/
 .btn-toggle-chord {
     background-color: #fff;
     border: 1px solid var(--border-color);
@@ -162,13 +168,14 @@
     background-color: #F8FAFC;
 }
 
+/*grid dua kolom: area lirik di kiri dan sidebar video/pintasan di kanan*/
 .content-grid {
     display: grid;
     grid-template-columns: 1fr 320px;
     gap: 40px;
 }
 
-/* Lyrics Section */
+/*bagian tampilan lirik dan chord lagu*/
 .lyrics-container {
     font-size: 16px;
     line-height: 1.5;
@@ -184,6 +191,7 @@
     margin-bottom: 8px;
 }
 
+/*baris lirik dibuat flex agar pasangan chord dan lirik berjejer rapi ke samping*/
 .lyric-line {
     margin-bottom: 8px;
     display: flex;
@@ -191,6 +199,7 @@
     align-items: flex-end;
 }
 
+/*setiap segmen menumpuk chord di atas dan potongan teks lirik di bawah*/
 .lyric-segment {
     display: inline-flex;
     flex-direction: column;
@@ -219,12 +228,12 @@
     white-space: pre-wrap;
 }
 
-/* Hide Chords Logic */
+/*sembunyikan elemen chord saat mode hide-chords aktif*/
 .hide-chords .chord {
     display: none;
 }
 
-/* Right Sidebar */
+/*bagian sidebar kanan: thumbnail video youtube dan kotak jump to section*/
 .video-thumbnail-link {
     display: block;
     text-decoration: none;
@@ -254,6 +263,7 @@
     background: rgba(0,0,0,0.2);
 }
 
+/*kotak daftar pintasan bagian lagu (jump to section)*/
 .jump-box {
     background-color: #fff;
     border: 1px solid var(--border-color);

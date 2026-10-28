@@ -1,69 +1,56 @@
 //public/js/lagu.js
 
-//variabel global untuk nyimpen semua lagu yang ditarik dari database
-//biar nanti gampang kalau mau nge-filter (search atau pilih kategori) tanpa perlu manggil API lagi
+//variabel global buat nyimpen semua lagu yang ditarik dari database
 let allSongs = [];
-//variabel buat ngecek apakah user ini admin/music director yang boleh nambah/hapus lagu
+//variabel buat ngecek apakah user punya akses buat tambah/hapus lagu
 let canManageLagu = false;
 
-//event ini bakal jalan otomatis pas halaman HTML selesai di-load semua
+//jalanin fungsi utama waktu halaman HTML udah beres dimuat
 document.addEventListener('DOMContentLoaded', async () => {
-    //inisialisasi auth & role
-    //cek dulu siapa yang lagi login, punya akses apa aja
+    //cek status login dan role user dulu
     await initAuthPermissions();
-
-    //setup event listeners
-    //pasang "pendengar" ke kolom pencarian dan filter dropdown
+    //pasang event listener ke kolom search dan dropdown kategori
     setupEventListeners();
-
-    //fetch data lagu
-    //mulai narik data lagu dari backend
+    //tarik data lagu dari backend buat ditampilin ke layar
     await fetchSongs();
 });
 
-//cek autentikasi dan hak akses role
-//fungsi ini bertugas buat nentuin tombol "Tambah Lagu" atau "Hapus" bakal ditampilin atau nggak
+//fungsi buat ngecek autentikasi dan hak akses role user
 async function initAuthPermissions() {
-    //tungguin kalau proses auth dari layout.js belum beres
+    //tunggu proses cek auth dari layout.js selesai dulu
     if (window.authReady) {
         await window.authReady;
     }
 
-    //ambil role user dari session, kalau nggak ada berarti guest
+    //ambil role user dari session, kalau belum ada anggap guest
     const role = window.userData ? (window.userData.role || '').toLowerCase() : (window.isSuperAdmin ? 'admin' : 'guest');
-
-    //yang boleh manage lagu itu super admin, admin biasa, atau music director
+    //yang boleh kelola lagu cuma super admin, admin, atau music director
     canManageLagu = window.isSuperAdmin || role === 'admin' || role === 'music director';
 
-    //cari tombol tambah lagu yang ada di pojok kanan atas
+    //sembunyiin tombol tambah lagu kalau user nggak punya akses
     const btnTambah = document.querySelector('.btn-primary');
-    //kalau dia bukan admin, tombol tambahnya diumpetin (disembunyikan)
     if (btnTambah && !canManageLagu) {
         btnTambah.style.display = 'none';
     }
 }
 
-//fungsi buat nyambungin kolom search dan filter kategori sama fungsi filternya
+//fungsi buat nyambungin input pencarian dan filter kategori
 function setupEventListeners() {
     const searchInput = document.getElementById('searchInput');
     const filterCategory = document.getElementById('filterCategory');
 
-    //tiap kali user ngetik di kolom search, langsung panggil fungsi filterSongs
-    if (searchInput) {
-        searchInput.addEventListener('input', filterSongs);
-    }
-    //tiap kali user ganti pilihan kategori di dropdown, panggil filterSongs juga
-    if (filterCategory) {
-        filterCategory.addEventListener('change', filterSongs);
-    }
+    //filter ulang daftar lagu tiap kali user ngetik di kolom pencarian
+    if (searchInput) searchInput.addEventListener('input', filterSongs);
+    //filter ulang daftar lagu tiap kali pilihan kategori diubah
+    if (filterCategory) filterCategory.addEventListener('change', filterSongs);
 }
 
-//fungsi utama buat ngambil data dari API
+//fungsi buat ngambil data semua lagu dari endpoint API
 async function fetchSongs() {
     const songGrid = document.getElementById('songGrid');
     const subtitle = document.querySelector('.subtitle');
 
-    //kasih efek loading muter-muter dulu biar user tau lagi proses ngambil data
+    //tampilin animasi loading selama data lagi diambil dari server
     if (songGrid) {
         songGrid.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #64748b;">
@@ -74,25 +61,23 @@ async function fetchSongs() {
     }
 
     try {
-        //panggil API /api/lagu pake metode GET
+        //panggil API daftar lagu
         const response = await fetch('/api/lagu');
-        //kalau error dari server (misal 500), lempar error
         if (!response.ok) throw new Error('Gagal mengambil data lagu');
 
-        //ubah responsenya jadi format JSON
+        //ubah response jadi JSON lalu simpan ke array global allSongs
         const result = await response.json();
-        //simpan datanya ke variabel global allSongs
         allSongs = result.data || [];
 
-        //lempar datanya ke fungsi render buat digambar di HTML
+        //render semua lagu ke halaman
         renderSongs(allSongs);
 
-        //update teks kecil di bawah judul, misal "10 Lagu Tersedia"
+        //update teks jumlah lagu yang tersedia di bagian bawah judul halaman
         if (subtitle) {
             subtitle.textContent = `${allSongs.length} Lagu Tersedia`;
         }
     } catch (error) {
-        //kalau error (misal jaringan putus), tampilin pesan error di layar
+        //kalau gagal ambil data, tampilkan pesan error di area grid
         console.error('Error fetching songs:', error);
         if (songGrid) {
             songGrid.innerHTML = `
@@ -105,12 +90,12 @@ async function fetchSongs() {
     }
 }
 
-//fungsi buat nge-gambar (render) sekumpulan lagu jadi komponen Card di HTML
+//fungsi buat nampilin daftar lagu ke dalam bentuk card HTML
 function renderSongs(songs) {
     const songGrid = document.getElementById('songGrid');
-    if (!songGrid) return; //kalau tempatnya ga ada, di stop
+    if (!songGrid) return;
 
-    //kalau array lagunya kosong (misal hasil pencarian nggak nemu), kasih tau user
+    //kalau hasil filter atau data lagunya kosong, tampilkan pesan kosong
     if (songs.length === 0) {
         songGrid.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #94a3b8;">
@@ -121,44 +106,42 @@ function renderSongs(songs) {
         return;
     }
 
-    //bersihin layar dari daftar sebelumnya (atau dari loading text)
+    //kosongin isi grid sebelum diisi ulang
     songGrid.innerHTML = '';
 
-    //lakukan pengulangan buat tiap lagu yang ada di array
+    //loop tiap lagu buat bikin elemen card satu per satu
     songs.forEach(song => {
+        //siapin data id, judul, penyanyi, dan nada dasar lagu
         const songId = song.id_lagu || song.id;
         const songTitle = song.judul_lagu || song.judul || 'Tanpa Judul';
         const songArtist = song.pengarang || song.penyanyi || 'Unknown Artist';
-        const rawKey = song.nada_dasar ? String(song.nada_dasar).trim() : '-';
+        const key = (song.nada_dasar || '').trim() || '-';
 
-        //bikin elemen div baru
+        //bikin elemen pembungkus card lagu
         const card = document.createElement('div');
         card.className = 'song-card';
         card.setAttribute('data-category', song.kategori || 'Worship');
         card.style.cursor = 'pointer';
 
-        //kalau card ini diklik, otomatis pindah halaman ke detail-lagu bawa parameter ID lagunya
+        //arahin ke halaman detail lagu saat card diklik
         card.addEventListener('click', () => {
             window.location.href = `/detail-lagu?id=${songId}`;
         });
 
-        //ambil nada dasar yang udah di-trim
-        const key = rawKey || '-';
-
-        //isi struktur HTML ke dalem div card-nya
+        //susun tampilan bagian atas (ikon & nada dasar) dan bawah (judul, penyanyi, tombol hapus)
         card.innerHTML = `
             <div class="top-section">
                 <div class="card-icon">
                     <i class="ph-fill ph-music-note"></i>
                 </div>
-                <div class="card-key">${escapeHtml(key)}</div>
+                <div class="card-key">${key}</div>
             </div>
             <div class="bottom-section">
                 <div class="card-details">
-                    <h3 class="song-title">${escapeHtml(songTitle)}</h3>
-                    <p class="song-artist">${escapeHtml(songArtist)}</p>
+                    <h3 class="song-title"></h3>
+                    <p class="song-artist"></p>
                 </div>
-                <!--cuma nampilin tombol delete kalau usernya punya akses-->
+                <!--tombol hapus cuma dimunculin kalau user punya hak akses-->
                 ${canManageLagu ? `
                 <button class="btn-delete" title="Hapus Lagu">
                     <i class="ph-bold ph-trash"></i>
@@ -167,78 +150,64 @@ function renderSongs(songs) {
             </div>
         `;
 
-        //pasangin event listener buat tombol delete (ikon tong sampah)
+        //isi teks judul dan penyanyi pakai textContent supaya aman
+        card.querySelector('.song-title').textContent = songTitle;
+        card.querySelector('.song-artist').textContent = songArtist;
+
+        //pasang aksi klik buat tombol hapus di pojok kanan bawah card
         const btnDelete = card.querySelector('.btn-delete');
         if (btnDelete) {
             btnDelete.addEventListener('click', (e) => {
-                //biar pas ngeklik tong sampah, card-nya ga ikut ngeklik ke halaman detail (stop event bubbling)
+                //cegah klik tombol hapus ikut memicu klik card ke halaman detail
                 e.stopPropagation();
                 confirmDelete(songId, songTitle);
             });
         }
 
-        //tempelin card yang udah jadi ini ke container grid-nya
+        //masukin card yang udah jadi ke dalam grid
         songGrid.appendChild(card);
     });
 }
 
-//fungsi buat nyaring (filter) lagu berdasarkan apa yang diketik dan dipilih di dropdown
+//fungsi buat nyaring lagu berdasarkan kata kunci pencarian dan kategori
 function filterSongs() {
     const searchInput = document.getElementById('searchInput');
     const filterCategory = document.getElementById('filterCategory');
 
-    //ambil teks yang diketik, langsung jadiin huruf kecil semua biar pencariannya gak case-sensitive
+    //ambil teks pencarian dalam huruf kecil dan nilai kategori yang dipilih
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
-    //ambil value dari dropdown, kalau 'all' berarti nampilin semua
     const selectedCategory = filterCategory ? filterCategory.value : 'all';
 
-    //bikin array baru (filtered) dari array allSongs
+    //saring array allSongs yang cocok sama kata kunci dan kategori
     const filtered = allSongs.filter(song => {
         const title = (song.judul_lagu || song.judul || '').toLowerCase();
         const artist = (song.pengarang || song.penyanyi || '').toLowerCase();
         const category = song.kategori || 'Worship';
 
-        //cek apakah judul atau penyanyinya mengandung kata yang diketik
+        //cek kecocokan judul/penyanyi serta kategori lagu
         const matchesSearch = title.includes(searchTerm) || artist.includes(searchTerm);
-        //cek apakah kategorinya sesuai sama yang dipilih
         const matchesCategory = selectedCategory === 'all' || category === selectedCategory;
 
-        //lagu ini dimasukin ke array 'filtered' cuma kalau lulus dua syarat di atas
         return matchesSearch && matchesCategory;
     });
 
-    //lempar data yang udah disaring ke fungsi render biar tampilannya update
+    //tampilkan hasil lagu yang sudah disaring
     renderSongs(filtered);
 }
 
-//fungsi buat konfirmasi dan hapus lagu
+//fungsi buat konfirmasi dan hapus lagu dari database
 async function confirmDelete(id, judul) {
-    //pake confirm bawaan browser biar ada pop-up Yes/No
-    const isConfirm = confirm(`Apakah Anda yakin ingin menghapus lagu "${judul}"?`);
-    if (!isConfirm) return; //kalau pilih 'Cancel', stop fungsi ini
+    //minta konfirmasi user dulu sebelum benar-benar menghapus
+    if (!confirm(`Apakah Anda yakin ingin menghapus lagu "${judul}"?`)) return;
 
     try {
-        //tembak API delete dengan masukin ID lagunya ke URL
+        //kirim request DELETE ke backend berdasarkan ID lagu
         const res = await fetch(`/api/lagu/${id}`, { method: 'DELETE' });
         if (!res.ok) throw new Error('Gagal menghapus lagu');
 
-        //kalau berhasil dihapus di database, tarik ulang data lagu terbaru biar layarnya update
+        //muat ulang daftar lagu setelah berhasil dihapus
         await fetchSongs();
     } catch (err) {
-        //kalau gagal ngehapus (koneksi putus/ada error), kasih alert
         alert('Gagal menghapus lagu: ' + err.message);
     }
-}
-
-//helper escape HTML
-//ini trik keamanan biar kalau ada user iseng ngetik script javascript di judul lagu (<script>alert(1)</script>),
-//browser gak akan jalanin scriptnya, melainkan cuma nampilin tulisannya doang.
-function escapeHtml(str) {
-    if (!str) return '';
-    return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
 }

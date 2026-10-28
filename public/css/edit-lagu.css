@@ -1,5 +1,6 @@
-/* --- Edit Lagu Styles --- */
+/*styling halaman form tambah lagu dan edit lagu*/
 
+/*bagian header form: judul halaman dan tombol batal*/
 .edit-header {
     display: flex;
     justify-content: space-between;
@@ -32,12 +33,14 @@
     background-color: #DC2626;
 }
 
+/*tata letak dua kolom untuk form kiri (info lagu) dan kanan (lirik & chord)*/
 .edit-grid {
     display: grid;
     grid-template-columns: 1fr 1.2fr;
     gap: 40px;
 }
 
+/*styling grup input dan label form*/
 .form-group {
     display: flex;
     flex-direction: column;
@@ -65,6 +68,7 @@
     border-color: var(--primary-light);
 }
 
+/*baris dua kolom sejajar untuk dropdown kategori dan nada dasar*/
 .row-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -80,6 +84,7 @@ select.form-control {
     cursor: pointer;
 }
 
+/*kotak input besar untuk penulisan chord dan lirik*/
 .textarea-lyrics {
     height: 400px;
     resize: none;
@@ -87,6 +92,7 @@ select.form-control {
     line-height: 1.6;
 }
 
+/*tombol simpan berwarna hijau*/
 .btn-save {
     width: 100%;
     background-color: #4ADE80;

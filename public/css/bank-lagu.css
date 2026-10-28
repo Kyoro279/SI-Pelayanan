@@ -1,5 +1,6 @@
-/* --- Bank Lagu Styles --- */
+/*styling halaman daftar bank lagu*/
 
+/*bagian header halaman: judul di kiri dan tombol tambah lagu di kanan*/
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -19,6 +20,7 @@
     font-size: 14px;
 }
 
+/*tombol utama tambah lagu*/
 .btn-primary {
     background-color: var(--primary-color);
     color: #fff;
@@ -36,6 +38,7 @@
     background-color: var(--primary-light);
 }
 
+/*area pencarian dan dropdown filter kategori*/
 .filters {
     margin-bottom: 32px;
     display: flex;
@@ -70,6 +73,7 @@
     color: var(--text-muted);
 }
 
+/*dropdown pilih kategori lagu*/
 .category-select {
     width: fit-content;
     padding: 10px 16px;
@@ -92,12 +96,14 @@
     border-color: var(--primary-light);
 }
 
+/*tata letak grid untuk kartu-kartu lagu*/
 .song-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 20px;
 }
 
+/*komponen kartu lagu satuan*/
 .song-card {
     background-color: #fff;
     border: 1px solid var(--border-color);
@@ -110,6 +116,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.02);
 }
 
+/*bagian atas kartu: ikon musik dan kotak nada dasar*/
 .song-card .top-section {
     display: flex;
     justify-content: space-between;
@@ -145,6 +152,7 @@
     font-weight: 700;
 }
 
+/*bagian bawah kartu: judul lagu, nama penyanyi, dan tombol hapus*/
 .song-card .bottom-section {
     display: flex;
     justify-content: space-between;
