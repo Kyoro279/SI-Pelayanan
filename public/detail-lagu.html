@@ -5,92 +5,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Lagu - KITTEENS HUB</title>
-    <!-- Import font Inter dari Google Fonts biar tampilannya rapi kayak aplikasi beneran -->
+    <!--import font Inter dari Google Fonts biar tampilannya rapi kayak aplikasi beneran-->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Panggil file CSS biar halamannya nggak polos -->
+    <!--panggil file CSS biar halamannya nggak polos-->
     <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/detail-lagu.css">
     
-    <!-- Phosphor icons buat nampilin ikon-ikon kayak panah, mata, tempat sampah -->
+    <!--phosphor icons buat nampilin ikon-ikon kayak panah, mata, tempat sampah-->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Supabase CDN: Buat narik data lirik lagu langsung dari database -->
+    <!--supabase CDN: buat narik data lirik lagu langsung dari database-->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<!-- Atribut data-active="lagu" ini kepake di Sidebar buat ngasi tau menu mana yang harus nyala (highlight). 
-     Layar disembunyiin dulu pake style="display: none;" sambil nungguin cek login selesai -->
+<!--atribut data-active="lagu" ini kepake di Sidebar buat ngasi tau menu mana yang harus nyala (highlight). 
+     layar disembunyiin dulu pake style="display: none;" sambil nungguin cek login selesai-->
 <body data-active="lagu" style="display: none;">
 
-    <!-- Cek dulu, nih user udah login belum? Punya akses ke halaman ini nggak? -->
+    <!--cek dulu, nih user udah login belum? punya akses ke halaman ini nggak?-->
     <script src="/js/checkAuth.js"></script>
     <script>
         window.authReady = window.initAndCheckAuth();
     </script>
 
     <div class="layout">
-        <!-- Tempat kosong buat nyuntikin komponen Sidebar (menu sebelah kiri) otomatis dari JS -->
+        <!--tempat kosong buat nyuntikin komponen Sidebar (menu sebelah kiri) otomatis dari JS-->
         <div id="sidebar-container"></div>
 
-        <!-- Area konten utama sebelah kanan -->
+        <!--area konten utama sebelah kanan-->
         <main class="main-content">
-            <!-- Bagian atas banget: Tombol Back sama Tombol Aksi (Edit/Hapus) -->
+            <!--bagian atas banget: tombol Back sama tombol Aksi (Edit/Hapus)-->
             <div class="detail-header">
                 <div class="header-left">
-                    <!-- Tombol buat balik ke halaman Bank Lagu -->
+                    <!--tombol buat balik ke halaman Bank Lagu-->
                     <button class="btn-back" id="btn-back-lagu" onclick="window.location.href='/bank-lagu'">
                         <i class="ph ph-arrow-left"></i>
-                        <!-- Teks ini awalnya ngumpet, tapi bakal dimunculin lewat JS kalau user dateng dari halaman "Detail Jadwal" -->
+                        <!--teks ini awalnya ngumpet, tapi bakal dimunculin lewat JS kalau user dateng dari halaman "Detail Jadwal"-->
                         <span id="back-text" style="margin-left: 8px; font-size: 16px; font-weight: 600; display: none; color: #4a5568;">Kembali ke Jadwal Pelayanan</span>
                     </button>
                 </div>
                 <div class="header-actions">
-                    <!-- Tombol Edit & Hapus. Ntar pake JS disembunyiin kalo usernya bukan admin -->
+                    <!--tombol Edit & Hapus. ntar pake JS disembunyiin kalo usernya bukan admin-->
                     <button class="btn-edit" onclick="window.location.href='/edit-lagu'">Edit</button>
                     <button class="btn-delete-filled"><i class="ph-bold ph-trash"></i></button>
                 </div>
             </div>
 
-            <!-- Setlist Bar: Bar warna putih ini cuma muncul kalau user buka lagu ini dari setlist jadwal. 
-                 Gunanya buat ngasi tau ini jadwal apa, sekalian ada tombol cepet pindah lagu Next/Prev -->
+            <!--setlist bar: bar warna putih ini cuma muncul kalau user buka lagu ini dari setlist jadwal. 
+                 gunanya buat ngasi tau ini jadwal apa, sekalian ada tombol cepet pindah lagu Next/Prev-->
             <div id="setlist-bar" style="display: none; align-items: center; justify-content: space-between; background: white; border: 1px solid #e2e8f0; border-radius: 20px; padding: 8px 16px; margin-bottom: 24px; font-size: 13px;">
                 <div style="color: #4a5568;">
                     <span style="font-weight: 600; color: #3182ce;">Setlist :</span> 
-                    <!-- Judul jadwal, e.g. "Ibadah Raya 1" -->
+                    <!--judul jadwal, e.g. "Ibadah Raya 1"-->
                     <span id="setlist-title" style="font-weight: 600; margin-left: 4px;">-</span> 
-                    <!-- Tanggal jadwal -->
+                    <!--tanggal jadwal-->
                     <span id="setlist-date" style="color: #3182ce; font-weight: 600; margin-left: 8px;">-</span>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <!-- Tombol pindah ke lagu sebelumnya di setlist jadwal yang sama -->
+                    <!--tombol pindah ke lagu sebelumnya di setlist jadwal yang sama-->
                     <button id="btn-setlist-prev" style="background: none; border: none; cursor: pointer; color: #718096; font-size: 13px;">&lt; Sebelumnya</button>
-                    <!-- Tombol pindah ke lagu selanjutnya -->
+                    <!--tombol pindah ke lagu selanjutnya-->
                     <button id="btn-setlist-next" style="background: var(--primary-color); color: white; border: none; cursor: pointer; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;">Selanjutnya &gt;</button>
                 </div>
             </div>
 
-            <!-- Judul Lagu & Penyanyinya yang gede -->
+            <!--judul lagu & penyanyinya yang gede-->
             <div id="title-wrapper" style="margin-bottom: 24px;">
                 <h1 class="song-title-large">Memuat...</h1>
                 <p class="song-artist-large">-</p>
             </div>
 
-            <!-- Bar abu-abu di bawah judul: Tempat kontrol Transpose sama Sembunyiin Chord -->
+            <!--bar abu-abu di bawah judul: tempat kontrol Transpose sama sembunyiin Chord-->
             <div class="control-bar">
                 <div class="control-left">
                     <div class="control-item">
                         <span class="control-label">Original</span>
-                        <!-- Nampilin nada dasar asli lagunya -->
+                        <!--nampilin nada dasar asli lagunya-->
                         <span class="control-value">G</span>
                     </div>
-                    <!-- Garis pemisah kecil ( | ) -->
+                    <!--garis pemisah kecil ( | )-->
                     <div class="control-divider"></div>
                     <div class="control-item">
                         <span class="control-label">Transpose</span>
-                        <!-- Dropdown buat milih mau main di nada dasar apa -->
+                        <!--dropdown buat milih mau main di nada dasar apa-->
                         <select class="transpose-select">
-                            <!-- Opsi (C, C#, dll) bakal diisi otomatis sama detail-lagu.js -->
+                            <!--opsi (C, C#, dll) bakal diisi otomatis sama detail-lagu.js-->
                             <option>G</option>
                             <option>A</option>
                             <option>B</option>
@@ -98,37 +98,37 @@
                     </div>
                 </div>
                 
-                <!-- Tombol nyembunyiin / nampilin tulisan chord di atas lirik -->
+                <!--tombol nyembunyiin / nampilin tulisan chord di atas lirik-->
                 <button class="btn-toggle-chord" id="toggleChordBtn">
                     CHORD <i class="ph ph-eye-slash" id="chordIcon"></i>
                 </button>
             </div>
 
-            <!-- Bagian ini di-grid: Sebelah kiri lirik, sebelah kanan video & quick menu -->
+            <!--bagian ini di-grid: sebelah kiri lirik, sebelah kanan video & quick menu-->
             <div class="content-grid">
-                <!-- KIRI: Tempat lirik & chord di-render -->
+                <!--kiri: tempat lirik & chord di-render-->
                 <div class="lyrics-container" id="lyricsContainer">
                     <div style="text-align: center; padding: 40px; color: #64748b;">
-                        <!-- Loading spinner muter -->
+                        <!--loading spinner muter-->
                         <i class="ph ph-spinner ph-spin" style="font-size: 2rem;"></i>
                         <p>Memuat lirik lagu...</p>
                     </div>
                 </div>
                 
-                <!-- KANAN: Sidebar kecil di dalem halaman detail -->
+                <!--kanan: sidebar kecil di dalem halaman detail-->
                 <div class="sidebar-right">
-                    <!-- Thumbnail Youtube (bisa diklik lari ke link YT aslinya) -->
+                    <!--thumbnail Youtube (bisa diklik lari ke link YT aslinya)-->
                     <a href="#" target="_blank" class="video-thumbnail-link">
                         <div class="video-thumbnail">
-                            <!-- Background gambarnya nanti diset pake JS (ngambil gambar otomatis pake ID youtube) -->
+                            <!--background gambarnya nanti diset pake JS (ngambil gambar otomatis pake ID youtube)-->
                         </div>
                     </a>
                     
-                    <!-- Kotak Menu Cepet (Jump to Section) -->
+                    <!--kotak menu cepet (Jump to Section)-->
                     <div class="jump-box">
                         <div class="jump-title">JUMP TO SECTION</div>
                         <ul class="jump-list">
-                            <!-- JS bakal ngebaca judul section lirik (Verse, Chorus, dll) terus nge-generate link buat loncat cepet ke bagian itu -->
+                            <!--js bakal ngebaca judul section lirik (Verse, Chorus, dll) terus nge-generate link buat loncat cepet ke bagian itu-->
                         </ul>
                     </div>
                 </div>
@@ -136,10 +136,10 @@
         </main>
     </div>
 
-    <!-- Panggil Skrip Utamanya! -->
-    <!-- layout.js buat nempel Sidebar -->
+    <!--panggil skrip utamanya!-->
+    <!--layout.js buat nempel Sidebar-->
     <script src="/js/layout.js"></script>
-    <!-- detail-lagu.js otak dari halaman ini (narik database, mecah lirik+chord, fungsi transpose) -->
+    <!--detail-lagu.js otak dari halaman ini (narik database, mecah lirik+chord, fungsi transpose)-->
     <script src="/js/detail-lagu.js"></script>
 </body>
 

@@ -1,23 +1,20 @@
-// routes/laguRoutes.js
+//routes/laguRoutes.js
 const express = require('express');
 const router = express.Router();
-const supabase = require('../config/supabase'); // Menghubungkan ke database Supabase yang baru
+const supabase = require('../config/supabase'); //menghubungkan ke database Supabase yang baru
 
-/**
- * Helper untuk normalisasi objek lagu dari database Supabase baru.
- * Di database baru, kolom-kolomnya punya nama resmi:
- * - id_lagu (integer auto-increment)
- * - judul_lagu (varchar judul)
- * - pengarang (varchar penyanyi/pencipta)
- * - kategori (varchar misal 'Worship' / 'Praise')
- * - nada_dasar (character(2), di postgres suka ada sisa spasi 'G ', jadi wajib di-.trim())
- * - link_youtube (text URL video)
- * - chord_lirik (text isi chord & lirik)
- * - created_at (timestamp)
- * 
- * Supaya frontend lama maupun baru tetap saling paham dan nggak bentrok,
- * kita sediakan dua-duanya (id & id_lagu, judul & judul_lagu, penyanyi & pengarang)!
- */
+//helper untuk normalisasi objek lagu dari database Supabase baru.
+//di database baru, kolom-kolomnya punya nama resmi:
+//- id_lagu (integer auto-increment)
+//- judul_lagu (varchar judul)
+//- pengarang (varchar penyanyi/pencipta)
+//- kategori (varchar misal 'Worship' / 'Praise')
+//- nada_dasar (character(2), di postgres suka ada sisa spasi 'G ', jadi wajib di-.trim())
+//- link_youtube (text URL video)
+//- chord_lirik (text isi chord & lirik)
+//- created_at (timestamp)
+//supaya frontend lama maupun baru tetap saling paham dan nggak bentrok,
+//kita sediakan dua-duanya (id & id_lagu, judul & judul_lagu, penyanyi & pengarang)!
 function normalizeSong(song) {
     if (!song) return null;
     const nada = (song.nada_dasar || '').trim();
@@ -36,12 +33,10 @@ function normalizeSong(song) {
     };
 }
 
-/**
- * 1. GET: Mengambil seluruh daftar lagu
- * Fungsi ini mengambil semua data lagu dari tabel 'lagu' di database baru.
- * Diurutkan berdasarkan 'judul_lagu' secara ascending (A-Z).
- * Dipanggil di: public/js/lagu.js (fetchSongs) dan public/js/detail-jadwal.js
- */
+//mengambil seluruh daftar lagu
+//fungsi ini mengambil semua data lagu dari tabel 'lagu' di database baru.
+//diurutkan berdasarkan 'judul_lagu' secara ascending (A-Z).
+//dipanggil di: public/js/lagu.js (fetchSongs) dan public/js/detail-jadwal.js
 router.get('/', async (req, res) => {
     try {
         const { data, error } = await supabase
@@ -51,7 +46,7 @@ router.get('/', async (req, res) => {
 
         if (error) throw error;
 
-        // Normalisasi setiap baris data lagu
+        //normalisasi setiap baris data lagu
         const normalizedData = (data || []).map(normalizeSong);
         res.status(200).json({ success: true, data: normalizedData });
     } catch (err) {
@@ -60,11 +55,9 @@ router.get('/', async (req, res) => {
     }
 });
 
-/**
- * 2. GET: Mengambil detail 1 lagu berdasarkan ID
- * Di database baru, kolom identitas uniknya adalah 'id_lagu'.
- * Dipanggil di: public/js/detail-lagu.js dan public/js/lagu-form.js
- */
+//mengambil detail 1 lagu berdasarkan ID
+//di database baru, kolom identitas uniknya adalah 'id_lagu'.
+//dipanggil di: public/js/detail-lagu.js dan public/js/lagu-form.js
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -88,23 +81,21 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-/**
- * 3. POST: Menambahkan lagu baru
- * Menerima payload dari formulir tambah lagu.
- * Kolom 'nada_dasar' di DB baru bertipe character(2), jadi kita pangkas maksimal 2 karakter (misal 'C#', 'Bb', 'G').
- * Dipanggil di: public/js/lagu-form.js mode 'add'
- */
+//menambahkan lagu baru
+//menerima payload dari formulir tambah lagu.
+//kolom 'nada_dasar' di DB baru bertipe character(2), jadi kita pangkas maksimal 2 karakter (misal 'C#', 'Bb', 'G').
+//dipanggil di: public/js/lagu-form.js mode 'add'
 router.post('/', async (req, res) => {
     const body = req.body || {};
     const judul_lagu = (body.judul_lagu || body.judul || '').trim();
     const pengarang = (body.pengarang || body.penyanyi || '').trim();
     const kategori = (body.kategori || 'Worship').trim();
     const rawKey = (body.nada_dasar || '').trim();
-    const nada_dasar = rawKey.substring(0, 2); // Jaga agar tidak melebihi kapasitas char(2)
+    const nada_dasar = rawKey.substring(0, 2); //jaga agar tidak melebihi kapasitas char(2)
     const link_youtube = (body.link_youtube || '').trim();
     const chord_lirik = body.chord_lirik || '';
 
-    // Validasi dasar: judul wajib diisi
+    //validasi dasar: judul wajib diisi
     if (!judul_lagu) {
         return res.status(400).json({ success: false, message: 'Judul lagu wajib diisi!' });
     }
@@ -123,11 +114,9 @@ router.post('/', async (req, res) => {
     }
 });
 
-/**
- * 4. PUT: Mengedit / memperbarui data lagu
- * Mengubah kolom judul_lagu, pengarang, kategori, nada_dasar, dll berdasarkan 'id_lagu'.
- * Dipanggil di: public/js/lagu-form.js mode 'edit'
- */
+//mengedit / memperbarui data lagu
+//mengubah kolom judul_lagu, pengarang, kategori, nada_dasar, dll berdasarkan 'id_lagu'.
+//dipanggil di: public/js/lagu-form.js mode 'edit'
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const body = req.body || {};
@@ -166,19 +155,17 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-/**
- * 5. DELETE: Menghapus lagu secara permanen
- * Sebelum menghapus lagu dari tabel 'lagu', kita bersihkan juga relasi lagunya
- * di tabel 'jadwal_lagu' supaya tidak menyisakan data yatim di jadwal.
- * Dipanggil di: public/js/lagu.js dan public/js/detail-lagu.js
- */
+//menghapus lagu secara permanen
+//sebelum menghapus lagu dari tabel 'lagu', kita bersihkan juga relasi lagunya
+//di tabel 'jadwal_lagu' supaya tidak menyisakan data yatim di jadwal.
+//dipanggil di: public/js/lagu.js dan public/js/detail-lagu.js
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        // Hapus dulu relasi lagu dari jadwal_lagu jika ada
+        //hapus dulu relasi lagu dari jadwal_lagu jika ada
         await supabase.from('jadwal_lagu').delete().eq('id_lagu', id);
 
-        // Hapus data lagu utama dari tabel lagu
+        //hapus data lagu utama dari tabel lagu
         const { error } = await supabase.from('lagu').delete().eq('id_lagu', id);
         if (error) throw error;
 
@@ -189,4 +176,4 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-module.exports = router;
+module.exports = router;

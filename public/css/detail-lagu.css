@@ -201,6 +201,12 @@
     color: var(--primary-light);
     height: 24px;
     display: block;
+    padding-right: 6px;
+    white-space: pre;
+}
+
+.chord.empty {
+    padding-right: 0;
 }
 
 .chord span {
