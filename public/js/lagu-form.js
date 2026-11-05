@@ -54,7 +54,8 @@ async function handleSave(id, mode) {
     const kategori = document.getElementById('inputKategori').value;
     const nada_dasar = document.getElementById('inputNadaDasar').value.trim();
     const link_youtube = document.getElementById('inputLinkYoutube').value.trim();
-    const chord_lirik = document.getElementById('inputChordLirik').value.trim();
+    //jangan pakai trim() di awal supaya spasi penempatan chord di baris pertama tidak hilang
+    const chord_lirik = document.getElementById('inputChordLirik').value.replace(/^\n+|\s+$/g, '');
 
     //validasi wajib: judul lagu tidak boleh kosong
     if (!judul) {

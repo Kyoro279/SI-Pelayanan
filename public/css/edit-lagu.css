@@ -84,12 +84,14 @@ select.form-control {
     cursor: pointer;
 }
 
-/*kotak input besar untuk penulisan chord dan lirik*/
+/*kotak input besar untuk penulisan chord dan lirik menggunakan font monospace agar posisi spasi chord sejajar dengan huruf lirik*/
 .textarea-lyrics {
     height: 400px;
     resize: none;
-    font-family: inherit;
+    font-family: 'Courier New', Consolas, monospace;
     line-height: 1.6;
+    white-space: pre;
+    overflow-x: auto;
 }
 
 /*tombol simpan berwarna hijau*/

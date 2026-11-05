@@ -4,6 +4,8 @@ let currentSong = null;
 let canManageLagu = false;
 //daftar urutan 12 nada untuk fitur transpose chord
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+//pemetaan nada mol (flat) ke kres (sharp) supaya transpose tetap jalan untuk semua nada
+const FLAT_TO_SHARP = { Db: 'C#', Eb: 'D#', Gb: 'F#', Ab: 'G#', Bb: 'A#' };
 
 //jalankan inisialisasi saat halaman selesai dimuat
 document.addEventListener('DOMContentLoaded', async () => {
@@ -64,7 +66,7 @@ async function handleSetlistMode(jadwalId, songIndexStr) {
         document.body.setAttribute('data-active', 'jadwal');
 
         //munculkan bar informasi setlist di bagian atas halaman
-        const setlistBar = document.getElementById('setlist-bar');
+        const setlistBar = document.getById('setlist-bar');
         if (setlistBar) setlistBar.style.display = 'flex';
 
         //isi nama jadwal dan tanggal pelayanan pada bar setlist
@@ -110,8 +112,10 @@ async function handleSetlistMode(jadwalId, songIndexStr) {
         }
 
         //otomatis ubah transpose jika nada dasar di setlist jadwal berbeda dengan nada asli lagu
-        const targetKey = (daftar[index].nada_dasar || '').trim();
-        const songKey = (currentSong.nada_dasar || '').trim();
+        const rawTargetKey = (daftar[index].nada_dasar || '').trim();
+        const targetKey = FLAT_TO_SHARP[rawTargetKey] || rawTargetKey;
+        const rawSongKey = (currentSong.nada_dasar || '').trim();
+        const songKey = FLAT_TO_SHARP[rawSongKey] || rawSongKey;
         const transposeSelect = document.querySelector('.transpose-select');
         if (targetKey && transposeSelect && targetKey !== songKey) {
             transposeSelect.value = targetKey;
@@ -170,7 +174,8 @@ function renderSongDetail() {
 
     //buat daftar pilihan nada pada dropdown transpose
     const transposeSelect = document.querySelector('.transpose-select');
-    const originalKey = key !== '-' ? key : 'C';
+    const normalizedKey = FLAT_TO_SHARP[key] || key;
+    const originalKey = normalizedKey !== '-' ? normalizedKey : 'C';
     if (transposeSelect) {
         transposeSelect.innerHTML = '';
         NOTES.forEach(note => {
@@ -215,7 +220,52 @@ function extractYouTubeId(url) {
     return null;
 }
 
-//fungsi buat memisahkan teks chord [...] dan lirik menjadi struktur HTML
+//fungsi bantu buat mengecek apakah sebuah kata adalah penulisan chord yang valid (contoh: C, Em, D/F#, Dsus4, C/G)
+function isChordToken(word) {
+    return /^[A-G][#b]?(m|maj|min|dim|aug|sus|add|[0-9])*(\/[A-G][#b]?)?$/.test(word);
+}
+
+//fungsi bantu buat mengecek apakah satu baris hanya berisi kumpulan chord dan spasi
+function isChordLine(line) {
+    //kalau ada kurung siku berarti itu judul section seperti [Intro] atau format kurung lama
+    if (line.includes('[') || line.includes(']')) return false;
+    const words = line.trim().split(/\s+/);
+    if (words.length === 0 || !words[0]) return false;
+    return words.every(word => isChordToken(word));
+}
+
+//fungsi bantu buat mencatat setiap chord beserta posisi index spasinya di dalam satu baris chord
+function getChordPositions(chordLine) {
+    const list = [];
+    let pos = 0;
+    while (pos < chordLine.length) {
+        if (chordLine[pos] === ' ') {
+            pos++;
+        } else {
+            let end = pos;
+            while (end < chordLine.length && chordLine[end] !== ' ') {
+                end++;
+            }
+            list.push({
+                chord: chordLine.slice(pos, end),
+                index: pos
+            });
+            pos = end;
+        }
+    }
+    return list;
+}
+
+//fungsi buat merangkai elemen HTML pasangan chord di atas dan potongan lirik di bawah
+function buatSegmen(chord, text = '&nbsp;', isChordOnly = false) {
+    const chordHtml = chord
+        ? `<span class="chord"><span data-original="${chord}">${chord}</span></span>`
+        : `<span class="chord empty">${isChordOnly ? text : ''}</span>`;
+    const textHtml = isChordOnly ? '' : `<span class="text">${text}</span>`;
+    return `<span class="lyric-segment">${chordHtml}${textHtml}</span>`;
+}
+
+//fungsi buat mengubah teks chord & lirik dari database menjadi struktur HTML
 function parseLyricsToHtml(rawLyrics) {
     //pecah lirik per bagian (intro, verse, chorus) berdasarkan baris kosong
     const blocks = rawLyrics.split(/\n\s*\n/);
@@ -226,19 +276,23 @@ function parseLyricsToHtml(rawLyrics) {
     blocks.forEach(block => {
         if (!block.trim()) return;
 
-        //pecah blok menjadi per baris
+        //pecah blok menjadi array per baris
         const lines = block.split('\n');
         let sectionTitle = '';
         const sectionId = `section-${sectionCount}`;
         let startIndex = 0;
 
-        //cek apakah baris pertama adalah judul bagian seperti [Intro] atau (Chorus)
+        //cek apakah baris pertama adalah judul bagian seperti [Intro] atau [Chorus]
         const firstLine = lines[0].trim();
         if ((firstLine.startsWith('[') && firstLine.endsWith(']')) || (firstLine.startsWith('(') && firstLine.endsWith(')'))) {
-            sectionTitle = firstLine;
-            startIndex = 1;
-            //tambahkan ke daftar menu jump to section di sebelah kanan
-            jumpLinks += `<li><a href="#${sectionId}">${sectionTitle.slice(1, -1)}</a></li>`;
+            const innerTitle = firstLine.slice(1, -1).trim();
+            //pastikan isinya nama bagian (bukan chord tunggal seperti [G])
+            if (!isChordToken(innerTitle)) {
+                sectionTitle = firstLine;
+                startIndex = 1;
+                //tambahkan ke daftar menu jump to section di sebelah kanan
+                jumpLinks += `<li><a href="#${sectionId}">${innerTitle}</a></li>`;
+            }
         }
 
         //mulai bungkus satu bagian lirik
@@ -247,14 +301,76 @@ function parseLyricsToHtml(rawLyrics) {
             html += `<div class="section-title">${sectionTitle}</div>`;
         }
 
-        //proses setiap baris lirik dan chord di dalam bagian ini
+        //proses setiap baris di dalam bagian ini
         for (let i = startIndex; i < lines.length; i++) {
             const line = lines[i].replace(/\r$/, '');
             if (!line.trim()) continue;
 
-            //cek apakah baris ini hanya berisi chord tanpa teks lirik (misal baris chord intro)
-            const isChordOnly = line.replace(/\[.*?\]/g, '').trim() === '';
-            //pisahkan antara teks chord di dalam kurung siku [...] dengan teks lirik biasa
+            //kondisi 1: baris ini adalah baris chord (contoh: "C G D/F# Em" atau "          C          G")
+            if (isChordLine(line)) {
+                const nextLine = (i + 1 < lines.length) ? lines[i + 1].replace(/\r$/, '') : '';
+                const nextTrim = nextLine.trim();
+                const isNextSection = (nextTrim.startsWith('[') && nextTrim.endsWith(']')) || (nextTrim.startsWith('(') && nextTrim.endsWith(')'));
+
+                //cek apakah baris di bawahnya adalah baris lirik pasangan dari baris chord ini
+                const hasLyricBelow = nextTrim !== '' && !isChordLine(nextLine) && !isNextSection;
+                const chords = getChordPositions(line);
+                let htmlSegment = '';
+
+                if (hasLyricBelow) {
+                    //pasangkan posisi karakter spasi pada baris chord dengan posisi huruf pada baris lirik di bawahnya
+                    html += `<div class="lyric-line">`;
+                    const paddedLyric = nextLine.padEnd(line.length, ' ');
+
+                    //kalau ada teks lirik sebelum chord pertama muncul (contoh: "Bless the " sebelum chord C)
+                    if (chords.length > 0 && chords[0].index > 0) {
+                        const awalText = paddedLyric.slice(0, chords[0].index).replace(/ /g, '&nbsp;');
+                        htmlSegment += buatSegmen('', awalText, false);
+                    }
+
+                    //potong baris lirik tepat mengikuti posisi index masing-masing chord di atasnya
+                    chords.forEach((item, idx) => {
+                        const start = item.index;
+                        const end = (idx + 1 < chords.length) ? chords[idx + 1].index : paddedLyric.length;
+                        const sliceText = paddedLyric.slice(start, end);
+
+                        if (sliceText.trim() === '') {
+                            //kalau posisi chord berada di luar akhir teks lirik, cetak chord beserta jarak spasinya
+                            htmlSegment += buatSegmen(item.chord, '&nbsp;', false);
+                            const spaceCount = end - (start + item.chord.length);
+                            if (spaceCount > 0) {
+                                htmlSegment += buatSegmen('', '&nbsp;'.repeat(spaceCount), false);
+                            }
+                        } else {
+                            //tempatkan chord tepat di atas potongan huruf lirik yang sejajar dengan indexnya
+                            htmlSegment += buatSegmen(item.chord, sliceText.replace(/ /g, '&nbsp;'), false);
+                        }
+                    });
+
+                    html += `${htmlSegment}</div>`;
+                    //lompati baris lirik di bawahnya karena sudah digabung dengan baris chord ini
+                    i++;
+                } else {
+                    //kalau tidak ada lirik di bawahnya (seperti baris chord pada bagian [Intro]), tampilkan sebagai baris chord saja
+                    html += `<div class="lyric-line chord-only">`;
+                    let prevEnd = 0;
+
+                    chords.forEach(item => {
+                        if (item.index > prevEnd) {
+                            const spaces = '&nbsp;'.repeat(item.index - prevEnd);
+                            htmlSegment += buatSegmen('', spaces, true);
+                        }
+                        htmlSegment += buatSegmen(item.chord, '&nbsp;', true);
+                        prevEnd = item.index + item.chord.length;
+                    });
+
+                    html += `${htmlSegment}</div>`;
+                }
+                continue;
+            }
+
+            //kondisi 2: baris lirik biasa atau format lama yang menulis chord di dalam kurung siku [C]
+            const isChordOnly = line.includes('[') && line.replace(/\[.*?\]/g, '').trim() === '';
             const segments = line.split(/(\[.*?\])/g);
 
             html += `<div class="lyric-line${isChordOnly ? ' chord-only' : ''}">`;
@@ -262,41 +378,27 @@ function parseLyricsToHtml(rawLyrics) {
             let htmlSegment = '';
             let currentChord = '';
 
-            //fungsi bantu buat merangkai elemen pasangan chord di atas dan lirik di bawah
-            function buatSegmen(chord, text = '&nbsp;') {
-                const chordHtml = chord
-                    ? `<span class="chord"><span data-original="${chord}">${chord}</span></span>`
-                    : `<span class="chord empty">${isChordOnly ? text : ''}</span>`;
-                const textHtml = isChordOnly ? '' : `<span class="text">${text}</span>`;
-                return `<span class="lyric-segment">${chordHtml}${textHtml}</span>`;
-            }
-
-            //telusuri setiap potongan chord dan lirik pada baris ini
+            //telusuri setiap potongan pada baris ini
             segments.forEach(seg => {
                 if (!seg) return;
 
                 if (seg.startsWith('[') && seg.endsWith(']')) {
-                    //kalau potongan ini adalah chord dan masih ada chord sebelumnya yang belum tercetak, cetak dulu
-                    if (currentChord) htmlSegment += buatSegmen(currentChord);
+                    if (currentChord) htmlSegment += buatSegmen(currentChord, '&nbsp;', isChordOnly);
                     currentChord = seg.slice(1, -1);
                 } else if (seg.trim() === '') {
-                    //kalau potongan ini hanya berisi spasi antar chord, cetak chord sebelumnya dulu agar spasinya tidak tertelan
                     if (currentChord) {
-                        htmlSegment += buatSegmen(currentChord);
+                        htmlSegment += buatSegmen(currentChord, '&nbsp;', isChordOnly);
                         currentChord = '';
                     }
-                    //cetak segmen spasi agar jarak antar chord tetap muncul sesuai input
-                    htmlSegment += buatSegmen('', seg.replace(/ /g, '&nbsp;'));
+                    htmlSegment += buatSegmen('', seg.replace(/ /g, '&nbsp;'), isChordOnly);
                 } else {
-                    //kalau potongan ini adalah teks lirik, pasangkan dengan chord yang sedang aktif di atasnya
-                    htmlSegment += buatSegmen(currentChord, seg.replace(/ /g, '&nbsp;'));
+                    htmlSegment += buatSegmen(currentChord, seg.replace(/ /g, '&nbsp;'), isChordOnly);
                     currentChord = '';
                 }
             });
 
-            //kalau di ujung baris masih ada sisa chord, cetak chord tersebut
             if (currentChord) {
-                htmlSegment += buatSegmen(currentChord);
+                htmlSegment += buatSegmen(currentChord, '&nbsp;', isChordOnly);
             }
 
             html += `${htmlSegment}</div>`;
@@ -355,9 +457,10 @@ function setupInteractions(songId) {
     //fungsi bantu buat menggeser satu nada chord sebanyak jumlah step transpose
     function transposeChord(chord, steps) {
         if (!chord) return chord;
-        //pisahkan nada dasar (misal C# atau G) dengan akhiran chordnya (misal m atau 7)
+        //pisahkan nada dasar (misal C#, Eb, atau G) dengan akhiran chordnya (misal m, sus4, atau 7)
         const isSharpOrFlat = chord[1] === '#' || chord[1] === 'b';
-        const root = isSharpOrFlat ? chord.slice(0, 2) : chord[0];
+        const rawRoot = isSharpOrFlat ? chord.slice(0, 2) : chord[0];
+        const root = FLAT_TO_SHARP[rawRoot] || rawRoot;
         const suffix = isSharpOrFlat ? chord.slice(2) : chord.slice(1);
 
         //cari posisi nada dasar pada array NOTES lalu geser sesuai selisih step
@@ -374,13 +477,14 @@ function setupInteractions(songId) {
         transposeSelect.addEventListener('change', (e) => {
             //hitung jarak perpindahan dari nada dasar asli ke nada dasar tujuan
             const selectedKey = e.target.value;
-            const originalKey = (currentSong.nada_dasar || '').trim() || 'C';
+            const rawOriginalKey = (currentSong.nada_dasar || '').trim() || 'C';
+            const originalKey = FLAT_TO_SHARP[rawOriginalKey] || rawOriginalKey;
             const steps = NOTES.indexOf(selectedKey) - NOTES.indexOf(originalKey);
 
             //ubah teks setiap elemen chord berdasarkan atribut data-original
             document.querySelectorAll('.chord span').forEach(span => {
                 const originalChord = span.getAttribute('data-original');
-                //kalau chord memiliki nada bass (slash chord seperti D/F#), transpose keduanya
+                //kalau chord memiliki nada bass (slash chord seperti D/F# atau C/G), transpose keduanya
                 if (originalChord.includes('/')) {
                     const parts = originalChord.split('/');
                     span.textContent = `${transposeChord(parts[0], steps)}/${transposeChord(parts[1], steps)}`;
