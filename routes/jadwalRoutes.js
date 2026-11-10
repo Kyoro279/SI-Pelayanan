@@ -64,8 +64,9 @@ function formatScheduleOutput(record, tim_pelayanan = {}, tim_pelayanan_id = {},
         tujuan: cleanTujuan
     };
 }
+//==============BAGIAN AMBIL DATA PELAYAN KE JADWAL===============
 
-// Helper: Mengambil jadwal lengkap beserta relasi jadwal_tugas dan jadwal_lagu dari Supabase
+// mengambil jadwal lengkap beserta relasi jadwal_tugas dan jadwal_lagu dari Supabase
 async function fetchSchedulesFromDb(singleId = null) {
     // 1. Ambil data baris jadwal dari tabel 'jadwal'
     let jadwalQuery = supabase.from('jadwal').select('*');
@@ -480,7 +481,7 @@ router.delete('/:id', async (req, res) => {
         await supabase.from('jadwal_lagu').delete().eq('id_jadwal', intId);
         try {
             await supabase.from('chat_berhalangan').delete().eq('id_jadwal', intId);
-        } catch (_) {}
+        } catch (_) { }
 
         // Hapus baris jadwal utama
         const { error: delErr } = await supabase.from('jadwal').delete().eq('id_jadwal', intId);

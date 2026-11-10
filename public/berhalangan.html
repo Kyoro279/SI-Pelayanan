@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Permintaan Berhalangan - KITTEENS HUB</title>
+    <title>Berhalangan - KITTEENS HUB</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/berhalangan.css">
@@ -18,101 +18,59 @@
 
 <body data-active="berhalangan" style="display: none;">
 
-    <!-- Supabase Init & Auth Check (Memeriksa sesi login pengguna ke database Supabase) -->
-    <!-- Variabel window.authReady menampung Promise hasil fungsi initAndCheckAuth() dari file checkAuth.js -->
+    <!-- Supabase Init & Auth Check -->
     <script src="/js/checkAuth.js"></script>
     <script>
         window.authReady = window.initAndCheckAuth();
     </script>
 
     <div class="layout">
-        <!-- Sidebar Container (Bagian menu navigasi samping yang dimuat dinamis oleh layout.js) -->
+        <!-- Sidebar Container -->
         <div id="sidebar-container"></div>
 
         <!-- Konten Utama Halaman Berhalangan -->
         <main class="main-content">
-            <!-- Header Halaman: Judul, Deskripsi, Filter Status, dan Tombol Ajukan -->
             <header class="berhalangan-header">
-                <div class="header-text">
-                    <h1 class="page-title">Permintaan Berhalangan</h1>
-                    <p class="page-subtitle">Notifikasi dari tim yang berhalangan melayani.</p>
-                </div>
-
-                <div class="header-actions">
-                    <!-- Segmented Filter Buttons: Mengatur tab penyaring (Belum Diproses vs Semua) -->
-                    <!-- Aksi klik tombol ini mengubah nilai variabel currentFilter melalui fungsi initFilterTabs() di berhalangan.js -->
-                    <div class="filter-pill-group">
-                        <button type="button" class="filter-pill-btn active" id="btn-filter-belum"
-                            data-status="belum">Belum Diproses</button>
-                        <button type="button" class="filter-pill-btn" id="btn-filter-semua"
-                            data-status="semua">Semua</button>
-                    </div>
-
-                    <!-- Tombol "+ Ajukan": Membuka modal popup untuk membuat permohonan izin berhalangan baru -->
-                    <button type="button" class="btn-ajukan-baru" id="btn-open-modal-ajukan"
-                        title="Ajukan permintaan berhalangan baru">
-                        <i class="ph ph-plus"></i> Ajukan
-                    </button>
-                </div>
+                <h1 class="page-title">Berhalangan</h1>
             </header>
 
-            <!-- Container List Kartu Berhalangan -->
-            <!-- Daftar kartu permohonan digambar secara dinamis oleh fungsi renderList() di berhalangan.js menggunakan data berhalanganData -->
-            <section class="berhalangan-list-container" id="berhalangan-container">
-                <!-- Tampilan animasi loading awal sebelum data berhasil diambil dari database -->
-                <div class="loading-state">
-                    <i class="ph ph-spinner ph-spin"></i>
-                    <p>Memuat daftar permintaan berhalangan...</p>
+            <!-- 3 Tab Filter: Semua, Sedang Proses, Selesai -->
+            <div class="berhalangan-tabs">
+                <button type="button" class="tab-btn active" data-filter="semua" id="tab-semua">
+                    <span>Semua</span>
+                    <span class="tab-badge" id="badge-semua" style="display: none;">0</span>
+                </button>
+                <button type="button" class="tab-btn" data-filter="proses" id="tab-proses">
+                    <span>Sedang Proses</span>
+                    <span class="tab-badge" id="badge-proses" style="display: none;">0</span>
+                </button>
+                <button type="button" class="tab-btn" data-filter="selesai" id="tab-selesai">
+                    <span>Selesai</span>
+                    <span class="tab-badge" id="badge-selesai" style="display: none;">0</span>
+                </button>
+            </div>
+
+            <!-- Layout 2 Kolom: Daftar Inbox (Kiri) & Percakapan (Kanan) -->
+            <section class="berhalangan-grid">
+                <!-- Kolom Kiri: Daftar Pesan Izin (inbox-list) -->
+                <div class="inbox-panel">
+                    <div class="inbox-list" id="inbox-list-container">
+                        <div class="empty-inbox">Memuat data...</div>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Percakapan & Balasan -->
+                <div class="chat-panel" id="chat-panel-container">
+                    <div class="empty-chat">Pilih salah satu pesan di sebelah kiri untuk melihat percakapan.</div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Modal Form Tambah Permintaan Berhalangan Baru (Popup Dialog) -->
-    <!-- Pengaturan buka-tutup dan pengiriman form ini dikelola oleh fungsi initModalEvents() di berhalangan.js -->
-    <div class="modal-overlay" id="modal-ajukan" style="display: none;">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3><i class="ph ph-note-pencil"></i> Ajukan Permintaan Berhalangan</h3>
-                <!-- Tombol silang (X) untuk menutup modal -->
-                <button type="button" class="btn-modal-close" id="btn-close-modal">&times;</button>
-            </div>
-            <form id="form-ajukan-berhalangan">
-                <!-- 1. Input Nama Pelayan: Otomatis diisi dengan nama user login dari window.userData.nama_lengkap -->
-                <div class="form-group">
-                    <label for="input-nama-pelayan">Nama Pelayan <span class="required">*</span></label>
-                    <input type="text" id="input-nama-pelayan" placeholder="Contoh: Aldo Wijaya" required>
-                </div>
-
-                <!-- 2. Pilihan Jadwal Pelayanan: Opsi dropdown dimuat otomatis dari database oleh fungsi populateJadwalSelect() -->
-                <div class="form-group">
-                    <label for="select-pelayanan">Jadwal Pelayanan</label>
-                    <select id="select-pelayanan">
-                        <option value="">Pilih Jadwal Pelayanan...</option>
-                        <!-- Dimuat otomatis dari jadwal yang ada di variabel jadwalList -->
-                    </select>
-                </div>
-
-                <!-- 3. Alasan Berhalangan: Kolom keterangan alasan tidak bisa melayani -->
-                <div class="form-group">
-                    <label for="input-alasan">Alasan Berhalangan <span class="required">*</span></label>
-                    <textarea id="input-alasan" rows="3" placeholder="Tuliskan alasan mengapa berhalangan melayani..."
-                        required></textarea>
-                </div>
-
-                <!-- Tombol Aksi Modal: Batal (menutup) dan Kirim Permintaan (submit ke database via API /api/berhalangan) -->
-                <div class="modal-footer">
-                    <button type="button" class="btn-cancel" id="btn-cancel-modal">Batal</button>
-                    <button type="submit" class="btn-submit-modal" id="btn-submit-ajukan">Kirim Permintaan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Toast Notification: Wadah pesan melayang kecil yang dimunculkan oleh fungsi showToast() di berhalangan.js -->
+    <!-- Toast Notification -->
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- Script Injector & Logika Layout dan Halaman Berhalangan -->
+    <!-- Script Layout & Berhalangan -->
     <script src="/js/layout.js"></script>
     <script src="/js/berhalangan.js"></script>
 </body>

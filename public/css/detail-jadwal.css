@@ -248,6 +248,209 @@
     border-radius: 8px 8px 0 0 !important;
 }
 
+/* --- Section Pesan Izin (Sesuai Gambar 4) --- */
+.pesan-izin-card {
+    grid-column: 1 / -1;
+    border: 1px solid #CBD5E1;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 32px;
+}
+
+.pesan-izin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+    gap: 12px;
+}
+
+.pesan-izin-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0F2942;
+    margin: 0 0 3px 0;
+}
+
+.pesan-izin-subtitle {
+    font-size: 12.5px;
+    color: #64748B;
+    margin: 0;
+}
+
+.izin-status-pill {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.izin-status-pill.proses {
+    background-color: #E1F0FF;
+    color: #0284C7;
+}
+
+.izin-status-pill.selesai {
+    background-color: #DCFCE7;
+    color: #15803D;
+}
+
+.izin-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.izin-date-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px 0;
+}
+
+.izin-date-separator span {
+    background-color: #E2E8F0;
+    color: #475569;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 999px;
+}
+
+.izin-chat-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.izin-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: #0F2942;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.izin-bubble {
+    flex: 1;
+    border-radius: 12px;
+    padding: 14px 18px;
+}
+
+.izin-bubble.light {
+    background-color: #F1F5F9;
+    color: #0F2942;
+}
+
+.izin-bubble.dark {
+    background-color: #0F2D4A;
+    color: #FFFFFF;
+}
+
+.izin-bubble-sender {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.izin-bubble-text {
+    font-size: 13.5px;
+    line-height: 1.45;
+    margin-bottom: 8px;
+    white-space: pre-line;
+}
+
+.izin-bubble-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+}
+
+.izin-bubble.light .izin-bubble-footer {
+    color: #475569;
+}
+
+.izin-bubble.dark .izin-bubble-footer {
+    color: #CBD5E1;
+}
+
+.izin-read-badge {
+    background-color: rgba(255, 255, 255, 0.16);
+    color: #FFFFFF;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 999px;
+}
+
+.izin-reply-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0F2942;
+    margin-bottom: 8px;
+}
+
+.izin-textarea {
+    width: 100%;
+    height: 92px;
+    background-color: #F1F5F9;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: inherit;
+    font-size: 13px;
+    color: #0F2942;
+    resize: none;
+    outline: none;
+    margin-bottom: 14px;
+    box-sizing: border-box;
+}
+
+.izin-textarea::placeholder {
+    color: #94A3B8;
+}
+
+.izin-textarea:focus {
+    border-color: #CBD5E1;
+}
+
+.izin-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-kirim-balasan {
+    background-color: #0F2D4A;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 32px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.btn-kirim-balasan:hover {
+    background-color: #0A1E33;
+}
+
+.btn-kirim-balasan:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
     .detail-grid {
         grid-template-columns: 1fr;

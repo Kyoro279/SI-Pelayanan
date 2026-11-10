@@ -49,8 +49,23 @@ const TIM_SELECT_IDS = {
 // Wadah untuk menyimpan instans Choices.js dari dropdown tim pelayanan
 let choicesInstances = {};
 
+// Parameter navigasi jika diarahkan dari halaman Berhalangan ("Edit Pelayan")
+const urlParamsJadwal = new URLSearchParams(window.location.search);
+let pendingEditIdFromUrl = urlParamsJadwal.get('edit_id');
+const cameFromBerhalangan = urlParamsJadwal.get('from') === 'berhalangan';
+const berhalanganChatId = urlParamsJadwal.get('chat_id');
+
 //saat struktur halaman web (DOM) selesai dimuat seluruhnya oleh browser
 document.addEventListener('DOMContentLoaded', async () => {
+    // Jika diarahkan dari halaman Berhalangan, tampilkan tombol Back ke Berhalangan
+    const btnBackBerhalangan = document.getElementById('btn-back-berhalangan');
+    if (btnBackBerhalangan && cameFromBerhalangan) {
+        btnBackBerhalangan.style.display = 'inline-flex';
+        btnBackBerhalangan.addEventListener('click', () => {
+            window.location.href = '/berhalangan';
+        });
+    }
+
     //cek status login dan periksa apakah user berhak menambah/mengubah jadwal
     await initAuthPermissions();
 
@@ -198,9 +213,12 @@ function setupEventListeners() {
     if (prevBtn) {
         prevBtn.addEventListener('click', () => {
             //kurangi angka bulan saat ini sebanyak 1 (mundur 1 bulan)
+            currentCalendarDate.setDate(1);
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-            //gambar ulang tampilan kalender untuk bulan yang baru
+            selectedFilterDate = null;
+            //gambar ulang tampilan kalender dan daftar jadwal untuk bulan yang baru
             renderCalendar();
+            if (currentView === 'list') renderScheduleList();
         });
     }
 
@@ -208,9 +226,12 @@ function setupEventListeners() {
     if (nextBtn) {
         nextBtn.addEventListener('click', () => {
             //tambah angka bulan saat ini sebanyak 1 (maju 1 bulan)
+            currentCalendarDate.setDate(1);
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-            //gambar ulang tampilan kalender untuk bulan yang baru
+            selectedFilterDate = null;
+            //gambar ulang tampilan kalender dan daftar jadwal untuk bulan yang baru
             renderCalendar();
+            if (currentView === 'list') renderScheduleList();
         });
     }
 
@@ -318,6 +339,22 @@ async function fetchJadwal() {
         //gambar ulang kalender di sisi kiri agar tanggal-tanggal yang ada acaranya diberi tanda titik (dot)
         renderCalendar();
 
+        // Jika halaman dibuka melalui tombol "Edit Pelayan" dari menu Berhalangan (?edit_id=...)
+        if (pendingEditIdFromUrl && canManageJadwal) {
+            const targetItem = allJadwal.find(j => String(j.id_jadwal || j.id) === String(pendingEditIdFromUrl));
+            pendingEditIdFromUrl = null;
+            if (targetItem) {
+                if (targetItem.tanggal) {
+                    const parts = targetItem.tanggal.split('-');
+                    if (parts.length === 3) {
+                        currentCalendarDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+                    }
+                }
+                openForm(targetItem);
+                return;
+            }
+        }
+
         //jika sedang di mode melihat daftar, gambarkan kartu-kartu jadwal di sisi kanan
         if (currentView === 'list') {
             renderScheduleList();
@@ -376,11 +413,16 @@ function renderCalendar() {
     const eventDatesInMonth = new Set();
     allJadwal.forEach(j => {
         if (!j.tanggal) return;
-        const d = new Date(j.tanggal);
-        //jika tahun dan bulannya cocok dengan yang sedang dilihat user
-        if (d.getFullYear() === year && d.getMonth() === month) {
-            //masukkan angka harinya ke dalam Set (supaya tidak ada tanggal duplikat)
-            eventDatesInMonth.add(d.getDate());
+        const parts = j.tanggal.split('-');
+        if (parts.length === 3) {
+            const jYear = parseInt(parts[0], 10);
+            const jMonth = parseInt(parts[1], 10) - 1;
+            const jDay = parseInt(parts[2], 10);
+            //jika tahun dan bulannya cocok dengan yang sedang dilihat user
+            if (jYear === year && jMonth === month) {
+                //masukkan angka harinya ke dalam Set (supaya tidak ada tanggal duplikat)
+                eventDatesInMonth.add(jDay);
+            }
         }
     });
 
@@ -858,6 +900,21 @@ async function handleFormSubmit(e) {
             throw new Error(result.message || result.error || 'Gagal menyimpan jadwal');
         }
 
+        // Jika pengeditan ini berasal dari halaman Berhalangan (Edit Pelayan), tandai otomatis status izin menjadi Selesai
+        if (cameFromBerhalangan && berhalanganChatId) {
+            try {
+                await fetch(`/api/berhalangan/${berhalanganChatId}/selesai`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_penindaklanjut: window.userData ? window.userData.id_pengguna : null
+                    })
+                });
+            } catch (e) {
+                console.warn('Gagal memperbarui status selesai berhalangan:', e);
+            }
+        }
+
         //ambil data jadwal terbaru dari server agar tampilan langsung sinkron
         await fetchJadwal();
 
@@ -892,14 +949,24 @@ function renderScheduleList() {
     //jika wadah daftar kartu tidak ditemukan di HTML, hentikan fungsi
     if (!listContainer) return;
 
-    //siapkan data jadwal yang akan ditampilkan
-    let displayedJadwal = allJadwal;
+    //siapkan data jadwal yang akan ditampilkan sesuai bulan & tahun kalender yang aktif
+    const activeYear = currentCalendarDate.getFullYear();
+    const activeMonth = currentCalendarDate.getMonth();
+
+    let displayedJadwal = allJadwal.filter(j => {
+        if (!j.tanggal) return false;
+        const parts = j.tanggal.split('-');
+        if (parts.length !== 3) return false;
+        const jYear = parseInt(parts[0], 10);
+        const jMonth = parseInt(parts[1], 10) - 1;
+        return jYear === activeYear && jMonth === activeMonth;
+    });
 
     //pengecekan filter tanggal:
     //jika ada tanggal yang sedang diklik user di kalender
     if (selectedFilterDate) {
         //ambil hanya jadwal yang tanggalnya sama persis dengan tanggal yang diklik
-        displayedJadwal = allJadwal.filter(j => j.tanggal === selectedFilterDate);
+        displayedJadwal = displayedJadwal.filter(j => j.tanggal === selectedFilterDate);
 
         //tampilkan informasi status filter di atas daftar 
         if (filterStatusBar && filterDateText) {
@@ -922,11 +989,12 @@ function renderScheduleList() {
 
     //jika tidak ada jadwal untuk ditampilkan (kosong):
     if (displayedJadwal.length === 0) {
+        const namaBulanTahun = `${BULAN_INDONESIA[activeMonth]} ${activeYear}`;
         listContainer.innerHTML = `
             <div class="empty-state">
                 <i class="ph ph-calendar-x" style="font-size: 3rem; color: #94a3b8;"></i>
                 <p style="margin-top: 12px; font-weight: 500; color: #64748b;">
-                    ${selectedFilterDate ? 'Tidak ada jadwal pelayanan pada tanggal ini.' : 'Belum ada jadwal pelayanan terdaftar.'}
+                    ${selectedFilterDate ? 'Tidak ada jadwal pelayanan pada tanggal ini.' : `Belum ada jadwal pelayanan pada bulan ${namaBulanTahun}.`}
                 </p>
                 ${selectedFilterDate ? `
                     <button class="btn-reset-filter" onclick="resetDateFilter()" style="margin-top: 12px;">
@@ -934,7 +1002,7 @@ function renderScheduleList() {
                     </button>
                 ` : (canManageJadwal ? `
                     <button class="btn-primary" onclick="openForm()" style="margin-top: 15px;">
-                        <i class="ph ph-plus-circle"></i> Tambah Jadwal Pertama
+                        <i class="ph ph-plus-circle"></i> Tambah Jadwal
                     </button>
                 ` : '')}
             </div>

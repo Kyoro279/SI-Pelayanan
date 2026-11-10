@@ -23,7 +23,7 @@
 
 <body data-active="jadwal" style="display: none;">
 
-    <!-- Supabase Init & Auth Check --> 
+    <!-- Supabase Init & Auth Check -->
     <script src="/js/checkAuth.js"></script>
     <script>
         window.authReady = window.initAndCheckAuth();
@@ -45,7 +45,6 @@
                     </div>
                 </div>
                 <div class="header-right admin-only">
-                    <!-- Buttons were removed as they were dead code -->
                 </div>
             </header>
 
@@ -65,44 +64,30 @@
                         <h2 class="judul" id="detail-judul">-</h2>
 
                         <div class="section">
-                            <p class="label">TUJUAN</p>
+                            <p class="label">Tujuan</p>
                             <p class="value" id="detail-tujuan">-</p>
                         </div>
 
                         <div class="section">
-                            <p class="label">PENGKOTBAH</p>
+                            <p class="label">Pengkhotbah</p>
                             <p class="value" id="detail-pengkotbah">-</p>
                         </div>
                     </div>
 
                     <!-- Tim Pelayanan Card -->
                     <div class="card tim-card">
-                        <h3>TIM PELAYANAN</h3>
+                        <h3>Tim Pelayanan</h3>
                         <div class="tim-list" id="tim-list-container">
                             <!-- Injected via JS -->
                         </div>
                     </div>
-
-                    <!-- Section Berhalangan (Hidden by default, shown if isAssigned) -->
-                    <div class="card berhalangan-card" id="berhalangan-section"
-                        style="display: none; margin-top: 24px; padding-bottom: 32px;">
-                        <h3>LAPORKAN BERHALANGAN</h3>
-                        <p class="section-subtitle"
-                            style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-                            Jika Anda berhalangan untuk hadir / pelayanan, silakan laporkan alasan Anda.</p>
-                        <textarea id="input-alasan-berhalangan" class="input-css"
-                            placeholder="Tuliskan alasan Anda di sini..." rows="3"
-                            style="width:100%; margin-bottom: 16px; resize: vertical; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);"></textarea>
-                        <button class="btn-masukkan" id="btn-submit-berhalangan" style="width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; margin-bottom: 8px;">Kirim
-                            Laporan</button>
-                    </div>
                 </div>
-                
+
                 <!-- Right Column -->
                 <div class="right-col">
                     <div class="lagu-header">
-                        <h3>DAFTAR LAGU</h3>
-                        <button class="btn-tambah-lagu admin-only" id="btn-tambah-lagu">+ Tambah Lagu</button>
+                        <h3>Daftar Lagu</h3>
+                        <button class="btn-tambah-lagu admin-only" id="btn-tambah-lagu">+Tambah Lagu</button>
                     </div>
 
                     <div class="lagu-list" id="lagu-list-container">
@@ -135,6 +120,32 @@
                         <div class="form-actions">
                             <button class="btn-masukkan" id="btn-submit-lagu">Masukkan</button>
                             <button class="btn-batal" id="btn-cancel-lagu">Batal</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Pesan Izin (Full Width di Bawah Grid Sesuai Gambar 4) -->
+                <div class="card pesan-izin-card" id="berhalangan-section" style="display: none;">
+                    <div class="pesan-izin-header">
+                        <div>
+                            <h3 class="pesan-izin-title">Pesan Izin</h3>
+                            <p class="pesan-izin-subtitle" id="izin-subtitle">-</p>
+                        </div>
+                        <span class="izin-status-pill" id="izin-status-badge" style="display: none;">Sedang
+                            Proses</span>
+                    </div>
+
+                    <div class="izin-messages" id="izin-chat-container">
+                        <!-- Riwayat gelembung pesan izin di-inject via JS -->
+                    </div>
+
+                    <div class="izin-reply-box">
+                        <label class="izin-reply-label" for="input-alasan-berhalangan">Balas</label>
+                        <textarea id="input-alasan-berhalangan" class="izin-textarea"
+                            placeholder="Tulis balasan untuk Worship Planner..."></textarea>
+                        <div class="izin-actions">
+                            <button type="button" class="btn-kirim-balasan" id="btn-submit-berhalangan">Kirim
+                                Balasan</button>
                         </div>
                     </div>
                 </div>

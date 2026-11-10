@@ -1,533 +1,401 @@
 /* public/css/berhalangan.css */
 
-/* --- Header Section --- */
 .berhalangan-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-    gap: 16px;
+    margin-bottom: 22px;
 }
 
 .berhalangan-header .page-title {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
-    color: #0A3654;
-    margin-bottom: 4px;
+    color: #0F2942;
 }
 
-.berhalangan-header .page-subtitle {
-    font-size: 14px;
-    color: var(--text-muted);
+/* --- 3 Filter Tabs --- */
+.berhalangan-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
 }
 
-.header-actions {
+.tab-btn {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+    height: 44px;
+    background-color: #FFFFFF;
+    color: #64748B;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s ease;
 }
 
-/* --- Filter Segmented Pills --- */
-.filter-pill-group {
-    display: inline-flex;
+.tab-btn:hover {
+    color: #0F2942;
+}
+
+.tab-btn.active {
+    background-color: #0F2942;
+    color: #FFFFFF;
+}
+
+.tab-badge {
+    position: absolute;
+    right: 14px;
+    background-color: #FF0000;
+    color: #FFFFFF;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* --- Main 2-Column Layout --- */
+.berhalangan-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr;
+    gap: 24px;
+    align-items: stretch;
+}
+
+/* --- Left Column: Inbox Panel --- */
+.inbox-panel {
     background: #FFFFFF;
     border: 1px solid #CBD5E1;
-    border-radius: 999px;
-    padding: 3px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    border-radius: 14px;
+    padding: 16px;
+    min-height: 560px;
+    max-height: 700px;
+    overflow-y: auto;
 }
 
-.filter-pill-btn {
-    border: none;
-    background: transparent;
-    padding: 7px 18px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #475569;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.filter-pill-btn:hover {
-    color: #0A3654;
-}
-
-.filter-pill-btn.active {
-    background-color: #0A3654;
-    color: #FFFFFF;
-}
-
-/* Button Ajukan Baru (Aksen) */
-.btn-ajukan-baru {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background-color: #FFFFFF;
-    color: #0A3654;
-    border: 1px solid #0A3654;
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-ajukan-baru:hover {
-    background-color: #0A3654;
-    color: #FFFFFF;
-}
-
-/* --- Cards Container --- */
-.berhalangan-list-container {
+.inbox-list {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 14px;
 }
 
-/* --- Request Card --- */
-.berhalangan-card {
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    padding: 22px 26px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    transition: box-shadow 0.2s ease, transform 0.15s ease;
+.inbox-item {
+    background-color: #E1F0FF;
+    border-radius: 10px;
+    padding: 16px 18px;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.15s ease;
 }
 
-.berhalangan-card:hover {
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+.inbox-item:hover {
+    background-color: #D4E9FF;
 }
 
-/* Card Header */
-.card-top-row {
+.inbox-item.active {
+    border-color: #0284C7;
+}
+
+.inbox-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 6px;
-    flex-wrap: wrap;
     gap: 8px;
 }
 
-.user-identity {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.user-identity .user-name {
-    font-size: 17px;
+.inbox-name {
+    font-size: 15px;
     font-weight: 700;
-    color: #0F172A;
+    color: #0F2942;
 }
 
-.catatan-badge {
-    background-color: #E0F2FE;
+.inbox-status-badge {
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.inbox-status-badge.selesai {
+    background-color: #DCFCE7;
+    color: #15803D;
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+
+.inbox-status-badge.proses {
     color: #0284C7;
+}
+
+.inbox-pelayanan {
     font-size: 12px;
-    font-weight: 600;
-    padding: 3px 12px;
+    color: #64748B;
+    margin-bottom: 8px;
+}
+
+.inbox-snippet {
+    font-size: 12.5px;
+    color: #0F2942;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* --- Right Column: Chat Panel --- */
+.chat-panel {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 14px;
+    padding: 24px;
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 22px;
+    gap: 12px;
+}
+
+.chat-header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0F2942;
+    margin-bottom: 3px;
+}
+
+.chat-header-subtitle {
+    font-size: 12.5px;
+    color: #64748B;
+}
+
+.chat-status-pill {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 5px 14px;
     border-radius: 999px;
-    letter-spacing: 0.1px;
+    white-space: nowrap;
 }
 
-.status-badge {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 12px;
-    border-radius: 999px;
+.chat-status-pill.proses {
+    background-color: #E1F0FF;
+    color: #0284C7;
 }
 
-.status-badge.belum {
-    background-color: #FEF3C7;
-    color: #B45309;
-}
-
-.status-badge.selesai {
+.chat-status-pill.selesai {
     background-color: #DCFCE7;
     color: #15803D;
 }
 
-.status-badge.ditolak {
-    background-color: #FEE2E2;
-    color: #B91C1C;
-}
-
-/* Pelayanan Subtitle */
-.pelayanan-subtitle {
-    font-size: 14px;
-    color: #64748B;
-    margin-bottom: 14px;
-}
-
-.pelayanan-link {
-    color: #0284C7;
-    font-weight: 500;
-    text-decoration: none;
-    cursor: pointer;
-    transition: color 0.15s ease;
-}
-
-.pelayanan-link:hover {
-    color: #0369A1;
-    text-decoration: underline;
-}
-
-/* --- Reason Box (ALASAN) --- */
-.alasan-box {
-    background-color: #F0F7FB;
-    border-radius: 10px;
-    padding: 14px 18px;
-    margin-bottom: 18px;
-    border: 1px solid rgba(224, 242, 254, 0.6);
-}
-
-.alasan-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #64748B;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-}
-
-.alasan-content {
-    font-size: 14px;
-    color: #334155;
-    line-height: 1.5;
-}
-
-/* --- Card Action Bottom Row --- */
-.card-action-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.select-pengganti-wrap {
+/* --- Chat Messages --- */
+.chat-messages {
     flex: 1;
-    min-width: 220px;
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+    overflow-y: auto;
 }
 
-.select-pengganti {
-    width: 100%;
-    height: 42px;
-    padding: 0 36px 0 14px;
-    border: 1px solid #CBD5E1;
-    border-radius: 8px;
-    font-size: 13.5px;
-    color: #334155;
-    background-color: #FFFFFF;
-    cursor: pointer;
-    outline: none;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+.chat-date-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px 0;
 }
 
-.select-pengganti:focus {
-    border-color: #0A3654;
-    box-shadow: 0 0 0 2px rgba(10, 54, 84, 0.12);
+.chat-date-separator span {
+    background-color: #E2E8F0;
+    color: #475569;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 999px;
 }
 
-.select-pengganti:disabled {
-    background-color: #F8FAFC;
-    cursor: not-allowed;
-    opacity: 0.7;
+.chat-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
 }
 
-/* Buttons */
-.btn-tandai-selesai {
-    background-color: #0A3654;
+.chat-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: #0F2942;
     color: #FFFFFF;
-    border: none;
-    height: 42px;
-    padding: 0 22px;
-    border-radius: 8px;
-    font-size: 13.5px;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.btn-tandai-selesai:hover {
-    background-color: #07253B;
-}
-
-.btn-tandai-selesai:active {
-    transform: scale(0.98);
-}
-
-.btn-tolak {
-    background-color: #FFFFFF;
-    color: #1E293B;
-    border: 1px solid #CBD5E1;
-    height: 42px;
-    padding: 0 22px;
-    border-radius: 8px;
-    font-size: 13.5px;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.btn-tolak:hover {
-    background-color: #FFF1F2;
-    border-color: #FDA4AF;
-    color: #E11D48;
-}
-
-.btn-tolak:active {
-    transform: scale(0.98);
-}
-
-/* Status Info Box untuk yang sudah selesai/ditolak */
-.status-resolved-box {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    flex-wrap: wrap;
-    gap: 8px;
+    justify-content: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    flex-shrink: 0;
 }
 
-.status-resolved-box.selesai {
-    background-color: #F0FDF4;
-    border: 1px solid #BBF7D0;
-    color: #166534;
+.chat-bubble {
+    border-radius: 12px;
+    padding: 14px 18px;
+    width: 360px;
+    max-width: calc(100% - 46px);
 }
 
-.status-resolved-box.ditolak {
-    background-color: #FEF2F2;
-    border: 1px solid #FECACA;
-    color: #991B1B;
+.chat-bubble.light {
+    background-color: #F1F5F9;
+    color: #0F2942;
 }
 
-.btn-undo {
-    background: none;
-    border: none;
-    color: inherit;
-    text-decoration: underline;
+.chat-bubble.dark {
+    background-color: #0F2D4A;
+    color: #FFFFFF;
+}
+
+.bubble-sender {
     font-size: 12px;
-    cursor: pointer;
-    padding: 2px 4px;
+    font-weight: 700;
+    margin-bottom: 4px;
 }
 
-/* --- Loading & Empty States --- */
-.loading-state,
-.empty-state {
-    text-align: center;
-    padding: 50px 20px;
-    background: #FFFFFF;
-    border-radius: 16px;
-    border: 1px solid #E2E8F0;
-    color: #64748B;
+.bubble-text {
+    font-size: 13.5px;
+    line-height: 1.45;
+    margin-bottom: 8px;
+    white-space: pre-line;
 }
 
-.loading-state i,
-.empty-state i {
-    font-size: 36px;
-    margin-bottom: 12px;
-    color: #94A3B8;
-}
-
-.empty-state h3 {
-    font-size: 17px;
-    font-weight: 600;
-    color: #1E293B;
-    margin-bottom: 6px;
-}
-
-.empty-state p {
-    font-size: 14px;
-    color: #64748B;
-}
-
-/* Spin animation for loading */
-.ph-spin {
-    animation: spin 1s infinite linear;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* --- Modal Styles --- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(3px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 20px;
-}
-
-.modal-card {
-    background: #FFFFFF;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 480px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    animation: modalSlideIn 0.2s ease-out;
-}
-
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(12px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 18px 24px;
-    border-bottom: 1px solid #E2E8F0;
-}
-
-.modal-header h3 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #0A3654;
+.bubble-footer {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 11px;
 }
 
-.btn-modal-close {
-    background: none;
-    border: none;
-    font-size: 22px;
-    color: #94A3B8;
-    cursor: pointer;
-    line-height: 1;
-    padding: 4px;
-    transition: color 0.15s ease;
+.chat-bubble.light .bubble-footer {
+    color: #475569;
 }
 
-.btn-modal-close:hover {
-    color: #0F172A;
+.chat-bubble.dark .bubble-footer {
+    color: #CBD5E1;
 }
 
-#form-ajukan-berhalangan {
-    padding: 20px 24px;
+.read-badge {
+    background-color: rgba(255, 255, 255, 0.16);
+    color: #FFFFFF;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 999px;
 }
 
-.form-group {
-    margin-bottom: 16px;
+/* --- Reply Form Section --- */
+.chat-reply-box {
+    margin-top: auto;
 }
 
-.form-group label {
+.reply-label {
     display: block;
     font-size: 13px;
-    font-weight: 600;
-    color: #334155;
-    margin-bottom: 6px;
+    font-weight: 700;
+    color: #0F2942;
+    margin-bottom: 8px;
 }
 
-.form-group label .required {
-    color: #EF4444;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
+.reply-textarea {
     width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #CBD5E1;
-    border-radius: 8px;
-    font-size: 13.5px;
-    color: #1E293B;
+    height: 92px;
+    background-color: #F1F5F9;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 14px 16px;
     font-family: inherit;
+    font-size: 13px;
+    color: #0F2942;
+    resize: none;
     outline: none;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 12px;
+    transition: border-color 0.2s ease;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: #0A3654;
-    box-shadow: 0 0 0 2px rgba(10, 54, 84, 0.12);
+.reply-textarea::placeholder {
+    color: #94A3B8;
 }
 
-.form-group textarea {
-    resize: vertical;
-    min-height: 80px;
+.reply-textarea:focus {
+    border-color: #CBD5E1;
 }
 
-.modal-footer {
+.reply-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 22px;
+    gap: 12px;
 }
 
-.btn-cancel {
-    background: #FFFFFF;
-    color: #475569;
+.btn-balas {
+    flex: 1.3;
+    height: 42px;
+    background-color: #FFFFFF;
+    color: #0F2942;
     border: 1px solid #CBD5E1;
-    padding: 9px 18px;
-    border-radius: 8px;
+    border-radius: 10px;
+    font-family: inherit;
     font-size: 13.5px;
-    font-weight: 500;
+    font-weight: 700;
     cursor: pointer;
+    transition: all 0.15s ease;
 }
 
-.btn-cancel:hover {
-    background: #F8FAFC;
+.btn-balas:hover {
+    background-color: #F8FAFC;
+    border-color: #94A3B8;
 }
 
-.btn-submit-modal {
-    background: #0A3654;
+.btn-pengganti {
+    flex: 1;
+    height: 42px;
+    background-color: #0F2D4A;
     color: #FFFFFF;
     border: none;
-    padding: 9px 20px;
-    border-radius: 8px;
+    border-radius: 10px;
+    font-family: inherit;
     font-size: 13.5px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background-color 0.15s ease;
 }
 
-.btn-submit-modal:hover {
-    background: #07253B;
+.btn-pengganti:hover {
+    background-color: #0A1E33;
+}
+
+.btn-balas:disabled,
+.btn-pengganti:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* --- Empty States --- */
+.empty-inbox,
+.empty-chat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 240px;
+    color: #64748B;
+    font-size: 13.5px;
+    text-align: center;
+    padding: 20px;
 }
 
 /* --- Toast Notification --- */
@@ -545,15 +413,13 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #0A3654;
+    background: #0F2942;
     color: #FFFFFF;
     padding: 12px 20px;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     font-size: 13.5px;
     font-weight: 500;
-    animation: toastIn 0.25s ease-out;
-    max-width: 380px;
 }
 
 .toast.success {
@@ -564,13 +430,8 @@
     background-color: #B91C1C;
 }
 
-@keyframes toastIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+@media (max-width: 900px) {
+    .berhalangan-grid {
+        grid-template-columns: 1fr;
     }
 }

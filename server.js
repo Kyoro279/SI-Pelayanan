@@ -107,5 +107,5 @@ app.get('/rekap-history', (req, res) => {
 // JALANKAN SERVER
 // ==========================================
 app.listen(PORT, () => {
-    console.log(`Server SI Pelayanan berjalan di http://localhost:${PORT}`);
+    console.log(`Server SI Pelayanan sudah berjalan di http://localhost:${PORT}`);
 });
