@@ -96,7 +96,7 @@ async function initAuthPermissions() {
 
     //tentukan apakah user boleh mengelola jadwal:
     //hanya super admin, admin, atau worship planner yang diizinkan mengelola (true)
-    canManageJadwal = window.isSuperAdmin || role === 'admin' || role === 'worship planner';
+    canManageJadwal = window.isSuperAdmin || role === 'admin' || role === 'worship planner' || role === 'wp';
 
     //cari tombol "tambah jadwal" di sudut kanan atas halaman
     const btnTambah = document.getElementById('btn-tambah-jadwal');
@@ -105,6 +105,43 @@ async function initAuthPermissions() {
     if (btnTambah && !canManageJadwal) {
         btnTambah.style.display = 'none';
     }
+}
+
+/**
+ * Memeriksa apakah user yang sedang login terdaftar bertugas pada suatu jadwal
+ */
+function isCurrentUserScheduledIn(jadwal) {
+    if (!jadwal) return false;
+    const userId = window.userData && window.userData.id_pengguna ? Number(window.userData.id_pengguna) : null;
+    const userName = window.userData && window.userData.nama_lengkap
+        ? window.userData.nama_lengkap.trim().toLowerCase()
+        : '';
+
+    // 1. Cek daftar petugas dari tabel jadwal_tugas
+    if (Array.isArray(jadwal.petugas)) {
+        const foundInPetugas = jadwal.petugas.some(p => {
+            if (userId && Number(p.id_pengguna) === userId) return true;
+            if (userName && (p.nama_lengkap || '').trim().toLowerCase() === userName) return true;
+            return false;
+        });
+        if (foundInPetugas) return true;
+    }
+
+    // 2. Cek objek tim_pelayanan_id
+    if (userId && jadwal.tim_pelayanan_id && typeof jadwal.tim_pelayanan_id === 'object') {
+        if (Object.values(jadwal.tim_pelayanan_id).some(id => Number(id) === userId)) {
+            return true;
+        }
+    }
+
+    // 3. Cek objek tim_pelayanan (nama lengkap)
+    if (userName && jadwal.tim_pelayanan && typeof jadwal.tim_pelayanan === 'object') {
+        if (Object.values(jadwal.tim_pelayanan).some(name => String(name || '').trim().toLowerCase() === userName)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // ==============================================================================================
@@ -311,7 +348,15 @@ async function fetchJadwal() {
         const result = await response.json();
 
         //simpan array jadwal ke variabel allJadwal (jika kosong, gunakan array kosong [])
-        allJadwal = result.data || [];
+        let fetchedJadwal = result.data || [];
+
+        // Hanya Worship Planner dan Admin yang dapat melihat seluruh jadwal;
+        // untuk role selain itu, tampilkan hanya jadwal di mana mereka dijadwalkan bertugas
+        if (!canManageJadwal) {
+            fetchedJadwal = fetchedJadwal.filter(j => isCurrentUserScheduledIn(j));
+        }
+
+        allJadwal = fetchedJadwal;
 
         //bersihkan dan seragamkan format tanggal jika ada format jam bawaan database (misal: "2026-06-06T00:00:00Z")
         allJadwal.forEach(j => {

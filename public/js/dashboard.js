@@ -18,6 +18,44 @@ function getScheduleDateTime(jadwal) {
     return new Date(year, month, day, hours, minutes, 0, 0);
 }
 
+// mengecek apakah user yang sedang login dijadwalkan bertugas pada jadwal tersebut
+function isUserAssignedInSchedule(jadwal) {
+    if (!jadwal) return false;
+    const userId = window.userData && window.userData.id_pengguna ? Number(window.userData.id_pengguna) : null;
+    const userName = window.userData && (window.userData.nama_lengkap || window.userData.name)
+        ? (window.userData.nama_lengkap || window.userData.name).trim().toLowerCase()
+        : '';
+
+    if (Array.isArray(jadwal.petugas)) {
+        const found = jadwal.petugas.some(p => {
+            if (userId && Number(p.id_pengguna) === userId) return true;
+            if (userName && (p.nama_lengkap || '').trim().toLowerCase() === userName) return true;
+            return false;
+        });
+        if (found) return true;
+    }
+
+    if (userId && jadwal.tim_pelayanan_id && typeof jadwal.tim_pelayanan_id === 'object') {
+        if (Object.values(jadwal.tim_pelayanan_id).some(id => Number(id) === userId)) {
+            return true;
+        }
+    }
+
+    if (userName && jadwal.tim_pelayanan && typeof jadwal.tim_pelayanan === 'object') {
+        if (Array.isArray(jadwal.tim_pelayanan)) {
+            if (jadwal.tim_pelayanan.some(p => p.nama_pelayan && p.nama_pelayan.trim().toLowerCase() === userName)) {
+                return true;
+            }
+        } else {
+            if (Object.values(jadwal.tim_pelayanan).some(name => String(name || '').trim().toLowerCase() === userName)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 // pas halaman html selesai diload
 document.addEventListener('DOMContentLoaded', async () => {
     // nunggu auth beres dulu
@@ -30,7 +68,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const response = await fetch('/api/jadwal');
         if (!response.ok) throw new Error('Gagal mengambil data jadwal');
         const result = await response.json();
-        const allJadwal = result.data || [];
+        let allJadwal = result.data || [];
+
+        const role = window.userData ? (window.userData.role || '').trim().toLowerCase() : (window.isSuperAdmin ? 'admin' : 'guest');
+        const canSeeAllJadwal = window.isSuperAdmin || role === 'admin' || role === 'worship planner' || role === 'wp';
+
+        if (!canSeeAllJadwal) {
+            allJadwal = allJadwal.filter(j => isUserAssignedInSchedule(j));
+        }
 
         // buang jam di tanggal kalo dia format iso
         allJadwal.forEach(j => {
@@ -229,13 +274,7 @@ async function fetchNotifications() {
                     const dt = getScheduleDateTime(jadwal);
                     if (dt && dt >= now && dt <= twoWeeksFromNow) {
                         // Check if user is in this schedule
-                        let isAssigned = false;
-                        if (jadwal.pengkotbah && userName && jadwal.pengkotbah.toLowerCase() === userName.toLowerCase()) isAssigned = true;
-                        // mengecek apakah user yang login merupakan bagian dari list tim pelayanan tersebut
-                        if (jadwal.tim_pelayanan && Array.isArray(jadwal.tim_pelayanan)) {
-                            const found = jadwal.tim_pelayanan.find(p => p.nama_pelayan && userName && p.nama_pelayan.toLowerCase() === userName.toLowerCase());
-                            if (found) isAssigned = true;
-                        }
+                        const isAssigned = isUserAssignedInSchedule(jadwal);
 
                         if (isAssigned) { // jika terbukti ditugaskan maka akan memunculkan notifikasi
                             notifications.push({

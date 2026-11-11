@@ -371,6 +371,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         return { userId, userName, userEmail, userRole };
     }
 
+    function getScheduledUserIdInJadwal(userId, userName) {
+        if (!currentJadwal) return userId;
+
+        const petugasList = Array.isArray(currentJadwal.petugas) ? currentJadwal.petugas : [];
+        if (userId) {
+            const byId = petugasList.find(p => Number(p.id_pengguna) === Number(userId));
+            if (byId) return Number(byId.id_pengguna);
+        }
+        if (userName) {
+            const cleanName = userName.trim().toLowerCase();
+            const byName = petugasList.find(p => (p.nama_lengkap || '').trim().toLowerCase() === cleanName);
+            if (byName && byName.id_pengguna) return Number(byName.id_pengguna);
+        }
+
+        const timIds = currentJadwal.tim_pelayanan_id || {};
+        if (userId && Object.values(timIds).some(id => Number(id) === Number(userId))) {
+            return Number(userId);
+        }
+        const timNames = currentJadwal.tim_pelayanan || {};
+        if (userName) {
+            const cleanName = userName.trim().toLowerCase();
+            for (const [roleKey, nameVal] of Object.entries(timNames)) {
+                if (String(nameVal || '').trim().toLowerCase() === cleanName && timIds[roleKey]) {
+                    return Number(timIds[roleKey]);
+                }
+            }
+        }
+
+        return userId;
+    }
+
     function isUserScheduledInJadwal(userId, userName) {
         if (!currentJadwal) return false;
 
@@ -406,7 +437,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const berhalanganSection = document.getElementById('berhalangan-section');
         if (!berhalanganSection) return;
 
-        const { userId: currentUserId, userName: currentUserName, userRole } = await getCurrentUserInfo();
+        const { userId: rawUserId, userName: currentUserName, userRole } = await getCurrentUserInfo();
+        const currentUserId = getScheduledUserIdInJadwal(rawUserId, currentUserName);
 
         if (!currentUserName) {
             berhalanganSection.style.display = 'none';
@@ -496,6 +528,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const subtitleEl = document.getElementById('izin-subtitle');
         const statusBadgeEl = document.getElementById('izin-status-badge');
         const chatContainer = document.getElementById('izin-chat-container');
+        const replyLabelEl = document.getElementById('izin-reply-label') || document.querySelector('.izin-reply-label');
+        const inputAlasanEl = document.getElementById('input-alasan-berhalangan');
+        const btnSubmitEl = document.getElementById('btn-submit-berhalangan');
         const judulJadwal = currentJadwal.tema_kotbah || currentJadwal.judul || currentJadwal.tema_pelayanan || 'Pelayanan';
 
         const displaySenderName = activeIzinChat ? activeIzinChat.nama : fallbackUserName;
@@ -509,8 +544,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 chatContainer.innerHTML = '';
                 chatContainer.style.display = 'none';
             }
+            if (replyLabelEl) replyLabelEl.textContent = 'Isi Pesan';
+            if (inputAlasanEl) inputAlasanEl.placeholder = 'Tulis alasan berhalangan Anda untuk Worship Planner...';
+            if (btnSubmitEl) btnSubmitEl.title = 'Kirim Pesan (Enter)';
             return;
         }
+
+        if (replyLabelEl) replyLabelEl.textContent = 'Balas';
+        if (inputAlasanEl) inputAlasanEl.placeholder = 'Tulis balasan untuk Worship Planner...';
+        if (btnSubmitEl) btnSubmitEl.title = 'Kirim Balasan (Enter)';
 
         if (chatContainer) chatContainer.style.display = 'flex';
 
@@ -593,66 +635,81 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const btnSubmitBerhalangan = document.getElementById('btn-submit-berhalangan');
-    if (btnSubmitBerhalangan) {
-        btnSubmitBerhalangan.addEventListener('click', async () => {
-            const inputAlasan = document.getElementById('input-alasan-berhalangan');
-            const alasan = inputAlasan.value.trim();
+    const inputAlasanBerhalangan = document.getElementById('input-alasan-berhalangan');
 
-            if (!alasan) {
-                alert('Silakan tulis pesan terlebih dahulu.');
-                inputAlasan.focus();
-                return;
+    async function handleSendPesanIzin() {
+        const inputAlasan = document.getElementById('input-alasan-berhalangan');
+        if (!inputAlasan || (btnSubmitBerhalangan && btnSubmitBerhalangan.disabled)) return;
+        const alasan = inputAlasan.value.trim();
+
+        if (!alasan) {
+            alert('Silakan tulis pesan terlebih dahulu.');
+            inputAlasan.focus();
+            return;
+        }
+
+        if (btnSubmitBerhalangan) btnSubmitBerhalangan.disabled = true;
+
+        const { userId: rawUserId, userName: currentUserName, userEmail: currentUserEmail } = await getCurrentUserInfo();
+        const currentUserId = getScheduledUserIdInJadwal(rawUserId, currentUserName);
+
+        try {
+            let res;
+            if (activeIzinChat && activeIzinChat.id_chat) {
+                res = await fetch(`/api/berhalangan/${activeIzinChat.id_chat}/balas`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sender_type: 'pelayan',
+                        isi_pesan: alasan,
+                        alasan: alasan
+                    })
+                });
+            } else {
+                res = await fetch('/api/berhalangan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_pengguna: currentUserId,
+                        nama: currentUserName || 'Pelayan',
+                        email: currentUserEmail,
+                        id_jadwal: currentJadwal.id_jadwal || currentJadwal.id || jadwalId,
+                        isi_pesan: alasan,
+                        alasan: alasan
+                    })
+                });
             }
 
-            btnSubmitBerhalangan.disabled = true;
-            btnSubmitBerhalangan.textContent = 'Mengirim...';
-
-            const { userId: currentUserId, userName: currentUserName, userEmail: currentUserEmail } = await getCurrentUserInfo();
-
-            try {
-                let res;
-                if (activeIzinChat && activeIzinChat.id_chat) {
-                    res = await fetch(`/api/berhalangan/${activeIzinChat.id_chat}/balas`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            sender_type: 'pelayan',
-                            isi_pesan: alasan,
-                            alasan: alasan
-                        })
-                    });
-                } else {
-                    res = await fetch('/api/berhalangan', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            id_pengguna: currentUserId,
-                            nama: currentUserName || 'Pelayan',
-                            email: currentUserEmail,
-                            id_jadwal: currentJadwal.id_jadwal || currentJadwal.id || jadwalId,
-                            isi_pesan: alasan,
-                            alasan: alasan
-                        })
-                    });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                inputAlasan.value = '';
+                if (data.data) {
+                    activeIzinChat = data.data;
+                    renderPesanIzin(currentUserName);
                 }
-
-                const data = await res.json();
-                if (res.ok && data.success) {
-                    inputAlasan.value = '';
-                    if (data.data) {
-                        activeIzinChat = data.data;
-                        renderPesanIzin(currentUserName);
-                    }
-                    await loadPesanIzin();
-                } else {
-                    alert(data.message || 'Gagal mengirim pesan izin.');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Terjadi kesalahan sistem.');
-            } finally {
+                await loadPesanIzin();
+            } else {
+                alert(data.message || 'Gagal mengirim pesan izin.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Terjadi kesalahan sistem.');
+        } finally {
+            if (btnSubmitBerhalangan) {
                 btnSubmitBerhalangan.disabled = false;
-                btnSubmitBerhalangan.textContent = 'Kirim Balasan';
+            }
+        }
+    }
+
+    if (btnSubmitBerhalangan) {
+        btnSubmitBerhalangan.addEventListener('click', handleSendPesanIzin);
+    }
+
+    if (inputAlasanBerhalangan) {
+        inputAlasanBerhalangan.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendPesanIzin();
             }
         });
     }

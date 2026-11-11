@@ -312,19 +312,26 @@
     margin-bottom: 8px;
 }
 
+.reply-textarea-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
 .reply-textarea {
     width: 100%;
     height: 92px;
     background-color: #F1F5F9;
     border: 1px solid transparent;
     border-radius: 10px;
-    padding: 14px 16px;
+    padding: 14px 52px 14px 16px;
     font-family: inherit;
     font-size: 13px;
     color: #0F2942;
     resize: none;
     outline: none;
-    margin-bottom: 12px;
+    margin-bottom: 0;
+    box-sizing: border-box;
     transition: border-color 0.2s ease;
 }
 
@@ -336,12 +343,40 @@
     border-color: #CBD5E1;
 }
 
+.btn-send-chat {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #0F2D4A;
+    color: #FFFFFF;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-send-chat:hover {
+    background-color: #0A1E33;
+    transform: scale(1.05);
+}
+
+.btn-send-chat:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .reply-actions {
     display: flex;
     gap: 12px;
 }
 
-.btn-balas {
+.btn-cari-pengganti {
     flex: 1.3;
     height: 42px;
     background-color: #FFFFFF;
@@ -355,15 +390,15 @@
     transition: all 0.15s ease;
 }
 
-.btn-balas:hover {
+.btn-cari-pengganti:hover {
     background-color: #F8FAFC;
     border-color: #94A3B8;
 }
 
-.btn-pengganti {
+.btn-selesai-izin {
     flex: 1;
     height: 42px;
-    background-color: #0F2D4A;
+    background-color: #38B2AC;
     color: #FFFFFF;
     border: none;
     border-radius: 10px;
@@ -371,15 +406,16 @@
     font-size: 13.5px;
     font-weight: 700;
     cursor: pointer;
-    transition: background-color 0.15s ease;
+    box-shadow: 0 2px 6px rgba(56, 178, 172, 0.25);
+    transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
-.btn-pengganti:hover {
-    background-color: #0A1E33;
+.btn-selesai-izin:hover {
+    background-color: #319795;
 }
 
-.btn-balas:disabled,
-.btn-pengganti:disabled {
+.btn-cari-pengganti:disabled,
+.btn-selesai-izin:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }

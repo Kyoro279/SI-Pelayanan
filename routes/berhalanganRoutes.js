@@ -285,23 +285,54 @@ router.post('/', async (req, res) => {
     const parsedJadwalId = parseInt(id_jadwal, 10);
 
     try {
-        // 1. Tentukan id_pengguna yang valid dari tabel pengguna
+        // 1. Ambil daftar penugasan pada jadwal ini (gunakan select('*') agar tidak bergantung pada nama kolom PK)
+        const { data: jadwalTugasRows } = await supabase
+            .from('jadwal_tugas')
+            .select('*')
+            .eq('id_jadwal', parsedJadwalId);
+
+        const tugasList = Array.isArray(jadwalTugasRows) ? jadwalTugasRows : [];
+
+        // 2. Tentukan id_pengguna yang valid dari tabel pengguna & jadwal_tugas
         let resolvedUserId = (id_pengguna && !isNaN(parseInt(id_pengguna, 10)))
             ? parseInt(id_pengguna, 10)
             : null;
 
         const { data: allUsers } = await supabase.from('pengguna').select('*');
+        const userList = Array.isArray(allUsers) ? allUsers : [];
 
-        if (allUsers && allUsers.length > 0) {
-            if (resolvedUserId && !allUsers.some(u => Number(u.id_pengguna) === resolvedUserId)) {
+        // Prioritaskan pencocokan terhadap pelayan yang memang terdaftar di jadwal_tugas pada jadwal ini
+        let matchedTugas = null;
+        if (resolvedUserId) {
+            matchedTugas = tugasList.find(t => Number(t.id_pengguna) === resolvedUserId);
+        }
+        if (!matchedTugas && nama) {
+            const cleanNama = nama.trim().toLowerCase();
+            matchedTugas = tugasList.find(t => {
+                const u = userList.find(usr => Number(usr.id_pengguna) === Number(t.id_pengguna));
+                return u && u.nama_lengkap && u.nama_lengkap.trim().toLowerCase() === cleanNama;
+            });
+        }
+        if (!matchedTugas && email) {
+            const cleanEmail = email.trim().toLowerCase();
+            matchedTugas = tugasList.find(t => {
+                const u = userList.find(usr => Number(usr.id_pengguna) === Number(t.id_pengguna));
+                return u && u.email && u.email.trim().toLowerCase() === cleanEmail;
+            });
+        }
+
+        if (matchedTugas) {
+            resolvedUserId = Number(matchedTugas.id_pengguna);
+        } else if (userList.length > 0) {
+            if (resolvedUserId && !userList.some(u => Number(u.id_pengguna) === resolvedUserId)) {
                 resolvedUserId = null;
             }
             if (!resolvedUserId && email) {
-                const byEmail = allUsers.find(u => u.email && u.email.trim().toLowerCase() === email.trim().toLowerCase());
+                const byEmail = userList.find(u => u.email && u.email.trim().toLowerCase() === email.trim().toLowerCase());
                 if (byEmail) resolvedUserId = Number(byEmail.id_pengguna);
             }
             if (!resolvedUserId && nama) {
-                const byName = allUsers.find(u => u.nama_lengkap && u.nama_lengkap.trim().toLowerCase() === nama.trim().toLowerCase());
+                const byName = userList.find(u => u.nama_lengkap && u.nama_lengkap.trim().toLowerCase() === nama.trim().toLowerCase());
                 if (byName) resolvedUserId = Number(byName.id_pengguna);
             }
         }
@@ -313,14 +344,12 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // 2. Pastikan pengguna memang terjadwal bertugas pada jadwal ini (tabel jadwal_tugas)
-        const { data: tugasRows } = await supabase
-            .from('jadwal_tugas')
-            .select('id_tugas, id_pengguna')
-            .eq('id_jadwal', parsedJadwalId)
-            .eq('id_pengguna', resolvedUserId);
+        // Pastikan pengguna memang terjadwal bertugas pada jadwal ini
+        const isAssignedInJadwal = Boolean(
+            matchedTugas || tugasList.some(t => Number(t.id_pengguna) === Number(resolvedUserId))
+        );
 
-        if (!tugasRows || tugasRows.length === 0) {
+        if (!isAssignedInJadwal) {
             return res.status(403).json({
                 success: false,
                 message: 'Hanya pelayan yang terdaftar bertugas pada jadwal ini yang dapat mengirim pesan berhalangan.'
@@ -424,7 +453,7 @@ router.put('/:id/balas', async (req, res) => {
             // Pastikan pelayan memang terdaftar bertugas di jadwal ini
             const { data: tugasRows } = await supabase
                 .from('jadwal_tugas')
-                .select('id_tugas')
+                .select('*')
                 .eq('id_jadwal', threadJadwalId)
                 .eq('id_pengguna', threadPenggunaId);
 
