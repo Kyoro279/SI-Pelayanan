@@ -25,6 +25,17 @@
     color: var(--text-muted);
 }
 
+.welcome-text .role-text span {
+    font-weight: 700;
+}
+
+.role-admin { color: #5BC0DE; }
+.role-servant { color: #5CB85C; }
+.role-worshipplanner { color: #F07A5D; }
+.role-worshipleader { color: #F0AD4E; }
+.role-musicdirector { color: #9B59B6; }
+.role-guest { color: #95A5A6; }
+
 .notification-icon {
     position: relative;
     width: 50px;

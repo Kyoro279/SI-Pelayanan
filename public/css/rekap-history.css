@@ -1,5 +1,6 @@
-/* --- Rekap History Styles --- */
+/*styling halaman rekap history*/
 
+/*bagian header halaman: judul di kiri dan pemilih bulan di kanan*/
 .rekap-header {
     display: flex;
     justify-content: space-between;
@@ -19,6 +20,7 @@
     color: var(--text-muted);
 }
 
+/*komponen navigasi pemilih bulan*/
 .month-selector {
     display: flex;
     align-items: center;
@@ -53,6 +55,7 @@
     text-align: center;
 }
 
+/*grid tiga kartu ringkasan statistik di bagian atas*/
 .summary-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -80,10 +83,10 @@
 }
 
 .summary-value.highlight {
-    color: #0EA5E9; /* Light blue color for 'Sisa jadwal' */
+    color: #0EA5E9; /*warna biru muda untuk angka sisa jadwal*/
 }
 
-/* Section Cards */
+/*kotak pembungkus bagian daftar jadwal dan progress penatalayan*/
 .section-card {
     background-color: #fff;
     border-radius: 16px;
@@ -105,7 +108,7 @@
     margin-bottom: 20px;
 }
 
-/* Status Jadwal List */
+/*daftar status jadwal pelayanan*/
 .jadwal-list {
     display: flex;
     flex-direction: column;
@@ -133,6 +136,7 @@
     color: var(--text-muted);
 }
 
+/*badge penanda jadwal sudah selesai atau akan datang*/
 .status-badge {
     padding: 6px 12px;
     border-radius: 20px;
@@ -153,7 +157,7 @@
     color: #0284C7;
 }
 
-/* Progres List */
+/*daftar progress bar tugas untuk masing-masing penatalayan*/
 .progres-list {
     display: flex;
     flex-direction: column;

@@ -5,53 +5,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rekap History - KITTEENS HUB</title>
-    <!--panggil font inter dari mbah Google-->
+    <!--import font inter dari google fonts-->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!--css andalan kita-->
+    <!--panggil file css global dan css khusus halaman rekap history-->
     <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/rekap-history.css">
-    
-    <!--icon Phosphor-->
+    <!--library phosphor icons-->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!--jangan lupa Supabase buat narik data API-->
+    <!--library supabase untuk pengecekan sesi login-->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<!--data-active="history" biar di menu sebelah kiri (sidebar) yang nyala itu menu History-->
+<!--data-active="history" untuk menandai menu rekap history yang aktif di sidebar-->
 <body data-active="history" style="display: none;">
-    <!--satpam depan pintu: ngecek login-->
+    <!--cek status login user sebelum menampilkan halaman-->
     <script src="/js/checkAuth.js"></script>
     <script>
+        //simpan promise autentikasi agar ditunggu oleh rekap-history.js
         window.authReady = window.initAndCheckAuth();
     </script>
 
+    <!--pembungkus layout utama (sidebar kiri dan konten kanan)-->
     <div class="layout">
-        <!--wadah buat numpangin Sidebar HTML dari layout.js-->
+        <!--wadah tempat komponen sidebar dimuat oleh layout.js-->
         <div id="sidebar-container"></div>
 
-        <!--bagian utama halaman-->
+        <!--area konten utama halaman rekap history-->
         <main class="main-content">
-            <!--header halaman-->
+            <!--bagian header halaman: judul dan tombol navigasi pemilih bulan-->
             <div class="rekap-header">
                 <div class="header-text">
                     <h1>Rekap History</h1>
                     <p>Rekap bulanan dan progres pelayanan yang sudah berjalan vs tersisa.</p>
                 </div>
-                
-                <!--pilihan bulan di pojok kanan atas-->
+
+                <!--navigasi untuk berpindah ke bulan sebelumnya atau selanjutnya-->
                 <div class="month-selector">
-                    <!--tombol mundur sebulan-->
                     <button id="btnPrevMonth"><i class="ph-bold ph-caret-left"></i></button>
-                    <!--label bulan yang aktif saat ini-->
                     <span id="currentMonthLabel">September 2026</span>
-                    <!--tombol maju sebulan-->
                     <button id="btnNextMonth"><i class="ph-bold ph-caret-right"></i></button>
                 </div>
             </div>
 
-            <!--tiga kotak statistik di atas (summary cards)-->
+            <!--tiga kartu ringkasan jumlah jadwal bulan ini (total, selesai, dan sisa)-->
             <div class="summary-cards">
                 <div class="summary-card">
                     <div class="summary-title">Total jadwal bulan ini</div>
@@ -67,32 +63,26 @@
                 </div>
             </div>
 
-            <!--bagian kiri: status jadwal per hari-->
+            <!--bagian daftar status setiap jadwal pelayanan pada bulan yang dipilih-->
             <div class="section-card">
-                <!--label bulannya ikut keganti sesuai tombol di atas-->
                 <h2 class="section-title">Status Jadwal (<span id="statusMonthLabel">September 2026</span>)</h2>
-                <!--daftar jadwalnya bakal dilooping dan di-inject sama rekap-history.js di sini-->
-                <div class="jadwal-list" id="jadwalList">
-                    <!--dinamis dari JS-->
-                </div>
+                <!--daftar jadwal dirender secara dinamis oleh rekap-history.js-->
+                <div class="jadwal-list" id="jadwalList"></div>
             </div>
 
-            <!--bagian bawah: progress bar tiap pelayan-->
+            <!--bagian daftar progress bar tugas pelayanan untuk setiap penatalayan-->
             <div class="section-card">
                 <h2 class="section-title">Progres per Penatalayan</h2>
                 <p class="section-subtitle">Berapa tugas yang sudah dijalani dan berapa yang masih tersisa bulan ini.</p>
-                <!--baris-baris nama pelayan sama progress barnya masuk ke div ini-->
-                <div class="progres-list" id="progresList">
-                    <!--dinamis dari JS-->
-                </div>
+                <!--daftar progress penatalayan dirender secara dinamis oleh rekap-history.js-->
+                <div class="progres-list" id="progresList"></div>
             </div>
         </main>
     </div>
 
-    <!--skrip di akhir body biar loading pagenya nggak nyendat-->
-    <!--tukang pasang sidebar-->
+    <!--script pemuat sidebar dan logika utama halaman rekap history-->
     <script src="/js/layout.js"></script>
-    <!--otaknya halaman rekap, ngitung matematika progress dan bikin HTML-->
     <script src="/js/rekap-history.js"></script>
 </body>
+
 </html>

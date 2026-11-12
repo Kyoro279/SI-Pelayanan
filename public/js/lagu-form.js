@@ -5,19 +5,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         await window.authReady;
     }
 
-    //ambil parameter id dari URL untuk nentuin mode edit atau tambah baru
+    //ambil parameter id dari URL (kalau ada id berarti mode edit, kalau kosong berarti tambah baru)
     const urlParams = new URLSearchParams(window.location.search);
     const songId = urlParams.get('id');
-    const formMode = songId ? 'edit' : 'add';
 
     //pasang event klik pada tombol simpan
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) {
-        saveBtn.addEventListener('click', () => handleSave(songId, formMode));
+        saveBtn.addEventListener('click', () => handleSave(songId));
     }
 
-    //kalau lagi di mode edit, tarik data lagu lama buat ngisi form otomatis
-    if (formMode === 'edit') {
+    //kalau ada songId (mode edit), tarik data lagu lama buat ngisi form otomatis
+    if (songId) {
         await populateForm(songId);
     }
 });
@@ -47,37 +46,35 @@ async function populateForm(id) {
 }
 
 //fungsi buat nyimpen data lagu ke backend (baik tambah baru maupun update)
-async function handleSave(id, mode) {
+async function handleSave(id) {
     //ambil semua nilai yang diketik user dari form input
-    const judul = document.getElementById('inputJudul').value.trim();
-    const penyanyi = document.getElementById('inputPenyanyi').value.trim();
+    const judul_lagu = document.getElementById('inputJudul').value.trim();
+    const pengarang = document.getElementById('inputPenyanyi').value.trim();
     const kategori = document.getElementById('inputKategori').value;
     const nada_dasar = document.getElementById('inputNadaDasar').value.trim();
     const link_youtube = document.getElementById('inputLinkYoutube').value.trim();
-    //jangan pakai trim() di awal supaya spasi penempatan chord di baris pertama tidak hilang
-    const chord_lirik = document.getElementById('inputChordLirik').value.replace(/^\n+|\s+$/g, '');
+    //pakai trimEnd supaya spasi penempatan chord di awal baris pertama tidak ikut terhapus
+    const chord_lirik = document.getElementById('inputChordLirik').value.trimEnd();
 
     //validasi wajib: judul lagu tidak boleh kosong
-    if (!judul) {
+    if (!judul_lagu) {
         alert('Judul lagu wajib diisi!');
         return;
     }
 
     //susun objek data yang mau dikirim ke server
     const payload = {
-        judul,
-        judul_lagu: judul,
-        penyanyi,
-        pengarang: penyanyi,
+        judul_lagu,
+        pengarang,
         kategori,
         nada_dasar,
         link_youtube,
         chord_lirik
     };
 
-    //tentukan endpoint URL dan method HTTP sesuai mode form
-    const url = mode === 'edit' ? `/api/lagu/${id}` : '/api/lagu';
-    const method = mode === 'edit' ? 'PUT' : 'POST';
+    //tentukan endpoint URL dan method HTTP berdasarkan ada tidaknya id lagu
+    const url = id ? `/api/lagu/${id}` : '/api/lagu';
+    const method = id ? 'PUT' : 'POST';
 
     //nonaktifkan tombol simpan sementara supaya tidak diklik berkali-kali
     const saveBtn = document.getElementById('saveBtn');
@@ -99,7 +96,7 @@ async function handleSave(id, mode) {
         }
 
         //arahin balik ke detail lagu kalau edit, atau ke daftar bank lagu kalau tambah baru
-        window.location.href = mode === 'edit' ? `/detail-lagu?id=${id}` : '/bank-lagu';
+        window.location.href = id ? `/detail-lagu?id=${id}` : '/bank-lagu';
     } catch (err) {
         //tampilkan pesan error dan aktifkan kembali tombol simpan jika gagal
         alert(err.message);

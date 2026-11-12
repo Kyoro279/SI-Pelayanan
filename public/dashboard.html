@@ -26,9 +26,10 @@
                 const metadata = session.user.user_metadata || {};
                 const fullName = window.userData ? window.userData.nama_lengkap : (metadata.full_name || email.split('@')[0]);
                 const role = window.userData ? window.userData.role : (window.isSuperAdmin ? 'Admin' : 'Servant');
+                const roleClass = 'role-' + role.replace(/\s+/g, '').toLowerCase();
 
                 document.getElementById('header-user-name').textContent = fullName;
-                document.querySelector('.role-text').textContent = `Log in sebagai ${role}`;
+                document.querySelector('.role-text').innerHTML = `Log in sebagai <span class="${roleClass}">${role}</span>`;
 
                 const roleLower = role.toLowerCase();
                 if (roleLower === 'admin') {
@@ -71,12 +72,14 @@
                     <div class="card-title">Bank Lagu</div>
                     <div class="arrow"><i class="ph ph-arrow-right"></i></div>
                 </div>
-                <div class="quick-card" id="card-akun" onclick="window.location.href='/manajemen-akun'" style="display: none;">
+                <div class="quick-card" id="card-akun" onclick="window.location.href='/manajemen-akun'"
+                    style="display: none;">
                     <div class="icon-box"><i class="ph ph-users"></i></div>
                     <div class="card-title">Manajemen Akun</div>
                     <div class="arrow"><i class="ph ph-arrow-right"></i></div>
                 </div>
-                <div class="quick-card" id="card-berhalangan" onclick="window.location.href='/berhalangan'" style="display: none;">
+                <div class="quick-card" id="card-berhalangan" onclick="window.location.href='/berhalangan'"
+                    style="display: none;">
                     <div class="icon-box"><i class="ph ph-question"></i></div>
                     <div class="card-title">Berhalangan</div>
                     <div class="arrow"><i class="ph ph-arrow-right"></i></div>

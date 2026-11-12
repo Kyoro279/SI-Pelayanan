@@ -46,6 +46,12 @@ body {
     text-align: center;
 }
 
+.sidebar-header .logo-link {
+    text-decoration: none;
+    color: inherit;
+    display: inline-block;
+}
+
 .sidebar-header h2 {
     font-size: 24px;
     font-weight: 700;

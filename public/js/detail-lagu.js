@@ -66,13 +66,13 @@ async function handleSetlistMode(jadwalId, songIndexStr) {
         document.body.setAttribute('data-active', 'jadwal');
 
         //munculkan bar informasi setlist di bagian atas halaman
-        const setlistBar = document.getById('setlist-bar');
+        const setlistBar = document.getElementById('setlist-bar');
         if (setlistBar) setlistBar.style.display = 'flex';
 
         //isi nama jadwal dan tanggal pelayanan pada bar setlist
         const setlistTitle = document.getElementById('setlist-title');
         const setlistDate = document.getElementById('setlist-date');
-        if (setlistTitle) setlistTitle.textContent = data.judul || data.tema_pelayanan;
+        if (setlistTitle) setlistTitle.textContent = data.tema_kotbah || data.judul || '-';
 
         if (setlistDate && data.tanggal) {
             const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -220,18 +220,13 @@ function extractYouTubeId(url) {
     return null;
 }
 
-//fungsi bantu buat mengecek apakah sebuah kata adalah penulisan chord yang valid (contoh: C, Em, D/F#, Dsus4, C/G)
-function isChordToken(word) {
-    return /^[A-G][#b]?(m|maj|min|dim|aug|sus|add|[0-9])*(\/[A-G][#b]?)?$/.test(word);
-}
-
-//fungsi bantu buat mengecek apakah satu baris hanya berisi kumpulan chord dan spasi
+//fungsi bantu buat mengecek apakah satu baris hanya berisi kumpulan chord (contoh: "C G D/F# Em")
 function isChordLine(line) {
-    //kalau ada kurung siku berarti itu judul section seperti [Intro] atau format kurung lama
     if (line.includes('[') || line.includes(']')) return false;
     const words = line.trim().split(/\s+/);
-    if (words.length === 0 || !words[0]) return false;
-    return words.every(word => isChordToken(word));
+    if (!words[0]) return false;
+    const polaChord = /^[A-G][#b]?(m|maj|min|dim|aug|sus|add|[0-9])*(\/[A-G][#b]?)?$/;
+    return words.every(word => polaChord.test(word));
 }
 
 //fungsi bantu buat mencatat setiap chord beserta posisi index spasinya di dalam satu baris chord
@@ -246,10 +241,7 @@ function getChordPositions(chordLine) {
             while (end < chordLine.length && chordLine[end] !== ' ') {
                 end++;
             }
-            list.push({
-                chord: chordLine.slice(pos, end),
-                index: pos
-            });
+            list.push({ chord: chordLine.slice(pos, end), index: pos });
             pos = end;
         }
     }
@@ -285,14 +277,10 @@ function parseLyricsToHtml(rawLyrics) {
         //cek apakah baris pertama adalah judul bagian seperti [Intro] atau [Chorus]
         const firstLine = lines[0].trim();
         if ((firstLine.startsWith('[') && firstLine.endsWith(']')) || (firstLine.startsWith('(') && firstLine.endsWith(')'))) {
-            const innerTitle = firstLine.slice(1, -1).trim();
-            //pastikan isinya nama bagian (bukan chord tunggal seperti [G])
-            if (!isChordToken(innerTitle)) {
-                sectionTitle = firstLine;
-                startIndex = 1;
-                //tambahkan ke daftar menu jump to section di sebelah kanan
-                jumpLinks += `<li><a href="#${sectionId}">${innerTitle}</a></li>`;
-            }
+            sectionTitle = firstLine;
+            startIndex = 1;
+            //tambahkan ke daftar menu jump to section di sebelah kanan
+            jumpLinks += `<li><a href="#${sectionId}">${firstLine.slice(1, -1)}</a></li>`;
         }
 
         //mulai bungkus satu bagian lirik
@@ -306,102 +294,51 @@ function parseLyricsToHtml(rawLyrics) {
             const line = lines[i].replace(/\r$/, '');
             if (!line.trim()) continue;
 
-            //kondisi 1: baris ini adalah baris chord (contoh: "C G D/F# Em" atau "          C          G")
+            //kalau baris ini adalah baris chord, pasangkan dengan baris lirik di bawahnya (jika ada)
             if (isChordLine(line)) {
                 const nextLine = (i + 1 < lines.length) ? lines[i + 1].replace(/\r$/, '') : '';
                 const nextTrim = nextLine.trim();
                 const isNextSection = (nextTrim.startsWith('[') && nextTrim.endsWith(']')) || (nextTrim.startsWith('(') && nextTrim.endsWith(')'));
-
-                //cek apakah baris di bawahnya adalah baris lirik pasangan dari baris chord ini
                 const hasLyricBelow = nextTrim !== '' && !isChordLine(nextLine) && !isNextSection;
+
+                const isChordOnly = !hasLyricBelow;
+                //samakan panjang lirik dengan baris chord supaya pemotongan index karakter pas
+                const paddedLyric = (hasLyricBelow ? nextLine : '').padEnd(line.length, ' ');
                 const chords = getChordPositions(line);
                 let htmlSegment = '';
 
-                if (hasLyricBelow) {
-                    //pasangkan posisi karakter spasi pada baris chord dengan posisi huruf pada baris lirik di bawahnya
-                    html += `<div class="lyric-line">`;
-                    const paddedLyric = nextLine.padEnd(line.length, ' ');
-
-                    //kalau ada teks lirik sebelum chord pertama muncul (contoh: "Bless the " sebelum chord C)
-                    if (chords.length > 0 && chords[0].index > 0) {
-                        const awalText = paddedLyric.slice(0, chords[0].index).replace(/ /g, '&nbsp;');
-                        htmlSegment += buatSegmen('', awalText, false);
-                    }
-
-                    //potong baris lirik tepat mengikuti posisi index masing-masing chord di atasnya
-                    chords.forEach((item, idx) => {
-                        const start = item.index;
-                        const end = (idx + 1 < chords.length) ? chords[idx + 1].index : paddedLyric.length;
-                        const sliceText = paddedLyric.slice(start, end);
-
-                        if (sliceText.trim() === '') {
-                            //kalau posisi chord berada di luar akhir teks lirik, cetak chord beserta jarak spasinya
-                            htmlSegment += buatSegmen(item.chord, '&nbsp;', false);
-                            const spaceCount = end - (start + item.chord.length);
-                            if (spaceCount > 0) {
-                                htmlSegment += buatSegmen('', '&nbsp;'.repeat(spaceCount), false);
-                            }
-                        } else {
-                            //tempatkan chord tepat di atas potongan huruf lirik yang sejajar dengan indexnya
-                            htmlSegment += buatSegmen(item.chord, sliceText.replace(/ /g, '&nbsp;'), false);
-                        }
-                    });
-
-                    html += `${htmlSegment}</div>`;
-                    //lompati baris lirik di bawahnya karena sudah digabung dengan baris chord ini
-                    i++;
-                } else {
-                    //kalau tidak ada lirik di bawahnya (seperti baris chord pada bagian [Intro]), tampilkan sebagai baris chord saja
-                    html += `<div class="lyric-line chord-only">`;
-                    let prevEnd = 0;
-
-                    chords.forEach(item => {
-                        if (item.index > prevEnd) {
-                            const spaces = '&nbsp;'.repeat(item.index - prevEnd);
-                            htmlSegment += buatSegmen('', spaces, true);
-                        }
-                        htmlSegment += buatSegmen(item.chord, '&nbsp;', true);
-                        prevEnd = item.index + item.chord.length;
-                    });
-
-                    html += `${htmlSegment}</div>`;
+                //kalau ada teks lirik atau spasi sebelum chord pertama muncul (contoh: "Bless the " sebelum chord C)
+                if (chords.length > 0 && chords[0].index > 0) {
+                    const awalText = paddedLyric.slice(0, chords[0].index).replace(/ /g, '&nbsp;');
+                    htmlSegment += buatSegmen('', awalText, isChordOnly);
                 }
-                continue;
-            }
 
-            //kondisi 2: baris lirik biasa atau format lama yang menulis chord di dalam kurung siku [C]
-            const isChordOnly = line.includes('[') && line.replace(/\[.*?\]/g, '').trim() === '';
-            const segments = line.split(/(\[.*?\])/g);
+                //potong baris lirik tepat mengikuti posisi index masing-masing chord di atasnya
+                chords.forEach((item, idx) => {
+                    const start = item.index;
+                    const end = (idx + 1 < chords.length) ? chords[idx + 1].index : paddedLyric.length;
+                    const sliceText = paddedLyric.slice(start, end);
 
-            html += `<div class="lyric-line${isChordOnly ? ' chord-only' : ''}">`;
-
-            let htmlSegment = '';
-            let currentChord = '';
-
-            //telusuri setiap potongan pada baris ini
-            segments.forEach(seg => {
-                if (!seg) return;
-
-                if (seg.startsWith('[') && seg.endsWith(']')) {
-                    if (currentChord) htmlSegment += buatSegmen(currentChord, '&nbsp;', isChordOnly);
-                    currentChord = seg.slice(1, -1);
-                } else if (seg.trim() === '') {
-                    if (currentChord) {
-                        htmlSegment += buatSegmen(currentChord, '&nbsp;', isChordOnly);
-                        currentChord = '';
+                    if (sliceText.trim() === '') {
+                        //kalau di bawah chord kosong (seperti pada intro atau ujung lirik), cetak chord beserta jarak spasinya
+                        htmlSegment += buatSegmen(item.chord, '&nbsp;', isChordOnly);
+                        const spaceCount = end - (start + item.chord.length);
+                        if (spaceCount > 0) {
+                            htmlSegment += buatSegmen('', '&nbsp;'.repeat(spaceCount), isChordOnly);
+                        }
+                    } else {
+                        //tempatkan chord tepat di atas potongan huruf lirik yang sejajar dengan indexnya
+                        htmlSegment += buatSegmen(item.chord, sliceText.replace(/ /g, '&nbsp;'), false);
                     }
-                    htmlSegment += buatSegmen('', seg.replace(/ /g, '&nbsp;'), isChordOnly);
-                } else {
-                    htmlSegment += buatSegmen(currentChord, seg.replace(/ /g, '&nbsp;'), isChordOnly);
-                    currentChord = '';
-                }
-            });
+                });
 
-            if (currentChord) {
-                htmlSegment += buatSegmen(currentChord, '&nbsp;', isChordOnly);
+                html += `<div class="lyric-line${isChordOnly ? ' chord-only' : ''}">${htmlSegment}</div>`;
+                //lompati baris lirik di bawahnya karena sudah digabung dengan baris chord ini
+                if (hasLyricBelow) i++;
+            } else {
+                //kalau baris ini hanya lirik biasa tanpa baris chord di atasnya
+                html += `<div class="lyric-line">${buatSegmen('', line.replace(/ /g, '&nbsp;'), false)}</div>`;
             }
-
-            html += `${htmlSegment}</div>`;
         }
 
         html += `</div>`;
