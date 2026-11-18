@@ -40,8 +40,99 @@ function normalizeStatusBaca(raw) {
 }
 
 /**
+ * Helper: Mengecek apakah tanggal dan jam jadwal pelayanan sudah terlewat dari waktu sekarang
+ */
+function isJadwalExpired(jadwal, now = new Date()) {
+    if (!jadwal) return true;
+    const rawDate = jadwal.tanggal_pelayanan || jadwal.tanggal || '';
+    if (!rawDate) return false;
+
+    const cleanDate = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate;
+    const parts = cleanDate.split('-');
+    if (parts.length !== 3) return false;
+
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+
+    const rawTime = jadwal.jam_pelayanan || jadwal.waktu || '23:59';
+    const timeParts = String(rawTime).split(':');
+    const hours = parseInt(timeParts[0], 10) || 0;
+    const minutes = parseInt(timeParts[1], 10) || 0;
+    const seconds = parseInt(timeParts[2], 10) || 0;
+
+    const scheduleDateTime = new Date(year, month, day, hours, minutes, seconds, 0);
+    return now.getTime() >= scheduleDateTime.getTime();
+}
+
+/**
+ * Helper: Mencari id_chat terkecil yang tersedia mulai dari 1
+ */
+async function getNextChatId() {
+    try {
+        const { data: rows } = await supabase
+            .from('chat_berhalangan')
+            .select('id_chat')
+            .order('id_chat', { ascending: true });
+
+        if (!rows || rows.length === 0) return 1;
+
+        const usedIds = new Set(rows.map(r => Number(r.id_chat)).filter(n => !isNaN(n) && n > 0));
+        let candidate = 1;
+        while (usedIds.has(candidate)) {
+            candidate++;
+        }
+        return candidate;
+    } catch (_) {
+        return 1;
+    }
+}
+
+/**
+ * Helper: Insert baris ke chat_berhalangan dengan id_chat mulai dari 1 (fallback jika kolom identity)
+ */
+async function insertChatRecord(record) {
+    const nextId = await getNextChatId();
+    const recordWithId = { id_chat: nextId, ...record };
+    let res = await supabase.from('chat_berhalangan').insert([recordWithId]).select();
+    if (res.error && (res.error.message.includes('identity') || res.error.message.includes('GENERATED ALWAYS'))) {
+        res = await supabase.from('chat_berhalangan').insert([record]).select();
+    }
+    return res;
+}
+
+/**
+ * Helper: Merapikan urutan id_chat agar selalu berurutan mulai dari 1 (1, 2, 3, ...)
+ */
+async function resequenceChatIds() {
+    try {
+        const { data: rows, error } = await supabase
+            .from('chat_berhalangan')
+            .select('id_chat')
+            .order('id_chat', { ascending: true });
+
+        if (error || !rows || rows.length === 0) return;
+
+        for (let i = 0; i < rows.length; i++) {
+            const currentId = Number(rows[i].id_chat);
+            const targetId = i + 1;
+            if (currentId !== targetId) {
+                const { error: updErr } = await supabase
+                    .from('chat_berhalangan')
+                    .update({ id_chat: targetId })
+                    .eq('id_chat', currentId);
+                if (updErr) break;
+            }
+        }
+    } catch (_) {
+        // Abaikan jika kolom id_chat tidak mengizinkan update manual
+    }
+}
+
+/**
  * Helper: Mengambil dan mengelompokkan data chat_berhalangan menjadi thread per (id_jadwal, id_pengguna)
  * sehingga setiap pesan baru tampil sebagai bubble terpisah (Opsi 1) dengan tetap menggunakan 10 atribut tabel chat_berhalangan.
+ * Kasus izin yang sudah melewati tanggal & jam jadwal disembunyikan dari frontend namun tetap tersimpan di database.
  */
 async function fetchChatsWithRelations(filters = {}) {
     // Jika hanya mencari id_chat tertentu, cari tahu dulu id_jadwal & id_pengguna dari baris tersebut
@@ -110,6 +201,11 @@ async function fetchChatsWithRelations(filters = {}) {
         const pengirim = userMap.get(Number(firstRow.id_pengguna));
         const penindaklanjut = userMap.get(Number(lastRow.id_penindaklanjut));
         const jadwal = jadwalMap.get(Number(firstRow.id_jadwal));
+
+        // Jika jadwal sudah melewati tanggal & jam pelaksanaan, lewati
+        if (isJadwalExpired(jadwal)) {
+            continue;
+        }
 
         const namaPengirim = pengirim ? (pengirim.nama_lengkap || '').trim() : 'Pelayan';
         const judulPelayanan = jadwal ? (jadwal.tema_kotbah || jadwal.judul || 'Pelayanan') : 'Pelayanan';
@@ -285,6 +381,20 @@ router.post('/', async (req, res) => {
     const parsedJadwalId = parseInt(id_jadwal, 10);
 
     try {
+        // Pastikan jadwal belum melewati tanggal dan jam pelaksanaan
+        const { data: jadwalTarget } = await supabase
+            .from('jadwal')
+            .select('*')
+            .eq('id_jadwal', parsedJadwalId)
+            .single();
+
+        if (!jadwalTarget || isJadwalExpired(jadwalTarget)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Jadwal pelayanan ini sudah melewati tanggal dan jam pelaksanaan.'
+            });
+        }
+
         // 1. Ambil daftar penugasan pada jadwal ini (gunakan select('*') agar tidak bergantung pada nama kolom PK)
         const { data: jadwalTugasRows } = await supabase
             .from('jadwal_tugas')
@@ -387,10 +497,7 @@ router.post('/', async (req, res) => {
             id_penindaklanjut: penindaklanjutId
         };
 
-        const { data: inserted, error: insErr } = await supabase
-            .from('chat_berhalangan')
-            .insert([newRecord])
-            .select();
+        const { data: inserted, error: insErr } = await insertChatRecord(newRecord);
 
         if (insErr) throw insErr;
 
@@ -476,9 +583,7 @@ router.put('/:id/balas', async (req, res) => {
                 id_penindaklanjut: latestRow.id_penindaklanjut
             };
 
-            const { error: insErr } = await supabase
-                .from('chat_berhalangan')
-                .insert([newPelayanRecord]);
+            const { error: insErr } = await insertChatRecord(newPelayanRecord);
 
             if (insErr) throw insErr;
         } else {
@@ -524,9 +629,7 @@ router.put('/:id/balas', async (req, res) => {
                     id_penindaklanjut: finalPenindaklanjut
                 };
 
-                const { error: insErr } = await supabase
-                    .from('chat_berhalangan')
-                    .insert([newWpRecord]);
+                const { error: insErr } = await insertChatRecord(newWpRecord);
 
                 if (insErr) throw insErr;
             }
@@ -590,19 +693,17 @@ router.put('/:id/selesai', async (req, res) => {
                     })
                     .eq('id_chat', current.id_chat);
             } else {
-                await supabase
-                    .from('chat_berhalangan')
-                    .insert([{
-                        id_pengguna: threadPenggunaId,
-                        id_jadwal: threadJadwalId,
-                        isi_pesan: '-',
-                        timestamp_kirim: nowStr,
-                        status_baca: 'Belum Dibaca',
-                        status_penanganan: 'Selesai',
-                        pesan_balasan: extraReply,
-                        timestamp_balas: nowStr,
-                        id_penindaklanjut: finalPenindaklanjut
-                    }]);
+                await insertChatRecord({
+                    id_pengguna: threadPenggunaId,
+                    id_jadwal: threadJadwalId,
+                    isi_pesan: '-',
+                    timestamp_kirim: nowStr,
+                    status_baca: 'Belum Dibaca',
+                    status_penanganan: 'Selesai',
+                    pesan_balasan: extraReply,
+                    timestamp_balas: nowStr,
+                    id_penindaklanjut: finalPenindaklanjut
+                });
             }
         }
 

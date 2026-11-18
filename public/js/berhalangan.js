@@ -1,6 +1,7 @@
 // public/js/berhalangan.js
 
 let allChats = [];
+let allJadwalMap = new Map();
 let currentFilter = 'semua'; // 'semua' | 'proses' | 'selesai'
 let selectedChatKey = null;  // format: `${id_jadwal}_${id_pengguna}`
 
@@ -18,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.authReady) {
         await window.authReady;
     }
-
+    
     // Proteksi Hak Akses: Halaman Berhalangan hanya untuk Worship Planner (dan Admin)
     const role = window.userData ? (window.userData.role || '').toLowerCase() : (window.isSuperAdmin ? 'admin' : 'guest');
     const canAccessBerhalangan = window.isSuperAdmin || role === 'worship planner' || role === 'wp' || role === 'admin';
@@ -29,6 +30,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initTabs();
     await loadChats();
+
+    // Cek berkala setiap 10 detik agar begitu melewati jam jadwal, kasus izin langsung terhapus otomatis
+    setInterval(() => {
+        checkAndRemoveExpiredInRealtime();
+    }, 10000);
 });
 
 function initTabs() {
@@ -43,13 +49,75 @@ function initTabs() {
     });
 }
 
+function isScheduleExpiredClient(jadwal, fallbackDateStr = '', now = new Date()) {
+    const rawDate = (jadwal && (jadwal.tanggal_pelayanan || jadwal.tanggal)) || fallbackDateStr || '';
+    if (!rawDate) return false;
+
+    const cleanDate = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate;
+    const parts = cleanDate.split('-');
+    if (parts.length !== 3) return false;
+
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+
+    const rawTime = (jadwal && (jadwal.jam_pelayanan || jadwal.waktu)) || '23:59';
+    const timeParts = String(rawTime).split(':');
+    const hours = parseInt(timeParts[0], 10) || 0;
+    const minutes = parseInt(timeParts[1], 10) || 0;
+    const seconds = parseInt(timeParts[2], 10) || 0;
+
+    const scheduleDateTime = new Date(year, month, day, hours, minutes, seconds, 0);
+    return now.getTime() >= scheduleDateTime.getTime();
+}
+
+async function checkAndRemoveExpiredInRealtime() {
+    if (!allChats || allChats.length === 0) return;
+    const now = new Date();
+    const remainingItems = [];
+
+    allChats.forEach(item => {
+        const jadwal = allJadwalMap.get(Number(item.id_jadwal));
+        const isMissingJadwal = allJadwalMap.size > 0 && !jadwal;
+        if (!isMissingJadwal && !isScheduleExpiredClient(jadwal, item.tanggal_pelayanan, now)) {
+            remainingItems.push(item);
+        }
+    });
+
+    if (remainingItems.length !== allChats.length) {
+        allChats = remainingItems;
+        renderAll();
+    }
+}
+
 async function loadChats() {
     const inboxContainer = document.getElementById('inbox-list-container');
     try {
-        const res = await fetch('/api/berhalangan');
+        const [res, resJadwal] = await Promise.all([
+            fetch('/api/berhalangan'),
+            fetch('/api/jadwal').catch(() => null)
+        ]);
         if (!res.ok) throw new Error('Gagal memuat data berhalangan');
+
+        if (resJadwal && resJadwal.ok) {
+            const jadwalJson = await resJadwal.json();
+            allJadwalMap = new Map();
+            (jadwalJson.data || []).forEach(j => {
+                allJadwalMap.set(Number(j.id_jadwal || j.id), j);
+            });
+        }
+
         const json = await res.json();
-        allChats = json.data || [];
+        const rawChats = json.data || [];
+        const now = new Date();
+
+        // Hanya tampilkan di frontend kasus izin yang belum melewati tanggal & jam jadwal (record database tetap aman)
+        allChats = rawChats.filter(item => {
+            const jadwal = allJadwalMap.get(Number(item.id_jadwal));
+            const isMissingJadwal = allJadwalMap.size > 0 && !jadwal;
+            return !isMissingJadwal && !isScheduleExpiredClient(jadwal, item.tanggal_pelayanan, now);
+        });
+
         renderAll();
     } catch (err) {
         console.error('Error loadChats:', err);

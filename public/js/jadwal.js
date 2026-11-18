@@ -77,7 +77,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     //ambil seluruh data jadwal dari server dan langsung gambarkan ke kalender serta daftar kartu
     await fetchJadwal();
+
+    // Perbarui urutan & warna kartu jadwal secara berkala setiap 15 detik jika ada jadwal yang baru melewati H+1 jam
+    setInterval(() => {
+        if (currentView === 'list') {
+            renderScheduleList();
+        }
+    }, 15000);
 });
+
+/**
+ * Mengubah tanggal dan jam jadwal menjadi objek Date lokal
+ */
+function getJadwalDateTime(item) {
+    if (!item || !item.tanggal) return null;
+    const cleanDate = item.tanggal.includes('T') ? item.tanggal.split('T')[0] : item.tanggal;
+    const parts = cleanDate.split('-');
+    if (parts.length !== 3) return null;
+
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+
+    const rawTime = item.jam_pelayanan || item.waktu || '17:00';
+    const timeParts = String(rawTime).split(':');
+    const hours = parseInt(timeParts[0], 10) || 0;
+    const minutes = parseInt(timeParts[1], 10) || 0;
+    const seconds = parseInt(timeParts[2], 10) || 0;
+
+    return new Date(year, month, day, hours, minutes, seconds, 0);
+}
+
+/**
+ * Mengecek apakah jadwal sudah melewati H+1 jam dari waktu pelaksanaannya
+ */
+function isJadwalPassedOneHour(item, now = new Date()) {
+    const dt = getJadwalDateTime(item);
+    if (!dt) return false;
+    const oneHourAfter = dt.getTime() + (60 * 60 * 1000); // H + 1 jam
+    return now.getTime() >= oneHourAfter;
+}
 
 // ==============================================================================================
 // 1. FUNGSI CEK HAK AKSES (ROLE & AUTH)
@@ -1055,14 +1094,32 @@ function renderScheduleList() {
         return;
     }
 
+    // Urutkan jadwal: jadwal yang belum melewati H+1 jam di atas (terdekat lebih dulu),
+    // sedangkan jadwal yang sudah lewat H+1 jam pindah ke paling bawah urutannya (berlaku di semua role)
+    const now = new Date();
+    displayedJadwal.sort((a, b) => {
+        const aPassed = isJadwalPassedOneHour(a, now);
+        const bPassed = isJadwalPassedOneHour(b, now);
+        if (aPassed !== bPassed) {
+            return aPassed ? 1 : -1;
+        }
+        const dtA = getJadwalDateTime(a);
+        const dtB = getJadwalDateTime(b);
+        const timeA = dtA ? dtA.getTime() : 0;
+        const timeB = dtB ? dtB.getTime() : 0;
+        return timeA - timeB;
+    });
+
     //kosongkan wadah dan mulai merender setiap kartu jadwal
     listContainer.innerHTML = '';
 
     //telusuri setiap data jadwal yang lolos seleksi filter
     displayedJadwal.forEach(item => {
-        //buat elemen pembungkus kartu jadwal
+        const isPassed = isJadwalPassedOneHour(item, now);
+
+        //buat elemen pembungkus kartu jadwal (tambahkan class 'passed' jika sudah lewat H+1 jam)
         const card = document.createElement('div');
-        card.className = 'schedule-card';
+        card.className = isPassed ? 'schedule-card passed' : 'schedule-card';
 
         //ubah format tanggal menjadi format lengkap yang enak dibaca (contoh: "Sabtu, 6 Juni 2026")
         const formattedDate = formatTanggalLengkap(item.tanggal);
@@ -1077,11 +1134,12 @@ function renderScheduleList() {
         const isEvent = item.kategori === 'Event';
         let badgeKategori = '';
         let cardBodyContent = '';
+        const passedBadgeHtml = isPassed ? ' • <span class="badge-passed">SUDAH LEWAT</span>' : '';
 
         //sesuaikan isi tubuh kartu sesuai kategorinya:
         if (isLatihan) {
             //tampilan kartu untuk latihan
-            badgeKategori = '• <span style="color:#0284c7;">LATIHAN</span>';
+            badgeKategori = `• <span style="color:${isPassed ? '#64748b' : '#0284c7'};">LATIHAN</span>`;
             cardBodyContent = `
                 <div class="info-group" style="grid-column: 1 / -1;">
                     <label>UNTUK LATIHAN IBADAH</label>
@@ -1090,7 +1148,7 @@ function renderScheduleList() {
             `;
         } else if (isEvent) {
             //tampilan kartu untuk event khusus
-            badgeKategori = '• <span style="color:#0d9488;">EVENT</span>';
+            badgeKategori = `• <span style="color:${isPassed ? '#64748b' : '#0d9488'};">EVENT</span>`;
             cardBodyContent = `
                 <div class="info-group" style="grid-column: 1 / -1;">
                     <label>TEMA EVENT</label>
@@ -1114,7 +1172,7 @@ function renderScheduleList() {
         //susun struktur isi HTML kartu jadwal
         card.innerHTML = `
             <div class="card-header">
-                <span class="card-date">${formattedDate.toUpperCase()}${timeDisplay} ${badgeKategori}</span>
+                <span class="card-date">${formattedDate.toUpperCase()}${timeDisplay} ${badgeKategori}${passedBadgeHtml}</span>
                 <button class="btn-detail" title="Lihat & Edit Jadwal">
                     <i class="ph ph-arrow-right"></i>
                 </button>

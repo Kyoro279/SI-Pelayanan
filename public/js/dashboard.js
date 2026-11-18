@@ -87,10 +87,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // waktu sekarang (tanggal dan jam saat ini)
         const now = new Date();
 
-        // hanya ambil jadwal yang belum terjadi (tanggal & jam belum lewat)
+        // hanya ambil jadwal yang belum melewati H+1 jam dari jadwal pelaksanaan
         const futureJadwal = allJadwal.filter(j => {
             const dt = getScheduleDateTime(j);
-            return dt && dt >= now;
+            return dt && now.getTime() < (dt.getTime() + 60 * 60 * 1000);
         });
 
         // urutin dari jadwal yang paling dekat

@@ -656,6 +656,56 @@
     color: #dc2626;
 }
 
+/* Kartu Jadwal yang Sudah Lewat (H+1 Jam) */
+.schedule-card.passed {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+    box-shadow: none;
+}
+
+.schedule-card.passed:hover {
+    background: #dbe3ec;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.schedule-card.passed .card-date {
+    color: #64748b;
+}
+
+.schedule-card.passed .card-title {
+    color: #475569;
+}
+
+.schedule-card.passed .info-group label {
+    color: #64748b;
+}
+
+.schedule-card.passed .info-group p,
+.schedule-card.passed .info-group p.bold {
+    color: #475569;
+}
+
+.schedule-card.passed .btn-detail {
+    color: #64748b;
+}
+
+.schedule-card.passed .card-footer {
+    border-top-color: #cbd5e1;
+}
+
+.badge-passed {
+    display: inline-block;
+    background-color: #64748b;
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+    vertical-align: middle;
+}
+
 /* Loading & Empty State */
 .loading-state,
 .empty-state {

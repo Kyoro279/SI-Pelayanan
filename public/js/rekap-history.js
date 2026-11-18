@@ -72,6 +72,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         processAndRenderData(year, month);
     }
 
+    //fungsi bantu untuk mengecek apakah jadwal sudah melewati H+1 jam dari waktu pelaksanaannya
+    function isJadwalPassedOneHour(j, now = new Date()) {
+        const rawDate = j.tanggal_pelayanan || j.tanggal || '';
+        if (!rawDate) return false;
+        const cleanDate = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate;
+        const parts = cleanDate.split('-');
+        if (parts.length !== 3) return false;
+
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+
+        const rawTime = j.jam_pelayanan || j.waktu || '17:00';
+        const timeParts = String(rawTime).split(':');
+        const hours = parseInt(timeParts[0], 10) || 0;
+        const minutes = parseInt(timeParts[1], 10) || 0;
+        const seconds = parseInt(timeParts[2], 10) || 0;
+
+        const dt = new Date(year, month, day, hours, minutes, seconds, 0);
+        return now.getTime() >= (dt.getTime() + 60 * 60 * 1000);
+    }
+
     //fungsi buat menghitung statistik jadwal, merender daftar jadwal, dan merender progress penatalayan
     function processAndRenderData(year, month) {
         //saring jadwal yang berlangsung pada tahun dan bulan yang sedang dipilih
@@ -80,9 +102,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             return date.getFullYear() === year && date.getMonth() === month;
         });
 
-        //buat patokan tanggal hari ini (jam dinolkan agar perbandingan tanggal akurat)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const now = new Date();
+
+        // Urutkan agar jadwal yang sudah lewat H+1 jam pindah ke paling bawah
+        filteredJadwal.sort((a, b) => {
+            const aPassed = isJadwalPassedOneHour(a, now);
+            const bPassed = isJadwalPassedOneHour(b, now);
+            if (aPassed !== bPassed) return aPassed ? 1 : -1;
+            return new Date(a.tanggal_pelayanan || a.tanggal) - new Date(b.tanggal_pelayanan || b.tanggal);
+        });
 
         let countSelesai = 0;
         let countSisa = 0;
@@ -92,9 +120,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         //proses setiap jadwal pada bulan ini sekaligus susun HTML daftar jadwalnya dalam satu perulangan
         filteredJadwal.forEach(j => {
             const rawDate = j.tanggal_pelayanan || j.tanggal;
-            const date = new Date(rawDate);
-            //jadwal dianggap selesai apabila tanggal pelayanannya sudah lewat dari hari ini
-            const isSelesai = date < today;
+            //jadwal dianggap selesai apabila sudah melewati H+1 jam dari waktu pelaksanaannya
+            const isSelesai = isJadwalPassedOneHour(j, now);
 
             if (isSelesai) {
                 countSelesai++;

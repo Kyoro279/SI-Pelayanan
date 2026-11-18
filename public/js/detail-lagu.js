@@ -379,14 +379,21 @@ function setupInteractions(songId) {
         });
     }
 
-    //fitur scroll halus ke bagian lagu tertentu saat link di kotak jump to section diklik
+    //fitur scroll halus hanya di dalam kotak lirik ke bagian lagu tertentu saat link di kotak jump to section diklik
     document.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A' && e.target.closest('.jump-list')) {
+        const link = e.target.closest('.jump-list a');
+        if (link) {
             e.preventDefault();
-            const targetId = e.target.getAttribute('href').substring(1);
+            const targetId = link.getAttribute('href').substring(1);
             const targetElement = document.getElementById(targetId);
-            if (targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (targetElement && lyricsContainer) {
+                const containerRect = lyricsContainer.getBoundingClientRect();
+                const targetRect = targetElement.getBoundingClientRect();
+                const scrollTarget = lyricsContainer.scrollTop + (targetRect.top - containerRect.top) - 20;
+                lyricsContainer.scrollTo({
+                    top: Math.max(0, scrollTarget),
+                    behavior: 'smooth'
+                });
             }
         }
     });

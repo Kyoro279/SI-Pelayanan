@@ -142,9 +142,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     // FUNGSI MERENDER INFORMASI JADWAL & TIM PELAYANAN (KOLOM KIRI)
     // ==============================================================================================
     function renderDetail() {
-        const tgl = new Date(currentJadwal.tanggal || currentJadwal.tanggal_pelayanan);
-        const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-        detailTanggal.textContent = tgl.toLocaleDateString('id-ID', options).toUpperCase();
+        const HARI_DETAIL = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const rawDate = currentJadwal.tanggal || currentJadwal.tanggal_pelayanan || '';
+        const cleanDate = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate;
+        const parts = cleanDate.split('-');
+
+        let formattedDate = cleanDate;
+        if (parts.length === 3) {
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+            const dateObj = new Date(year, month, day);
+            formattedDate = `${HARI_DETAIL[dateObj.getDay()]}, ${day} ${BULAN_INDONESIA_IZIN[month]} ${year}`;
+        }
+
+        const rawWaktu = currentJadwal.jam_pelayanan || currentJadwal.waktu || '17:00';
+        const cleanWaktu = rawWaktu.length >= 5 ? rawWaktu.substring(0, 5) : rawWaktu;
+        const timeDisplay = cleanWaktu ? ` • ${cleanWaktu} WIB` : '';
+
+        detailTanggal.textContent = `${formattedDate.toUpperCase()}${timeDisplay}`;
 
         detailJudul.textContent = currentJadwal.tema_kotbah || currentJadwal.judul || currentJadwal.tema_pelayanan;
         detailTujuan.textContent = currentJadwal.tujuan_ringkasan || currentJadwal.tujuan || '-';
@@ -433,9 +449,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         return false;
     }
 
+    function isSchedulePassed(jadwal) {
+        if (!jadwal) return false;
+        const rawDate = jadwal.tanggal_pelayanan || jadwal.tanggal || '';
+        if (!rawDate) return false;
+
+        const cleanDate = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate;
+        const parts = cleanDate.split('-');
+        if (parts.length !== 3) return false;
+
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+
+        const rawTime = jadwal.jam_pelayanan || jadwal.waktu || '23:59';
+        const timeParts = String(rawTime).split(':');
+        const hours = parseInt(timeParts[0], 10) || 0;
+        const minutes = parseInt(timeParts[1], 10) || 0;
+        const seconds = parseInt(timeParts[2], 10) || 0;
+
+        const scheduleDateTime = new Date(year, month, day, hours, minutes, seconds, 0);
+        return new Date().getTime() >= scheduleDateTime.getTime();
+    }
+
     async function loadPesanIzin() {
         const berhalanganSection = document.getElementById('berhalangan-section');
         if (!berhalanganSection) return;
+
+        // Jika jadwal sudah melewati tanggal & jam pelaksanaan, sembunyikan bagian pesan izin di frontend (tanpa menghapus dari database)
+        if (isSchedulePassed(currentJadwal)) {
+            berhalanganSection.style.display = 'none';
+            return;
+        }
 
         const { userId: rawUserId, userName: currentUserName, userRole } = await getCurrentUserInfo();
         const currentUserId = getScheduledUserIdInJadwal(rawUserId, currentUserName);
