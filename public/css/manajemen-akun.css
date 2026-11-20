@@ -180,3 +180,45 @@
 .btn-delete:hover {
     color: #B91C1C;
 }
+
+/* --- Responsive Adaptive Mobile --- */
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 24px;
+    }
+
+    .add-account-card {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .add-account-form {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .btn-submit {
+        height: 42px;
+        width: 100%;
+    }
+
+    .search-container {
+        width: 100%;
+        margin-bottom: 16px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .account-table {
+        min-width: 580px;
+    }
+
+    .account-table th,
+    .account-table td {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+}

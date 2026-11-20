@@ -1,8 +1,25 @@
-<aside class="sidebar">
+<!-- Topbar khusus tampilan Mobile / Portrait HP -->
+<div class="mobile-topbar">
+    <button type="button" class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Buka Menu">
+        <i class="ph ph-list"></i>
+    </button>
+    <a href="/dashboard" class="mobile-logo-link">
+        KITTEENS <span class="highlight">HUB</span>
+    </a>
+    <div style="width: 38px;"></div>
+</div>
+
+<!-- Backdrop overlay saat sidebar mobile dibuka -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<aside class="sidebar" id="app-sidebar">
     <div class="sidebar-header">
         <a href="/dashboard" class="logo-link">
             <h2>KITTEENS <span class="highlight">HUB</span></h2>
         </a>
+        <button type="button" class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Tutup Menu">
+            <i class="ph ph-x"></i>
+        </button>
     </div>
 
     <nav class="sidebar-nav">

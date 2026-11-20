@@ -339,3 +339,98 @@
     color: #94a3b8;
     margin-top: 6px;
 }
+
+/* --- Responsive Adaptive Mobile & Tablet --- */
+@media (max-width: 992px) {
+    .schedule-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .top-header {
+        margin-bottom: 24px;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .welcome-text .title {
+        font-size: 22px;
+        word-break: break-word;
+    }
+
+    .welcome-text .subtitle,
+    .welcome-text .role-text {
+        font-size: 13px;
+    }
+
+    .notification-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .quick-links {
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .quick-card {
+        padding: 18px 20px;
+    }
+
+    .quick-card .arrow {
+        top: 50%;
+        right: 20px;
+        transform: translateY(-50%);
+    }
+
+    .next-service {
+        padding: 20px 18px;
+        margin-bottom: 28px;
+    }
+
+    .next-service .card-header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .service-content h2 {
+        font-size: 20px;
+    }
+
+    .service-content .desc {
+        margin-bottom: 20px;
+    }
+
+    .service-footer {
+        gap: 12px;
+        flex-wrap: wrap;
+        padding-top: 14px;
+    }
+
+    .schedule-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .schedule-card {
+        padding: 20px 18px;
+    }
+
+    .schedule-card h3 {
+        font-size: 16px;
+        margin-bottom: 14px;
+    }
+
+    .notif-modal {
+        position: fixed;
+        top: 66px;
+        left: 16px;
+        right: 16px;
+        width: auto;
+        max-height: 72vh;
+    }
+}

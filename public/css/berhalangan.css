@@ -467,7 +467,66 @@
 }
 
 @media (max-width: 900px) {
+    .berhalangan-header .page-title {
+        font-size: 24px;
+    }
+
+    .berhalangan-tabs {
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .tab-btn {
+        height: 40px;
+        font-size: 12px;
+        padding: 0 26px 0 8px;
+    }
+
+    .tab-badge {
+        right: 6px;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+
     .berhalangan-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .inbox-panel {
+        min-height: auto;
+        max-height: 260px;
+        padding: 12px;
+    }
+
+    .chat-panel {
+        min-height: 420px;
+        padding: 16px;
+    }
+
+    .chat-bubble {
+        width: auto;
+        flex: 1;
+        max-width: calc(100% - 44px);
+        padding: 12px 14px;
+    }
+
+    .reply-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .btn-cari-pengganti,
+    .btn-selesai-izin {
+        width: 100%;
+        flex: none;
+        height: 40px;
+    }
+
+    .toast-container {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
     }
 }

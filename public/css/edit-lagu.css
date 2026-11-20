@@ -111,3 +111,40 @@ select.form-control {
 .btn-save:hover {
     background-color: #22C55E;
 }
+
+/* --- Responsive Adaptive Mobile --- */
+@media (max-width: 768px) {
+    .edit-header {
+        margin-bottom: 20px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .edit-title {
+        font-size: 22px;
+    }
+
+    .btn-cancel {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
+    .edit-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .row-2 {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .textarea-lyrics {
+        height: 280px;
+        font-size: 13px;
+    }
+}

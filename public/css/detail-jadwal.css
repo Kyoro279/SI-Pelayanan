@@ -458,7 +458,97 @@
 }
 
 @media (max-width: 768px) {
+    .detail-header {
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .header-left {
+        gap: 12px;
+    }
+
+    .page-title {
+        font-size: 20px;
+    }
+
+    .page-subtitle {
+        font-size: 13px;
+    }
+
     .detail-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .card {
+        padding: 18px 16px;
+        margin-bottom: 16px;
+    }
+
+    .info-card .judul {
+        font-size: 20px;
+        margin-bottom: 18px;
+    }
+
+    .tim-row {
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 8px;
+    }
+
+    .tim-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .tim-label {
+        width: 44%;
+        flex-shrink: 0;
+        font-size: 11.5px;
+    }
+
+    .tim-value {
+        width: 56%;
+        text-align: right;
+        word-break: break-word;
+        font-size: 13.5px;
+    }
+
+    .lagu-header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .key-selector {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+
+    .select-css {
+        width: 100%;
+    }
+
+    .form-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .pesan-izin-card {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .pesan-izin-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .izin-bubble {
+        padding: 12px 14px;
     }
 }

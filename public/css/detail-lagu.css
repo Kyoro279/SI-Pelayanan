@@ -361,11 +361,80 @@
         overflow: visible;
     }
 
+    .detail-header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    #setlist-bar {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+        border-radius: 14px !important;
+        padding: 12px 14px !important;
+    }
+
+    .song-title-large {
+        font-size: 24px;
+    }
+
+    .control-bar {
+        padding: 12px 14px;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .control-left {
+        gap: 14px;
+    }
+
+    .control-value {
+        font-size: 18px;
+    }
+
+    .transpose-select {
+        font-size: 16px;
+        padding: 4px 28px 4px 10px;
+    }
+
+    .btn-toggle-chord {
+        padding: 6px 14px;
+        font-size: 12.5px;
+        gap: 8px;
+    }
+
     .content-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
 
     .lyrics-container {
-        max-height: 65vh;
+        height: auto;
+        max-height: 62vh;
+        padding: 18px 16px;
+        font-size: 14.5px;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+
+    .jump-box {
+        padding: 16px;
+    }
+
+    .jump-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .jump-list a {
+        display: inline-block;
+        background: #F1F5F9;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12.5px;
+        color: var(--primary-color);
+        font-weight: 600;
     }
 }

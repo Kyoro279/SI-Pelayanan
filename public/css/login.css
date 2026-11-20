@@ -92,3 +92,23 @@ body {
     font-size: 11px;
     color: #9ca3af;
 }
+
+/* --- Responsive Adaptive Mobile --- */
+@media (max-width: 480px) {
+    .login-container {
+        padding: 16px;
+    }
+
+    .login-card {
+        padding: 32px 22px 28px 22px;
+    }
+
+    .login-title {
+        font-size: 24px;
+    }
+
+    .google-btn {
+        font-size: 14px;
+        padding: 11px 16px;
+    }
+}

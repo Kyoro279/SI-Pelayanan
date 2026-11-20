@@ -10,13 +10,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 2. Set Menu Aktif berdasarkan URL atau Atribut Data
         setActiveMenu();
 
-        // 3. Setup Fungsi Sidebar (User info & Logout)
+        // 3. Setup Navigasi Mobile (Hamburger Drawer)
+        setupMobileSidebarToggle();
+
+        // 4. Setup Fungsi Sidebar (User info & Logout)
         setupSidebarLogic();
 
     } catch (error) {
         console.error('Error loading sidebar:', error);
     }
 });
+
+function setupMobileSidebarToggle() {
+    const sidebar = document.getElementById('app-sidebar') || document.querySelector('.sidebar');
+    const toggleBtn = document.getElementById('mobile-menu-toggle');
+    const closeBtn = document.getElementById('sidebar-close-btn');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    if (!sidebar) return;
+
+    const openSidebar = () => {
+        sidebar.classList.add('open');
+        if (overlay) overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeSidebar = () => {
+        sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    };
+
+    if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
+    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+
+    document.querySelectorAll('.sidebar-menu .menu-item').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                closeSidebar();
+            }
+        });
+    });
+}
 
 function setActiveMenu() {
     // Ambil data-active dari body untuk menentukan halaman saat ini

@@ -206,3 +206,64 @@
     border-radius: 4px;
     transition: width 0.3s ease;
 }
+
+/* --- Responsive Adaptive Mobile --- */
+@media (max-width: 768px) {
+    .rekap-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .header-text h1 {
+        font-size: 24px;
+    }
+
+    .month-selector {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .summary-cards {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .summary-card {
+        padding: 16px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .summary-title {
+        margin-bottom: 0;
+    }
+
+    .summary-value {
+        font-size: 24px;
+    }
+
+    .section-card {
+        padding: 18px 16px;
+        margin-bottom: 18px;
+    }
+
+    .jadwal-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .status-badge {
+        align-self: flex-start;
+    }
+
+    .progres-header {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+}
