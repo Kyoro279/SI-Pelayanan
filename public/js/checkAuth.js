@@ -113,18 +113,30 @@ window.initAndCheckAuth = async function (options = {}) {
             return null;
         }
 
-        // jalanin callback bawaan dari halaman (kalo ada)
-        if (typeof options.onSuccess === 'function') {
-            options.onSuccess(session);
+        // pastikan elemen HTML di dalam <body> sudah selesai di-parse oleh browser sebelum menjalankan onSuccess
+        if (document.readyState === 'loading') {
+            await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, { once: true }));
         }
 
         // nampilin halaman yg aslinya kita hide di html
-        if (options.showBody !== false) {
+        if (options.showBody !== false && document.body) {
             document.body.style.display = '';
+        }
+
+        // jalanin callback bawaan dari halaman (kalo ada)
+        if (typeof options.onSuccess === 'function') {
+            try {
+                options.onSuccess(session);
+            } catch (cbErr) {
+                console.error("Error pada callback onSuccess:", cbErr);
+            }
         }
 
         return session;
     } catch (err) {
         console.error("Gagal memuat auth:", err);
+        if (document.body) {
+            document.body.style.display = '';
+        }
     }
 };

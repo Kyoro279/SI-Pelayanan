@@ -28,14 +28,19 @@
                 const role = window.userData ? window.userData.role : (window.isSuperAdmin ? 'Admin' : 'Servant');
                 const roleClass = 'role-' + role.replace(/\s+/g, '').toLowerCase();
 
-                document.getElementById('header-user-name').textContent = fullName;
-                document.querySelector('.role-text').innerHTML = `Log in sebagai <span class="${roleClass}">${role}</span>`;
+                const headerNameEl = document.getElementById('header-user-name');
+                if (headerNameEl) headerNameEl.textContent = fullName;
+
+                const roleTextEl = document.querySelector('.role-text');
+                if (roleTextEl) roleTextEl.innerHTML = `Log in sebagai <span class="${roleClass}">${role}</span>`;
 
                 const roleLower = role.toLowerCase();
                 if (roleLower === 'admin') {
-                    document.getElementById('card-akun').style.display = 'flex';
+                    const cardAkunEl = document.getElementById('card-akun');
+                    if (cardAkunEl) cardAkunEl.style.display = 'flex';
                 } else if (roleLower === 'worship planner' || roleLower === 'wp') {
-                    document.getElementById('card-berhalangan').style.display = 'flex';
+                    const cardBerhalanganEl = document.getElementById('card-berhalangan');
+                    if (cardBerhalanganEl) cardBerhalanganEl.style.display = 'flex';
                 }
             }
         });

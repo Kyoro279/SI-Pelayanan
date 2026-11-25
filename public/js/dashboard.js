@@ -128,7 +128,7 @@ function renderTopChartsLast3Months(schedules) {
         periodBadgeEl.textContent = `${startLabel} – ${endLabel}`;
     }
 
-    // Saring jadwal yang berada dalam rentang 3 bulan terakhir
+    // Saring jadwal yang tangganya ada di dalam rentang 3 bulan terakhir
     const schedulesIn3Months = (schedules || []).filter(j => {
         const dt = getScheduleDateTime(j);
         return dt && dt >= startWindow && dt <= endWindow;
@@ -172,12 +172,14 @@ function renderTopChartsLast3Months(schedules) {
             j.daftar_lagu.forEach(s => addSongCount(s));
         }
     });
-
+    // mengubah hasil itungan dari Map menjadi daftar array biasa. 
     const top3Servants = Array.from(servantCounts.values())
+        // sort dari angka count terbesar ke terkecil dan mengambil 3 teratas.
         .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'id'))
         .slice(0, 3);
 
     const top3Songs = Array.from(songCounts.values())
+        // sort dari angka count banyak lagu dari terbesar ke terkecil dan ambil 3 terbanyak.
         .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'id'))
         .slice(0, 3);
 
