@@ -1,11 +1,25 @@
 // script buat ngecek auth sama role user
 // dipanggil di setiap halaman selain login biar aman
 
+const CONFIG_CACHE_KEY = 'kitteens_app_config_v1';
+const USER_CACHE_KEY = 'kitteens_user_data_v1';
+
 window.initAndCheckAuth = async function (options = {}) {
     try {
-        // narik config supabase sama list superadmin dari backend
-        const respons = await fetch('/api/config');
-        const config = await respons.json();
+        // 1. ambil config supabase dari cache sessionStorage dulu supaya pindah halaman instan (tidak nunggu network)
+        let config = null;
+        try {
+            const cachedConfig = sessionStorage.getItem(CONFIG_CACHE_KEY);
+            if (cachedConfig) config = JSON.parse(cachedConfig);
+        } catch (_) { }
+
+        if (!config || !config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
+            const respons = await fetch('/api/config');
+            config = await respons.json();
+            try {
+                sessionStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify(config));
+            } catch (_) { }
+        }
 
         // bikin client supabase global biar ga perlu bikin ulang di file lain
         window.supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
@@ -16,6 +30,7 @@ window.initAndCheckAuth = async function (options = {}) {
 
         // kalo belum login atau expired, tendang balik ke awal
         if (!session) {
+            try { sessionStorage.removeItem(USER_CACHE_KEY); } catch (_) { }
             window.location.href = '/';
             return null;
         }
@@ -29,55 +44,73 @@ window.initAndCheckAuth = async function (options = {}) {
         window.isSuperAdmin = isSuperAdmin;
         window.userData = null;
 
-        // cek emailnya di db pengguna (baik user biasa maupun super admin agar mendapat id_pengguna & nama_lengkap)
+        // 2. cek apakah data profil user untuk email ini sudah ada di sessionStorage
+        let cachedUser = null;
         try {
-            // nembak api backend buat ngecek email dan otentikasi login
-            const resCheck = await fetch('/api/akun/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email })
-            });
+            const rawUserCache = sessionStorage.getItem(USER_CACHE_KEY);
+            if (rawUserCache) {
+                const parsed = JSON.parse(rawUserCache);
+                if (parsed && parsed.email === email) {
+                    cachedUser = parsed;
+                }
+            }
+        } catch (_) { }
 
-            if (resCheck.ok) {
-                // kalo ketemu, simpen data usernya (termasuk untuk super admin)
-                const checkData = await resCheck.json();
-                window.userData = {
-                    ...checkData,
-                    email: email
-                };
-            } else if (!isSuperAdmin) {
-                // kalo bukan super admin dan api ngembaliin error (misal ga ketemu), paksa logout
-                const errorResponse = await resCheck.json().catch(() => ({}));
-                const errorMessage = errorResponse.error || 'unauthorized';
-                await supabase.auth.signOut();
-                window.location.href = `/?error=${encodeURIComponent(errorMessage)}`;
-                return null;
-            } else {
-                // fallback jika super admin belum tercatat di tabel pengguna
-                const metadata = session.user.user_metadata || {};
-                window.userData = {
-                    id_pengguna: null,
-                    nama_lengkap: metadata.full_name || email.split('@')[0],
-                    email: email,
-                    role: 'Admin'
-                };
-            }
+        if (cachedUser) {
+            window.userData = cachedUser;
+        } else {
+            // cek emailnya di db pengguna (hanya saat pertama kali login / cache belum ada)
+            try {
+                const resCheck = await fetch('/api/akun/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
 
-            // kalo page ini butuh role admin tapi yg login bukan admin, kirim ke dashboard
-            if (!isSuperAdmin && options.requireAdmin && window.userData && window.userData.role !== 'Admin') {
-                alert('Akses Ditolak: Halaman ini hanya untuk Admin.');
-                window.location.href = '/dashboard';
-                return null;
+                if (resCheck.ok) {
+                    const checkData = await resCheck.json();
+                    window.userData = {
+                        ...checkData,
+                        email: email
+                    };
+                    try {
+                        sessionStorage.setItem(USER_CACHE_KEY, JSON.stringify(window.userData));
+                    } catch (_) { }
+                } else if (!isSuperAdmin) {
+                    const errorResponse = await resCheck.json().catch(() => ({}));
+                    const errorMessage = errorResponse.error || 'unauthorized';
+                    try { sessionStorage.removeItem(USER_CACHE_KEY); } catch (_) { }
+                    await supabase.auth.signOut();
+                    window.location.href = `/?error=${encodeURIComponent(errorMessage)}`;
+                    return null;
+                } else {
+                    const metadata = session.user.user_metadata || {};
+                    window.userData = {
+                        id_pengguna: null,
+                        nama_lengkap: metadata.full_name || email.split('@')[0],
+                        email: email,
+                        role: 'Admin'
+                    };
+                    try {
+                        sessionStorage.setItem(USER_CACHE_KEY, JSON.stringify(window.userData));
+                    } catch (_) { }
+                }
+            } catch (errDb) {
+                if (!isSuperAdmin) {
+                    await supabase.auth.signOut();
+                    window.location.href = '/?error=unauthorized';
+                    return null;
+                }
             }
-        } catch (errDb) {
-            if (!isSuperAdmin) {
-                // kalo ada error sistem (koneksi dsb)
-                await supabase.auth.signOut();
-                window.location.href = '/?error=unauthorized';
-                return null;
-            }
+        }
+
+        // kalo page ini butuh role admin tapi yg login bukan admin, kirim ke dashboard
+        if (!isSuperAdmin && options.requireAdmin && window.userData && window.userData.role !== 'Admin') {
+            alert('Akses Ditolak: Halaman ini hanya untuk Admin.');
+            window.location.href = '/dashboard';
+            return null;
         }
 
         // jalanin callback bawaan dari halaman (kalo ada)

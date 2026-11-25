@@ -10,7 +10,7 @@ async function setupLogin() {
         // kalo misal .env kosong atau typo, stop prosesnya
         if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
             alert("Kunci Supabase belum terhubung! Cek file .env Anda.");
-            return; 
+            return;
         }
 
         // inisialisasi client supabase pake kunci tadi
@@ -18,7 +18,7 @@ async function setupLogin() {
 
         const urlParams = new URLSearchParams(window.location.search);
         const errorParam = urlParams.get('error');
-        
+
         if (errorParam) {
             // munculin teks error merah
             const errorMsg = document.getElementById('error-msg');
@@ -26,22 +26,22 @@ async function setupLogin() {
                 if (errorParam !== 'unauthorized') {
                     errorMsg.innerText = errorParam; // Menampilkan pesan error spesifik
                 }
-                errorMsg.style.display = 'block'; 
+                errorMsg.style.display = 'block';
             }
-            
+
             // bersihin url bar biar ga keliatan kotor
             window.history.replaceState({}, document.title, "/");
         }
 
         // pasang aksi klik di tombol google
         const btnLogin = document.getElementById('btn-login-google');
-        
+
         if (btnLogin) {
             btnLogin.addEventListener('click', async () => {
-                
+
                 // panggil oauth supabase buat buka popup halaman resmi google
                 const { error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google', 
+                    provider: 'google',
                     options: {
                         // kalo sukses, lempar user ke halaman dashboard sesuai domain yang sedang dibuka (localhost atau vercel)
                         redirectTo: `${window.location.origin}/dashboard`

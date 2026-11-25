@@ -1,10 +1,22 @@
+const SIDEBAR_CACHE_KEY = 'kitteens_sidebar_html_v2';
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Fetch dan Inject Sidebar
+    // 1. Fetch dan Inject Sidebar (gunakan cache sessionStorage agar pindah halaman tidak kedip/lambat)
     try {
-        const response = await fetch('/components/sidebar.html');
-        if (!response.ok) throw new Error('Gagal memuat sidebar');
-        
-        const sidebarHTML = await response.text();
+        let sidebarHTML = null;
+        try {
+            sidebarHTML = sessionStorage.getItem(SIDEBAR_CACHE_KEY);
+        } catch (_) { }
+
+        if (!sidebarHTML) {
+            const response = await fetch('/components/sidebar.html');
+            if (!response.ok) throw new Error('Gagal memuat sidebar');
+            sidebarHTML = await response.text();
+            try {
+                sessionStorage.setItem(SIDEBAR_CACHE_KEY, sidebarHTML);
+            } catch (_) { }
+        }
+
         document.getElementById('sidebar-container').innerHTML = sidebarHTML;
         
         // 2. Set Menu Aktif berdasarkan URL atau Atribut Data
@@ -120,6 +132,10 @@ async function setupSidebarLogic() {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
+            try {
+                sessionStorage.removeItem('kitteens_user_data_v1');
+                sessionStorage.removeItem(SIDEBAR_CACHE_KEY);
+            } catch (_) { }
             const { error } = await supabase.auth.signOut();
             if (error) {
                 alert('Gagal logout: ' + error.message);

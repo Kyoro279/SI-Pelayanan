@@ -68,7 +68,7 @@ function formatScheduleOutput(record, tim_pelayanan = {}, tim_pelayanan_id = {},
 
 // mengambil jadwal lengkap beserta relasi jadwal_tugas dan jadwal_lagu dari Supabase
 async function fetchSchedulesFromDb(singleId = null) {
-    // 1. Ambil data baris jadwal dari tabel 'jadwal'
+    // 1. Jalankan query jadwal dan master pengguna secara paralel
     let jadwalQuery = supabase.from('jadwal').select('*');
     if (singleId) {
         jadwalQuery = jadwalQuery.eq('id_jadwal', parseInt(singleId));
@@ -76,52 +76,40 @@ async function fetchSchedulesFromDb(singleId = null) {
         jadwalQuery = jadwalQuery.order('tanggal_pelayanan', { ascending: true });
     }
 
-    const { data: jadwalRows, error: jErr } = await jadwalQuery;
+    const [
+        { data: jadwalRows, error: jErr },
+        { data: usersRows }
+    ] = await Promise.all([
+        jadwalQuery,
+        supabase.from('pengguna').select('*')
+    ]);
+
     if (jErr) throw jErr;
     if (!jadwalRows || jadwalRows.length === 0) return singleId ? null : [];
 
-    // 2. Ambil master data pengguna untuk mencocokkan id_pengguna -> nama_lengkap
-    const { data: usersRows } = await supabase.from('pengguna').select('*');
     const userMap = new Map();
     (usersRows || []).forEach(u => userMap.set(u.id_pengguna, u));
 
-    // 3. Ambil data tim penugasan (jadwal_tugas)
+    // 2. Ambil data tim penugasan (jadwal_tugas), daftar lagu per jadwal (jadwal_lagu), dan master lagu secara paralel
     const scheduleIds = jadwalRows.map(j => j.id_jadwal);
     let tugasRows = [];
-    try {
-        const { data: tugasData, error: tErr } = await supabase
-            .from('jadwal_tugas')
-            .select('*')
-            .in('id_jadwal', scheduleIds);
-        if (!tErr && tugasData) tugasRows = tugasData;
-    } catch (e) {
-        console.warn('[Jadwal API] Warning fetch jadwal_tugas:', e.message);
-    }
-
-    // 4. Ambil data lagu per jadwal (jadwal_lagu)
     let jadwalLaguRows = [];
-    let songMap = new Map();
+    const songMap = new Map();
+
     try {
-        const { data: jlData, error: jlErr } = await supabase
-            .from('jadwal_lagu')
-            .select('*')
-            .in('id_jadwal', scheduleIds)
-            .order('urutan', { ascending: true });
-        if (!jlErr && jlData) {
-            jadwalLaguRows = jlData;
-            const songIds = jlData.map(item => item.id_lagu).filter(Boolean);
-            if (songIds.length > 0) {
-                const { data: masterLagu, error: laguErr } = await supabase
-                    .from('lagu')
-                    .select('*')
-                    .in('id_lagu', songIds);
-                if (!laguErr && masterLagu) {
-                    masterLagu.forEach(s => songMap.set(s.id_lagu, s));
-                }
-            }
+        const [tugasRes, jlRes, laguRes] = await Promise.all([
+            supabase.from('jadwal_tugas').select('*').in('id_jadwal', scheduleIds),
+            supabase.from('jadwal_lagu').select('*').in('id_jadwal', scheduleIds).order('urutan', { ascending: true }),
+            supabase.from('lagu').select('*')
+        ]);
+
+        if (!tugasRes.error && tugasRes.data) tugasRows = tugasRes.data;
+        if (!jlRes.error && jlRes.data) jadwalLaguRows = jlRes.data;
+        if (!laguRes.error && laguRes.data) {
+            laguRes.data.forEach(s => songMap.set(s.id_lagu, s));
         }
     } catch (e) {
-        console.warn('[Jadwal API] Warning fetch jadwal_lagu:', e.message);
+        console.warn('[Jadwal API] Warning fetch relations:', e.message);
     }
 
     // 5. Gabungkan menjadi objek jadwal lengkap
