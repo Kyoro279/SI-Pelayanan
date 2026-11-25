@@ -86,20 +86,68 @@
                 </div>
             </section>
 
-            <!-- Pelayanan Berikutnya -->
-            <section class="next-service">
-                <div class="card-header">
-                    <span class="label">PELAYANAN BERIKUTNYA</span>
-                    <button class="btn-detail" onclick="window.location.href='/jadwal'">Detail →</button>
+            <!-- Bagian Tengah: Terbagi 2 (Kiri: Grafik Top 3 dalam 3 Bulan Terakhir, Kanan: Pelayanan Berikutnya) -->
+            <section class="dashboard-middle-grid">
+                <!-- Kolom Kiri: Grafik Bar Chart Tegak Lurus (Top 3 Servant & Top 3 Lagu) -->
+                <div class="analytics-card">
+                    <div class="analytics-header">
+                        <div>
+                            <span class="analytics-label">STATISTIK 3 BULAN TERAKHIR</span>
+                            <h2 class="analytics-title">Top 3 Pelayan &amp; Lagu</h2>
+                        </div>
+                        <span class="analytics-period-badge" id="chart-period-label">3 Bulan Terakhir</span>
+                    </div>
+
+                    <div class="charts-dual-grid">
+                        <!-- Grafik 1: Top 3 Servant Aktif -->
+                        <div class="chart-box">
+                            <div class="chart-box-header">
+                                <div class="chart-box-icon servant-icon">
+                                    <i class="ph-fill ph-users-three"></i>
+                                </div>
+                                <div>
+                                    <h3>Top 3 Servant Aktif</h3>
+                                    <p>Frekuensi bertugas pelayanan</p>
+                                </div>
+                            </div>
+                            <div class="vbar-chart-area" id="chart-top-servants">
+                                <div class="chart-empty">Memuat grafik...</div>
+                            </div>
+                        </div>
+
+                        <!-- Grafik 2: Top 3 Lagu Sering Digunakan -->
+                        <div class="chart-box">
+                            <div class="chart-box-header">
+                                <div class="chart-box-icon song-icon">
+                                    <i class="ph-fill ph-music-notes"></i>
+                                </div>
+                                <div>
+                                    <h3>Top 3 Lagu Terpopuler</h3>
+                                    <p>Frekuensi lagu dibawakan</p>
+                                </div>
+                            </div>
+                            <div class="vbar-chart-area" id="chart-top-songs">
+                                <div class="chart-empty">Memuat grafik...</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="service-content">
-                    <h2>Memuat...</h2>
-                    <p class="date">-</p>
-                    <p class="desc">Sedang memuat data...</p>
+
+                <!-- Kolom Kanan: Pelayanan Berikutnya (Jadwal Pelayanan Terdekat) -->
+                <div class="next-service">
+                    <div class="card-header">
+                        <span class="label">PELAYANAN BERIKUTNYA</span>
+                        <button class="btn-detail" onclick="window.location.href='/jadwal'">Detail →</button>
+                    </div>
+                    <div class="service-content">
+                        <h2>Memuat...</h2>
+                        <p class="date">-</p>
+                        <p class="desc">Sedang memuat data...</p>
+                    </div>
                 </div>
             </section>
 
-            <!-- Jadwal Mendatang -->
+            <!-- Bagian Bawah: Jadwal Mendatang -->
             <section class="upcoming-schedule">
                 <div class="section-header">
                     <h2>Jadwal Mendatang</h2>

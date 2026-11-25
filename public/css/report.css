@@ -1,0 +1,565 @@
+/* ======================================================
+   KITTEENS HUB - Halaman Report CSS
+   ====================================================== */
+
+/* --- Header Halaman --- */
+.report-header {
+    margin-bottom: 22px;
+}
+
+.report-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary-color, #0A3654);
+    margin-bottom: 6px;
+}
+
+.report-subtitle {
+    font-size: 14px;
+    color: var(--text-muted, #64748B);
+}
+
+/* --- Tab Navigasi (Pelayanan | Lagu) --- */
+.report-tabs {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    border-bottom: 1px solid #D8E2EC;
+    margin-bottom: 20px;
+}
+
+.report-tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2.5px solid transparent;
+    padding: 8px 4px 12px 4px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    color: #64748B;
+    cursor: pointer;
+    margin-bottom: -1px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.report-tab-btn:hover {
+    color: var(--primary-color, #0A3654);
+}
+
+.report-tab-btn.active {
+    color: var(--primary-color, #0A3654);
+    font-weight: 700;
+    border-bottom-color: var(--primary-color, #0A3654);
+}
+
+/* --- Kartu Filter Periode Report --- */
+.report-filter-card {
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color, #E2E8F0);
+    border-radius: 14px;
+    padding: 18px 22px 14px 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.filter-controls-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748B;
+    margin-bottom: 6px;
+}
+
+/* Segmented Mode Toggle (Rentang tanggal | Tahunan) */
+.filter-group-mode {
+    display: flex;
+    flex-direction: column;
+}
+
+.mode-segmented {
+    display: inline-flex;
+    background-color: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 3px;
+    gap: 3px;
+}
+
+.mode-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    padding: 7px 16px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748B;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.mode-btn:hover {
+    color: #0F2942;
+}
+
+.mode-btn.active {
+    background-color: #FFFFFF;
+    border-color: #CBD5E1;
+    color: #0F2942;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Input Tanggal (Rentang Tanggal) */
+.filter-group-dates {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex: 1;
+}
+
+.date-input-field {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 155px;
+    max-width: 220px;
+}
+
+.report-date-input {
+    height: 38px;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #0F2942;
+    background-color: #FFFFFF;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.report-date-input:focus {
+    border-color: var(--primary-light, #2574A9);
+}
+
+/* Input Tahun (Tahunan) */
+.filter-group-year {
+    display: flex;
+    align-items: flex-end;
+    flex: 1;
+}
+
+.year-input-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.year-select-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.report-year-select {
+    height: 38px;
+    min-width: 170px;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 0 32px 0 12px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #0F2942;
+    background-color: #FFFFFF;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748B%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+}
+
+.report-year-select:focus {
+    border-color: var(--primary-light, #2574A9);
+}
+
+.year-range-hint {
+    font-size: 13px;
+    color: #64748B;
+    white-space: nowrap;
+}
+
+/* Tombol Tampilkan Report */
+.filter-action-col {
+    display: flex;
+    align-items: flex-end;
+}
+
+.btn-tampilkan-report {
+    height: 38px;
+    background-color: var(--primary-color, #0A3654);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 0 22px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-tampilkan-report:hover {
+    background-color: #07263C;
+}
+
+.btn-tampilkan-report:active {
+    transform: translateY(1px);
+}
+
+.active-period-text {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #64748B;
+}
+
+/* --- 3 Kartu Statistik Ringkasan --- */
+.report-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.report-stat-card {
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color, #E2E8F0);
+    border-radius: 12px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.015);
+}
+
+.stat-number {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--primary-color, #0A3654);
+    line-height: 1.1;
+}
+
+.stat-label {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #64748B;
+}
+
+/* --- Kartu Tabel Rekap --- */
+.report-table-card {
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color, #E2E8F0);
+    border-radius: 14px;
+    padding: 22px 24px 18px 24px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.table-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.table-card-title-group h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--primary-color, #0A3654);
+    margin-bottom: 4px;
+}
+
+.table-card-title-group p {
+    font-size: 12.5px;
+    color: #64748B;
+}
+
+.table-search-box {
+    width: 240px;
+}
+
+.table-search-box input {
+    width: 100%;
+    height: 36px;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-family: inherit;
+    font-size: 13px;
+    color: #0F2942;
+    background-color: #FFFFFF;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.table-search-box input::placeholder {
+    color: #94A3B8;
+}
+
+.table-search-box input:focus {
+    border-color: var(--primary-light, #2574A9);
+}
+
+/* --- Tabel Data Report --- */
+.report-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pelayanan-table {
+    min-width: 780px;
+}
+
+.lagu-table {
+    min-width: 520px;
+}
+
+.report-table thead th {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748B;
+    padding: 10px 10px 12px 10px;
+    border-bottom: 1px solid #E2E8F0;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.report-table thead th.sortable {
+    cursor: pointer;
+    color: #475569;
+}
+
+.report-table thead th.sortable:hover {
+    color: var(--primary-color, #0A3654);
+}
+
+.report-table tbody td {
+    padding: 13px 10px;
+    font-size: 13.5px;
+    color: #1E293B;
+    border-bottom: 1px solid #F1F5F9;
+    vertical-align: middle;
+}
+
+.report-table tbody tr:hover {
+    background-color: #F8FAFC;
+}
+
+.report-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Kolom Tabel Pelayanan */
+.pelayanan-table .col-name {
+    text-align: left;
+    padding-left: 8px;
+    font-weight: 600;
+    color: #0F2942;
+    min-width: 160px;
+}
+
+.pelayanan-table .col-role {
+    text-align: center;
+    width: 7%;
+}
+
+.pelayanan-table td.col-role {
+    color: #334155;
+    font-weight: 500;
+}
+
+.pelayanan-table td.col-role.empty-dash {
+    color: #94A3B8;
+    font-weight: 400;
+}
+
+.pelayanan-table .col-total {
+    text-align: right;
+    padding-right: 10px;
+    font-weight: 700;
+    color: #0F2942;
+    width: 75px;
+}
+
+/* Kolom Tabel Lagu */
+.lagu-table .col-no {
+    text-align: left;
+    padding-left: 8px;
+    width: 56px;
+    color: #64748B;
+}
+
+.lagu-table .col-song-title {
+    text-align: left;
+    font-weight: 600;
+    color: #0F2942;
+}
+
+.lagu-table .col-song-count {
+    text-align: right;
+    font-weight: 700;
+    color: #0F2942;
+    width: 160px;
+    padding-right: 24px;
+}
+
+.lagu-table .col-song-last {
+    text-align: right;
+    padding-right: 10px;
+    color: #64748B;
+    width: 150px;
+}
+
+.empty-table-cell {
+    text-align: center;
+    padding: 32px 16px !important;
+    color: #64748B !important;
+    font-size: 13.5px;
+}
+
+/* --- Footer Bar Tabel --- */
+.report-table-footer {
+    margin-top: 8px;
+    background-color: #EDF6FA;
+    border-radius: 10px;
+    padding: 13px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.report-table-footer.lagu-footer {
+    padding-right: 170px;
+}
+
+.footer-info {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0F2942;
+}
+
+.footer-total {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0F2942;
+}
+
+/* --- Responsive Adaptive Mobile & Tablet --- */
+@media (max-width: 992px) {
+    .filter-controls-row {
+        align-items: stretch;
+    }
+
+    .filter-action-col {
+        width: 100%;
+    }
+
+    .btn-tampilkan-report {
+        width: 100%;
+    }
+
+    .report-table-footer.lagu-footer {
+        padding-right: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .report-title {
+        font-size: 24px;
+    }
+
+    .report-filter-card {
+        padding: 16px;
+    }
+
+    .filter-controls-row {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .mode-segmented {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .mode-btn {
+        text-align: center;
+    }
+
+    .filter-group-dates {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .date-input-field {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .year-select-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .report-year-select {
+        width: 100%;
+    }
+
+    .report-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .report-stat-card {
+        padding: 15px 18px;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .report-table-card {
+        padding: 16px;
+    }
+
+    .table-card-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .table-search-box {
+        width: 100%;
+    }
+}

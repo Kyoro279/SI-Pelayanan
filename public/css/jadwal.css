@@ -564,10 +564,15 @@
 }
 
 .card-date {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
     font-size: 0.82rem;
     font-weight: 700;
     color: #0284c7;
     letter-spacing: 0.5px;
+    line-height: 1.2;
 }
 
 .btn-detail {
@@ -695,15 +700,17 @@
 }
 
 .badge-passed {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: #64748b;
     color: #ffffff;
     font-size: 0.68rem;
     font-weight: 700;
-    padding: 2px 8px;
+    line-height: 1;
+    padding: 4px 9px;
     border-radius: 999px;
     letter-spacing: 0.4px;
-    vertical-align: middle;
 }
 
 /* Loading & Empty State */

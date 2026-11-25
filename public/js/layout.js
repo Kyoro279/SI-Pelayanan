@@ -102,14 +102,17 @@ async function setupSidebarLogic() {
         const menuAkun = document.querySelector('.sidebar-menu a[data-menu="akun"]');
         const menuBerhalangan = document.querySelector('.sidebar-menu a[data-menu="berhalangan"]');
         const menuHistory = document.querySelector('.sidebar-menu a[data-menu="history"]');
+        const menuReport = document.querySelector('.sidebar-menu a[data-menu="report"]');
 
-        if (role !== 'admin') {
+        if (role !== 'admin' && !isSuperAdmin) {
             if (menuAkun) menuAkun.parentElement.style.display = 'none';
         }
 
-        if (role === 'servant' || role === 'worship leader' || role === 'music director') {
+        const isAdminOrWp = isSuperAdmin || role === 'admin' || role === 'worship planner' || role === 'wp';
+        if (!isAdminOrWp) {
             if (menuBerhalangan) menuBerhalangan.parentElement.style.display = 'none';
             if (menuHistory) menuHistory.parentElement.style.display = 'none';
+            if (menuReport) menuReport.parentElement.style.display = 'none';
         }
     }
 

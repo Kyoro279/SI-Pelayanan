@@ -101,11 +101,20 @@ app.get('/rekap-history', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'rekap-history.html'));
 });
 
+// Rute untuk halaman Report
+app.get('/report', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'report.html'));
+});
+
 
 
 // ==========================================
 // JALANKAN SERVER
 // ==========================================
-app.listen(PORT, () => {
-    console.log(`Server SI Pelayanan sudah berjalan di http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`Server SI Pelayanan sudah berjalan di http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;

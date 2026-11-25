@@ -359,6 +359,7 @@
         height: auto;
         max-height: none;
         overflow: visible;
+        padding: 28px 24px;
     }
 
     .detail-header {
@@ -409,7 +410,17 @@
         gap: 16px;
     }
 
+    /* pada tampilan mobile: urutan 1 = url youtube, 2 = jump to section (.sidebar-right), 3 = chord & lirik (.lyrics-container) */
+    .sidebar-right {
+        order: 1;
+    }
+
+    .video-thumbnail {
+        margin-bottom: 16px;
+    }
+
     .lyrics-container {
+        order: 2;
         height: auto;
         max-height: 62vh;
         padding: 18px 16px;
@@ -436,5 +447,11 @@
         font-size: 12.5px;
         color: var(--primary-color);
         font-weight: 600;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 76px 16px 28px 16px;
     }
 }

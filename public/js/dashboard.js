@@ -68,21 +68,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         const response = await fetch('/api/jadwal');
         if (!response.ok) throw new Error('Gagal mengambil data jadwal');
         const result = await response.json();
-        let allJadwal = result.data || [];
+        const rawAllJadwal = result.data || [];
 
+        // buang jam di tanggal kalo dia format iso
+        rawAllJadwal.forEach(j => {
+            if (j.tanggal && j.tanggal.includes('T')) {
+                j.tanggal = j.tanggal.split('T')[0];
+            }
+        });
+
+        // Render grafik Top 3 Servant & Top 3 Lagu selama 3 bulan terakhir (dari seluruh data jadwal)
+        renderTopChartsLast3Months(rawAllJadwal);
+
+        let allJadwal = [...rawAllJadwal];
         const role = window.userData ? (window.userData.role || '').trim().toLowerCase() : (window.isSuperAdmin ? 'admin' : 'guest');
         const canSeeAllJadwal = window.isSuperAdmin || role === 'admin' || role === 'worship planner' || role === 'wp';
 
         if (!canSeeAllJadwal) {
             allJadwal = allJadwal.filter(j => isUserAssignedInSchedule(j));
         }
-
-        // buang jam di tanggal kalo dia format iso
-        allJadwal.forEach(j => {
-            if (j.tanggal && j.tanggal.includes('T')) {
-                j.tanggal = j.tanggal.split('T')[0];
-            }
-        });
 
         // waktu sekarang (tanggal dan jam saat ini)
         const now = new Date();
@@ -102,6 +106,133 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Error saat memuat jadwal:', err);
     }
 });
+
+// Fungsi untuk menghitung & menampilkan Grafik Bar Chart Tegak Lurus:
+// Top 3 Servant Aktif & Top 3 Lagu Sering Digunakan dalam 3 Bulan Terakhir
+function renderTopChartsLast3Months(schedules) {
+    const servantChartEl = document.getElementById('chart-top-servants');
+    const songChartEl = document.getElementById('chart-top-songs');
+    const periodBadgeEl = document.getElementById('chart-period-label');
+    if (!servantChartEl || !songChartEl) return;
+
+    const BULAN_SINGKAT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const now = new Date();
+
+    // Rentang 3 bulan terakhir: dari awal 2 bulan lalu (total 3 bulan kalender termasuk bulan berjalan) hingga akhir bulan ini
+    const startWindow = new Date(now.getFullYear(), now.getMonth() - 2, 1, 0, 0, 0, 0);
+    const endWindow = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    if (periodBadgeEl) {
+        const startLabel = `${BULAN_SINGKAT[startWindow.getMonth()]} ${startWindow.getFullYear()}`;
+        const endLabel = `${BULAN_SINGKAT[endWindow.getMonth()]} ${endWindow.getFullYear()}`;
+        periodBadgeEl.textContent = `${startLabel} – ${endLabel}`;
+    }
+
+    // Saring jadwal yang berada dalam rentang 3 bulan terakhir
+    const schedulesIn3Months = (schedules || []).filter(j => {
+        const dt = getScheduleDateTime(j);
+        return dt && dt >= startWindow && dt <= endWindow;
+    });
+
+    // 1. Hitung frekuensi pelayanan setiap Servant
+    const servantCounts = new Map();
+    function addServantCount(rawName) {
+        const name = (rawName || '').trim();
+        if (!name || name === '-') return;
+        const key = name.toLowerCase();
+        if (!servantCounts.has(key)) {
+            servantCounts.set(key, { name, count: 0 });
+        }
+        servantCounts.get(key).count += 1;
+    }
+
+    // 2. Hitung frekuensi pemakaian setiap Lagu
+    const songCounts = new Map();
+    function addSongCount(songItem) {
+        if (!songItem) return;
+        const title = (songItem.judul_lagu || songItem.judul || '').trim();
+        if (!title) return;
+        const key = songItem.id_lagu ? `id_${songItem.id_lagu}` : `title_${title.toLowerCase()}`;
+        if (!songCounts.has(key)) {
+            songCounts.set(key, { name: title, count: 0 });
+        }
+        songCounts.get(key).count += 1;
+    }
+
+    schedulesIn3Months.forEach(j => {
+        // Hitung pelayan dari petugas (jadwal_tugas) atau tim_pelayanan
+        if (Array.isArray(j.petugas) && j.petugas.length > 0) {
+            j.petugas.forEach(p => addServantCount(p.nama_lengkap));
+        } else if (j.tim_pelayanan && typeof j.tim_pelayanan === 'object') {
+            Object.values(j.tim_pelayanan).forEach(val => addServantCount(val));
+        }
+
+        // Hitung lagu dari daftar_lagu (jadwal_lagu)
+        if (Array.isArray(j.daftar_lagu)) {
+            j.daftar_lagu.forEach(s => addSongCount(s));
+        }
+    });
+
+    const top3Servants = Array.from(servantCounts.values())
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'id'))
+        .slice(0, 3);
+
+    const top3Songs = Array.from(songCounts.values())
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'id'))
+        .slice(0, 3);
+
+    servantChartEl.innerHTML = buildVerticalBarChartHTML(top3Servants, 'servant-bar', 'tugas', 'Belum ada data pelayan dalam 3 bulan terakhir.');
+    songChartEl.innerHTML = buildVerticalBarChartHTML(top3Songs, 'song-bar', 'kali', 'Belum ada lagu yang dipakai dalam 3 bulan terakhir.');
+}
+
+function buildVerticalBarChartHTML(items, barTypeClass, unitLabel, emptyMessage) {
+    if (!items || items.length === 0) {
+        return `<div class="chart-empty">${escapeHtml(emptyMessage)}</div>`;
+    }
+
+    const maxCount = Math.max(...items.map(i => i.count), 1);
+
+    // Pastikan selalu ada 3 kolom supaya grafik bar tegak lurus tampak proporsional
+    const slots = [0, 1, 2].map(idx => items[idx] || null);
+
+    const barsHtml = slots.map((item, idx) => {
+        const rank = idx + 1;
+        if (!item) {
+            return `
+                <div class="vbar-col">
+                    <span class="vbar-count" style="color: #94A3B8;">0</span>
+                    <div class="vbar-bar empty-bar" style="height: 8px;"></div>
+                </div>
+            `;
+        }
+        // Tinggi bar proporsional terhadap nilai tertinggi (minimal 22% agar tetap jelas terlihat)
+        const heightPct = Math.max(22, Math.round((item.count / maxCount) * 100));
+        return `
+            <div class="vbar-col" title="${escapeHtml(item.name)}: ${item.count} ${unitLabel}">
+                <span class="vbar-count">${item.count} ${unitLabel}</span>
+                <div class="vbar-bar ${barTypeClass} rank-${rank}" style="height: ${heightPct}%;">
+                    <span class="vbar-rank-tag">#${rank}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const labelsHtml = slots.map(item => {
+        if (!item) {
+            return `<div class="vbar-name muted">-</div>`;
+        }
+        return `<div class="vbar-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>`;
+    }).join('');
+
+    return `
+        <div class="vbar-plot">
+            ${barsHtml}
+        </div>
+        <div class="vbar-labels-row">
+            ${labelsHtml}
+        </div>
+    `;
+}
 
 // ini buat ngatur ui htmlnya
 function renderDashboard(futureJadwal) {
