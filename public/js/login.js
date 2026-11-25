@@ -43,8 +43,8 @@ async function setupLogin() {
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google', 
                     options: {
-                        // kalo sukses, lempar user ke halaman dashboard
-                        redirectTo: 'http://localhost:3000/dashboard'
+                        // kalo sukses, lempar user ke halaman dashboard sesuai domain yang sedang dibuka (localhost atau vercel)
+                        redirectTo: `${window.location.origin}/dashboard`
                     }
                 });
 
