@@ -246,7 +246,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.querySelectorAll('.btn-remove-lagu').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const idx = e.currentTarget.getAttribute('data-index');
-                    if (confirm('Hapus lagu ini dari jadwal?')) {
+                    const isConfirmed = window.showPopupConfirm
+                        ? await window.showPopupConfirm('Apakah Anda yakin ingin menghapus lagu ini dari jadwal?')
+                        : confirm('Hapus lagu ini dari jadwal?');
+                    if (isConfirmed) {
                         await hapusLaguDariJadwal(idx);
                     }
                 });
@@ -281,7 +284,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const selectedKey = selectKey.value;
 
             if (!selectedId) {
-                alert("Silakan pilih lagu terlebih dahulu.");
+                if (window.showPopupAlert) {
+                    window.showPopupAlert('Silakan pilih lagu terlebih dahulu.', 'warning');
+                } else {
+                    alert("Silakan pilih lagu terlebih dahulu.");
+                }
                 return;
             }
 
@@ -314,8 +321,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     currentJadwal.daftar_lagu = daftarLaguSekarang;
                     renderDaftarLagu();
                     btnCancelLagu.click();
+                    if (window.showPopupAlert) {
+                        window.showPopupAlert('Lagu Berhasil Ditambahkan', 'success');
+                    }
                 } else {
-                    alert('Gagal menyimpan lagu ke jadwal.');
+                    if (window.showPopupAlert) {
+                        window.showPopupAlert('Gagal menyimpan lagu ke jadwal.', 'error');
+                    } else {
+                        alert('Gagal menyimpan lagu ke jadwal.');
+                    }
                 }
             } catch (err) {
                 console.error(err);
@@ -345,6 +359,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (data.success) {
                 currentJadwal.daftar_lagu = daftarLaguSekarang;
                 renderDaftarLagu();
+                if (window.showPopupAlert) {
+                    window.showPopupAlert('Lagu Berhasil Dihapus', 'success');
+                }
             }
         } catch (err) {
             console.error(err);
@@ -688,7 +705,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const alasan = inputAlasan.value.trim();
 
         if (!alasan) {
-            alert('Silakan tulis pesan terlebih dahulu.');
+            if (window.showPopupAlert) {
+                window.showPopupAlert('Silakan tulis pesan terlebih dahulu.', 'warning');
+            } else {
+                alert('Silakan tulis pesan terlebih dahulu.');
+            }
             inputAlasan.focus();
             return;
         }

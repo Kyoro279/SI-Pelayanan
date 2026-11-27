@@ -159,11 +159,14 @@ function renderSongDetail() {
     document.title = `${title} - KITTEENS HUB`;
 
     //atur visibilitas tombol edit dan hapus sesuai hak akses role
+    const headerActions = document.querySelector('.header-actions');
     const btnEdit = document.querySelector('.btn-edit');
     const btnDelete = document.querySelector('.btn-delete-filled');
     if (canManageLagu) {
+        if (headerActions) headerActions.style.display = 'flex';
         if (btnEdit) btnEdit.onclick = () => window.location.href = `/edit-lagu?id=${songId}`;
     } else {
+        if (headerActions) headerActions.style.display = 'none';
         if (btnEdit) btnEdit.style.display = 'none';
         if (btnDelete) btnDelete.style.display = 'none';
     }
@@ -191,9 +194,12 @@ function renderSongDetail() {
     const videoLink = document.querySelector('.video-thumbnail-link');
     const videoThumbnail = document.querySelector('.video-thumbnail');
     if (currentSong.link_youtube) {
-        videoLink.href = currentSong.link_youtube;
+        if (videoLink) {
+            videoLink.href = currentSong.link_youtube;
+            videoLink.style.display = 'block';
+        }
         const videoId = extractYouTubeId(currentSong.link_youtube);
-        if (videoId) {
+        if (videoId && videoThumbnail) {
             videoThumbnail.style.backgroundImage = `url('https://img.youtube.com/vi/${videoId}/hqdefault.jpg')`;
         }
     } else if (videoLink) {
@@ -368,13 +374,24 @@ function setupInteractions(songId) {
     const deleteBtn = document.querySelector('.btn-delete-filled');
     if (deleteBtn) {
         deleteBtn.addEventListener('click', async () => {
-            if (!confirm('Apakah Anda yakin ingin menghapus lagu ini?')) return;
+            const judulLagu = currentSong ? (currentSong.judul_lagu || currentSong.judul || 'ini') : 'ini';
+            const isConfirmed = window.showPopupConfirm
+                ? await window.showPopupConfirm(`Apakah Anda yakin ingin menghapus lagu "${judulLagu}"?`)
+                : confirm('Apakah Anda yakin ingin menghapus lagu ini?');
+            if (!isConfirmed) return;
             try {
                 const res = await fetch(`/api/lagu/${songId}`, { method: 'DELETE' });
                 if (!res.ok) throw new Error('Gagal menghapus lagu');
+                if (window.showPopupAlert) {
+                    await window.showPopupAlert('Lagu Berhasil Dihapus', 'success');
+                }
                 window.location.href = '/bank-lagu';
             } catch (err) {
-                alert(err.message);
+                if (window.showPopupAlert) {
+                    window.showPopupAlert(err.message, 'error');
+                } else {
+                    alert(err.message);
+                }
             }
         });
     }

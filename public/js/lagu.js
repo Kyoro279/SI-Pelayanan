@@ -197,8 +197,11 @@ function filterSongs() {
 
 //fungsi buat konfirmasi dan hapus lagu dari database
 async function confirmDelete(id, judul) {
-    //minta konfirmasi user dulu sebelum benar-benar menghapus
-    if (!confirm(`Apakah Anda yakin ingin menghapus lagu "${judul}"?`)) return;
+    //minta konfirmasi user lewat pop up dulu sebelum benar-benar menghapus
+    const isConfirmed = window.showPopupConfirm
+        ? await window.showPopupConfirm(`Apakah Anda yakin ingin menghapus lagu "${judul}"?`)
+        : confirm(`Apakah Anda yakin ingin menghapus lagu "${judul}"?`);
+    if (!isConfirmed) return;
 
     try {
         //kirim request DELETE ke backend berdasarkan ID lagu
@@ -207,7 +210,14 @@ async function confirmDelete(id, judul) {
 
         //muat ulang daftar lagu setelah berhasil dihapus
         await fetchSongs();
+        if (window.showPopupAlert) {
+            await window.showPopupAlert('Lagu Berhasil Dihapus', 'success');
+        }
     } catch (err) {
-        alert('Gagal menghapus lagu: ' + err.message);
+        if (window.showPopupAlert) {
+            window.showPopupAlert('Gagal menghapus lagu: ' + err.message, 'error');
+        } else {
+            alert('Gagal menghapus lagu: ' + err.message);
+        }
     }
 }

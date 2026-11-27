@@ -875,8 +875,11 @@ async function handleTrashHeaderClick() {
         const item = allJadwal.find(j => String(j.id) === String(activeEditId));
         const judul = item ? item.judul : 'jadwal ini';
 
-        //tanyakan konfirmasi kepada user sebelum menghapus secara permanen
-        if (confirm(`Apakah Anda yakin ingin menghapus jadwal:\n"${judul}"?`)) {
+        //tanyakan konfirmasi kepada user melalui pop up sebelum menghapus secara permanen
+        const isConfirmed = window.showPopupConfirm
+            ? await window.showPopupConfirm(`Apakah Anda yakin ingin menghapus jadwal "${judul}"?`)
+            : confirm(`Apakah Anda yakin ingin menghapus jadwal:\n"${judul}"?`);
+        if (isConfirmed) {
             try {
                 //kirim permintaan HTTP DELETE ke backend API
                 const res = await fetch(`/api/jadwal/${activeEditId}`, { method: 'DELETE' });
@@ -889,9 +892,17 @@ async function handleTrashHeaderClick() {
 
                 //tutup form dan kembali ke tampilan daftar kartu
                 closeForm();
+
+                if (window.showPopupAlert) {
+                    await window.showPopupAlert('Jadwal Berhasil Dihapus', 'success');
+                }
             } catch (err) {
                 //tampilkan pesan jika terjadi kesalahan
-                alert('Gagal menghapus jadwal: ' + err.message);
+                if (window.showPopupAlert) {
+                    window.showPopupAlert('Gagal menghapus jadwal: ' + err.message, 'error');
+                } else {
+                    alert('Gagal menghapus jadwal: ' + err.message);
+                }
             }
         }
     }
@@ -925,7 +936,11 @@ async function handleFormSubmit(e) {
     //validasi dasar: pastikan Tanggal dan Judul/Tema tidak dibiarkan kosong oleh pengguna
     if (!tanggal || !tema_kotbah) {
         const namaField = kategori === 'Latihan' ? 'Nama Latihan' : (kategori === 'Event' ? 'Nama Event' : 'Tema Kotbah');
-        alert(`Tanggal dan ${namaField} wajib diisi!`);
+        if (window.showPopupAlert) {
+            window.showPopupAlert(`Tanggal dan ${namaField} wajib diisi!`, 'warning');
+        } else {
+            alert(`Tanggal dan ${namaField} wajib diisi!`);
+        }
         return;
     }
 
@@ -1005,10 +1020,21 @@ async function handleFormSubmit(e) {
         //tutup form dan kembali ke tampilan daftar kartu
         closeForm();
 
+        if (window.showPopupAlert) {
+            await window.showPopupAlert(
+                isEdit ? 'Jadwal Berhasil Diperbaharui' : 'Jadwal Berhasil Ditambahkan',
+                'success'
+            );
+        }
+
     } catch (error) {
         //tampilkan pesan peringatan jika terjadi kegagalan menyimpan
         console.error('Error saving jadwal:', error);
-        alert(error.message);
+        if (window.showPopupAlert) {
+            window.showPopupAlert(error.message, 'error');
+        } else {
+            alert(error.message);
+        }
     } finally {
         //kembalikan tombol ke keadaan semula (bisa diklik lagi) apa pun hasilnya
         submitBtn.disabled = false;
@@ -1228,9 +1254,12 @@ function renderScheduleList() {
  * @param {string} judul - Judul jadwal untuk konfirmasi pengguna
  */
 async function hapusCardJadwal(id, judul) {
-    //tampilkan konfirmasi penghapusan agar tidak terhapus tidak sengaja
-    if (!confirm(`Apakah Anda yakin ingin menghapus jadwal:\n"${judul}"?`)) {
-        return; //batalkan jika user menekan tombol Cancel
+    //tampilkan pop up konfirmasi penghapusan agar tidak terhapus tidak sengaja
+    const isConfirmed = window.showPopupConfirm
+        ? await window.showPopupConfirm(`Apakah Anda yakin ingin menghapus jadwal "${judul}"?`)
+        : confirm(`Apakah Anda yakin ingin menghapus jadwal:\n"${judul}"?`);
+    if (!isConfirmed) {
+        return; //batalkan jika user menekan tombol Batal
     }
 
     try {
@@ -1242,9 +1271,17 @@ async function hapusCardJadwal(id, judul) {
 
         //refresh data jadwal terbaru dari server
         await fetchJadwal();
+
+        if (window.showPopupAlert) {
+            await window.showPopupAlert('Jadwal Berhasil Dihapus', 'success');
+        }
     } catch (err) {
         //menampilkan pesan jika terjadi kesalahan
-        alert('Gagal menghapus jadwal: ' + err.message);
+        if (window.showPopupAlert) {
+            window.showPopupAlert('Gagal menghapus jadwal: ' + err.message, 'error');
+        } else {
+            alert('Gagal menghapus jadwal: ' + err.message);
+        }
     }
 }
 

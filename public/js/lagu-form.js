@@ -58,7 +58,11 @@ async function handleSave(id) {
 
     //validasi wajib: judul lagu tidak boleh kosong
     if (!judul_lagu) {
-        alert('Judul lagu wajib diisi!');
+        if (window.showPopupAlert) {
+            window.showPopupAlert('Judul Lagu Wajib Diisi!', 'error');
+        } else {
+            alert('Judul lagu wajib diisi!');
+        }
         return;
     }
 
@@ -95,11 +99,21 @@ async function handleSave(id) {
             throw new Error(result.message || 'Gagal menyimpan lagu');
         }
 
-        //arahin balik ke detail lagu kalau edit, atau ke daftar bank lagu kalau tambah baru
+        //tampilkan pop up berhasil lalu arahkan balik ke detail lagu (jika edit) atau ke bank lagu (jika tambah baru)
+        if (window.showPopupAlert) {
+            await window.showPopupAlert(
+                id ? 'Lagu Berhasil Diperbaharui' : 'Lagu Berhasil Ditambahkan',
+                'success'
+            );
+        }
         window.location.href = id ? `/detail-lagu?id=${id}` : '/bank-lagu';
     } catch (err) {
         //tampilkan pesan error dan aktifkan kembali tombol simpan jika gagal
-        alert(err.message);
+        if (window.showPopupAlert) {
+            window.showPopupAlert(err.message, 'error');
+        } else {
+            alert(err.message);
+        }
         saveBtn.disabled = false;
         saveBtn.textContent = originalText;
     }

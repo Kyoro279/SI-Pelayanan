@@ -43,7 +43,7 @@
                     </button>
                 </div>
                 <!--tombol edit dan hapus yang hanya ditampilkan untuk admin/music director-->
-                <div class="header-actions">
+                <div class="header-actions" style="display: none;">
                     <button class="btn-edit" onclick="window.location.href='/edit-lagu'">Edit</button>
                     <button class="btn-delete-filled"><i class="ph-bold ph-trash"></i></button>
                 </div>
@@ -76,16 +76,14 @@
                     <!--informasi nada dasar original lagu-->
                     <div class="control-item">
                         <span class="control-label">Original</span>
-                        <span class="control-value">G</span>
+                        <span class="control-value">-</span>
                     </div>
                     <div class="control-divider"></div>
                     <!--dropdown untuk menaikkan atau menurunkan nada dasar (transpose)-->
                     <div class="control-item">
                         <span class="control-label">Transpose</span>
                         <select class="transpose-select">
-                            <option>G</option>
-                            <option>A</option>
-                            <option>B</option>
+                            <option>-</option>
                         </select>
                     </div>
                 </div>
@@ -109,7 +107,7 @@
                 <!--panel samping kanan: link video youtube dan navigasi cepat per bagian lagu-->
                 <div class="sidebar-right">
                     <!--kotak thumbnail youtube yang mengarah ke link video asli-->
-                    <a href="#" target="_blank" class="video-thumbnail-link">
+                    <a href="#" target="_blank" class="video-thumbnail-link" style="display: none;">
                         <div class="video-thumbnail"></div>
                     </a>
 

@@ -346,21 +346,29 @@
 
 .report-table thead th {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
     color: #64748B;
     padding: 10px 10px 12px 10px;
     border-bottom: 1px solid #E2E8F0;
     white-space: nowrap;
     user-select: none;
+    transition: color 0.15s ease, font-weight 0.15s ease;
 }
 
-.report-table thead th.sortable {
+.report-table thead th.sortable,
+.report-table thead th.role-sortable {
     cursor: pointer;
-    color: #475569;
 }
 
-.report-table thead th.sortable:hover {
+.report-table thead th.sortable:hover,
+.report-table thead th.role-sortable:hover {
     color: var(--primary-color, #0A3654);
+}
+
+.report-table thead th.role-sortable.active-role-sort {
+    font-weight: 800;
+    color: #0F2942;
+    border-bottom: 2px solid #0F2942;
 }
 
 .report-table tbody td {
@@ -396,6 +404,11 @@
 .pelayanan-table td.col-role {
     color: #334155;
     font-weight: 500;
+}
+
+.pelayanan-table td.col-role.active-role-cell {
+    font-weight: 700;
+    color: #0F2942;
 }
 
 .pelayanan-table td.col-role.empty-dash {

@@ -29,6 +29,8 @@ let pelayanRowsData = [];
 let laguRowsData = [];
 let pelayanSortDesc = true;
 let laguSortDesc = true;
+// wadah set buat nyimpen 1 peran/instrumen yang lagi diklik buat prioritas urutan
+let selectedSortRoles = new Set();
 
 // pas halaman html selesai dimuat
 document.addEventListener('DOMContentLoaded', async () => {
@@ -154,7 +156,31 @@ function setupReportInteractions() {
         });
     }
 
-    // 6. fitur klik judul kolom total / jumlah dipakai buat membalik urutan terbesar ke terkecil atau sebaliknya
+    // 6. fitur klik tulisan peran instrumen (wl, singer, drummer, dll) buat jadiin prioritas urutan (hanya 1 peran aktif di satu waktu)
+    const roleHeaderBtns = document.querySelectorAll('.pelayanan-table thead th.role-sortable[data-role]');
+    roleHeaderBtns.forEach(th => {
+        th.addEventListener('click', () => {
+            const roleKey = th.getAttribute('data-role');
+            if (!roleKey) return;
+
+            const isAlreadyActive = selectedSortRoles.has(roleKey);
+
+            // matikan dulu semua pilihan peran yang sebelumnya nyala
+            selectedSortRoles.clear();
+            roleHeaderBtns.forEach(btn => btn.classList.remove('active-role-sort'));
+
+            // kalau peran yang diklik tadi belum aktif, nyalakan peran ini saja dan buat tulisannya jadi tebal (bold)
+            if (!isAlreadyActive) {
+                selectedSortRoles.add(roleKey);
+                th.classList.add('active-role-sort');
+            }
+
+            // gambar ulang tabel sesuai prioritas peran yang baru dipilih
+            renderPelayananTable();
+        });
+    });
+
+    // 7. fitur klik judul kolom total / jumlah dipakai buat membalik urutan terbesar ke terkecil atau sebaliknya
     const sortPelayanBtn = document.getElementById('sort-pelayan-total');
     if (sortPelayanBtn) {
         sortPelayanBtn.addEventListener('click', () => {
@@ -373,12 +399,41 @@ function renderPelayananTable() {
         !query || item.nama.toLowerCase().includes(query)
     );
 
-    // urutkan daftar pelayan berdasarkan angka total tugas (dari terbanyak ke paling sedikit atau sebaliknya)
+    // fungsi bantu buat ngitung jumlah tugas seorang pelayan khusus pada peran-peran yang lagi diklik
+    const activeRoleKeys = Array.from(selectedSortRoles);
+    function getSelectedRolesStats(row) {
+        let sum = 0;
+        let max = 0;
+        activeRoleKeys.forEach(k => {
+            const val = (row.counts && row.counts[k]) ? row.counts[k] : 0;
+            sum += val;
+            if (val > max) max = val;
+        });
+        return { sum, max };
+    }
+
+    // urutkan daftar pelayan:
+    // kalau ada tulisan peran instrumen yang diklik, prioritaskan nama dengan jumlah maksimal pada peran yang diklik tersebut
     filtered.sort((a, b) => {
+        if (activeRoleKeys.length > 0) {
+            const statsA = getSelectedRolesStats(a);
+            const statsB = getSelectedRolesStats(b);
+
+            // 1. bandingkan total jumlah tugas dari peran-peran yang diklik (yang paling banyak naik ke paling atas)
+            if (statsB.sum !== statsA.sum) {
+                return statsB.sum - statsA.sum;
+            }
+            // 2. kalau jumlah gabungannya seri, lihat siapa yang punya angka tertinggi di salah satu peran yang diklik
+            if (statsB.max !== statsA.max) {
+                return statsB.max - statsA.max;
+            }
+        }
+
+        // 3. kalau tidak ada peran yang diklik (atau nilainya masih seri), urutkan berdasarkan angka total keseluruhan
         if (b.total !== a.total) {
             return pelayanSortDesc ? (b.total - a.total) : (a.total - b.total);
         }
-        // kalau jumlah total tugasnya sama persis, urutkan sesuai abjad nama pelayan
+        // 4. kalau jumlah total tugasnya masih sama persis, urutkan sesuai abjad nama pelayan
         return a.nama.localeCompare(b.nama, 'id');
     });
 
@@ -387,7 +442,7 @@ function renderPelayananTable() {
 
     // perbarui tulisan jumlah pelayan dan angka total penugasan di baris biru paling bawah tabel (footer)
     if (footerInfo) {
-        footerInfo.innerHTML = `${filtered.length} pelayan &bull; Total periode terpilih`;
+        footerInfo.textContent = `${filtered.length} pelayan • Total periode terpilih`;
     }
     if (footerTotal) {
         footerTotal.textContent = displayedTotal;
@@ -409,9 +464,10 @@ function renderPelayananTable() {
     tbody.innerHTML = filtered.map(row => {
         const roleCellsHtml = ROLE_COLUMNS.map(col => {
             const val = row.counts[col.key] || 0;
-            // kalau pelayan pernah bertugas di peran ini, tampilkan angkanya
+            const isRoleActive = selectedSortRoles.has(col.key);
+            // kalau pelayan pernah bertugas di peran ini, tampilkan angkanya (tebalkan juga jika kolom peran sedang diklik)
             if (val > 0) {
-                return `<td class="col-role">${val}</td>`;
+                return `<td class="col-role${isRoleActive ? ' active-role-cell' : ''}">${val}</td>`;
             }
             // kalau nilainya 0 (belum pernah bertugas di peran ini), tampilkan tanda strip panjang
             return `<td class="col-role empty-dash">&mdash;</td>`;
@@ -531,7 +587,7 @@ function renderLaguTable() {
 
     // perbarui keterangan jumlah lagu dan total berapa kali dipakai pada baris footer di bawah tabel
     if (footerInfo) {
-        footerInfo.innerHTML = `${filtered.length} lagu &bull; Total periode terpilih`;
+        footerInfo.textContent = `${filtered.length} lagu • Total periode terpilih`;
     }
     if (footerTotal) {
         footerTotal.textContent = `${displayedTotalUses} kali`;

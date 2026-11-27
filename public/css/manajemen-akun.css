@@ -97,14 +97,16 @@
 .table-container {
     background: #FFF;
     border-radius: 12px;
-    overflow: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     box-shadow: 0 2px 10px rgba(0,0,0,0.02);
     border: 1px solid var(--border-color);
 }
 .account-table {
     width: 100%;
+    min-width: 720px;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: auto;
 }
 .account-table th {
     background-color: var(--primary-color);
@@ -113,17 +115,34 @@
     font-size: 14px;
     text-align: left;
     padding: 16px 20px;
+    white-space: nowrap;
 }
-.account-table th:nth-child(1) { width: 30%; }
-.account-table th:nth-child(2) { width: 35%; }
-.account-table th:nth-child(3) { width: 20%; }
-.account-table th:nth-child(4) { width: 15%; text-align: right; }
+.account-table th:nth-child(1),
+.account-table td:nth-child(1) {
+    min-width: 170px;
+}
+.account-table th:nth-child(2),
+.account-table td:nth-child(2) {
+    min-width: 250px;
+}
+.account-table th:nth-child(3),
+.account-table td:nth-child(3) {
+    min-width: 175px;
+    white-space: nowrap;
+}
+.account-table th:nth-child(4),
+.account-table td:nth-child(4) {
+    min-width: 105px;
+    text-align: right;
+    white-space: nowrap;
+}
 .account-table td {
     padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
     font-size: 14px;
     color: var(--text-main);
     vertical-align: middle;
+    white-space: nowrap;
 }
 .account-table tr:last-child td {
     border-bottom: none;
@@ -213,12 +232,12 @@
     }
 
     .account-table {
-        min-width: 580px;
+        min-width: 680px;
     }
 
     .account-table th,
     .account-table td {
-        padding: 12px 14px;
+        padding: 13px 16px;
         font-size: 13px;
     }
 }

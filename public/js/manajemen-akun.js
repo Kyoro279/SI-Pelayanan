@@ -117,14 +117,23 @@ async function handleTambahAkun(e) {
         // Jika server membalas dengan status selain 2xx (artinya gagal)
         if (!response.ok) throw new Error(result.error || 'Gagal menambah akun');
 
-        alert('Berhasil menambah akun!');
         document.getElementById('form-tambah-akun').reset(); // Kosongkan form kembali
 
         // Tarik ulang data dari database agar data yang baru ditambahkan langsung muncul di tabel
         await fetchAkun();
 
+        if (window.showPopupAlert) {
+            await window.showPopupAlert('Akun Berhasil Ditambahkan', 'success');
+        } else {
+            alert('Berhasil menambah akun!');
+        }
+
     } catch (error) {
-        alert(error.message);
+        if (window.showPopupAlert) {
+            window.showPopupAlert(error.message, 'error');
+        } else {
+            alert(error.message);
+        }
     }
 }
 
@@ -153,16 +162,27 @@ async function handleRoleChange(email, selectElement) {
         const index = allAccounts.findIndex(a => a.email === email);
         if (index > -1) allAccounts[index].role = newRole;
 
+        if (window.showPopupAlert) {
+            window.showPopupAlert('Role Akun Berhasil Diperbaharui', 'success');
+        }
+
     } catch (error) {
         // Jika ada masalah koneksi atau error di backend
-        alert('Gagal memperbarui Role: ' + error.message);
+        if (window.showPopupAlert) {
+            window.showPopupAlert('Gagal memperbarui Role: ' + error.message, 'error');
+        } else {
+            alert('Gagal memperbarui Role: ' + error.message);
+        }
         await fetchAkun(); // Tarik lagi data awal yang valid untuk membatalkan (revert) perubahan di layar
     }
 }
 
-// hapus akun pake konfirmasi dulu
+// hapus akun pake pop up konfirmasi dulu
 async function handleHapusAkun(email) {
-    if (!confirm(`Apakah Anda yakin ingin menghapus akun dengan email: ${email}?`)) return;
+    const isConfirmed = window.showPopupConfirm
+        ? await window.showPopupConfirm(`Apakah Anda yakin ingin menghapus akun dengan email:\n${email}?`)
+        : confirm(`Apakah Anda yakin ingin menghapus akun dengan email: ${email}?`);
+    if (!isConfirmed) return;
 
     try {
         const response = await fetch(`/api/akun/${email}`, {
@@ -174,10 +194,18 @@ async function handleHapusAkun(email) {
             throw new Error(result.error || 'Gagal menghapus akun');
         }
 
-        alert('Akun berhasil dihapus');
         await fetchAkun(); // Refresh tabel setelah dihapus
+        if (window.showPopupAlert) {
+            await window.showPopupAlert('Akun Berhasil Dihapus', 'success');
+        } else {
+            alert('Akun berhasil dihapus');
+        }
     } catch (error) {
-        alert(error.message);
+        if (window.showPopupAlert) {
+            window.showPopupAlert(error.message, 'error');
+        } else {
+            alert(error.message);
+        }
     }
 }
 
@@ -213,7 +241,11 @@ async function handleSaveEdit(button, oldEmail) {
 
     // Validasi basic (tidak boleh kosong)
     if (!newNama || !newEmail) {
-        alert("Nama dan Email tidak boleh kosong");
+        if (window.showPopupAlert) {
+            window.showPopupAlert('Nama dan Email tidak boleh kosong!', 'warning');
+        } else {
+            alert("Nama dan Email tidak boleh kosong");
+        }
         return;
     }
 
@@ -238,7 +270,14 @@ async function handleSaveEdit(button, oldEmail) {
 
         // Jika berhasil, refresh tabel secara otomatis
         await fetchAkun();
+        if (window.showPopupAlert) {
+            window.showPopupAlert('Data Akun Berhasil Diperbaharui', 'success');
+        }
     } catch (error) {
-        alert(error.message);
+        if (window.showPopupAlert) {
+            window.showPopupAlert(error.message, 'error');
+        } else {
+            alert(error.message);
+        }
     }
 }
